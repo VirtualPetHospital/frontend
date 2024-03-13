@@ -47,7 +47,7 @@ const sendEmail = () => {
 }
 export default {
   name: "signup",
-  
+
   components: {
     ArgonCheckbox,
     ArgonInput,
@@ -57,14 +57,14 @@ export default {
   data(){
     return{
       signupRuleForm: {
-          nickname: '',
-          password: '',
-          email:'',
-          type:'',
-          captcha:'',
-          statusMsg:''
-          
-        },
+        nickname: '',
+        password: '',
+        email:'',
+        type:'',
+        captcha:'',
+        statusMsg:''
+
+      },
       data: '',
 
     }
@@ -81,18 +81,18 @@ export default {
           email: this.signupRuleForm.email,
           type: this.signupRuleForm.type,
           captcha:this.signupRuleForm.captcha,
-      })
-      .then((res) => {
-          console.log(res);
-          if(res.status == 200){
-            this.$router.push("/users/login");
-          }
-          
+        })
+            .then((res) => {
+              console.log(res);
+              if(res.status == 200){
+                this.$router.push("/users/login");
+              }
 
-      }).catch(err =>{
+
+            }).catch(err =>{
           console.log(err);
           alert("用户邮箱已经存在，请换一个账号注册！")
-      });
+        });
       }
     },
     login1(){
@@ -101,12 +101,12 @@ export default {
         this.$router.push("/dashboard-default")
       } else {
         if(document.getElementById("stu").checked){
-              this.signupRuleForm.type = "student";
-            }else if(document.getElementById("tea").checked){
-              this.signupRuleForm.type = "teacher";
-            }else{
-              this.signupRuleForm.type = "admin";
-            }
+          this.signupRuleForm.type = "student";
+        }else if(document.getElementById("tea").checked){
+          this.signupRuleForm.type = "teacher";
+        }else{
+          this.signupRuleForm.type = "admin";
+        }
         alert(this.signupRuleForm.type)
       }
     }
@@ -128,7 +128,7 @@ export default {
 };
 </script>
 <template>
-  
+
   <div class="container top-0 position-sticky z-index-sticky">
     <div class="row">
       <div class="col-12">
@@ -138,8 +138,8 @@ export default {
   </div>
   <main class="main-content mt-0">
     <div
-      class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
-      style="
+        class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
+        style="
         background-image: url(&quot;https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg&quot;);
         background-position: top;
       "
@@ -149,11 +149,11 @@ export default {
           isBlur="blur  border-radius-lg my-3 py-2 start-0 end-0 mx-4 shadow"
           v-bind:darkMode="true"
           isBtn="bg-gradient-success"
-        />
+      />
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-5 text-center mx-auto">
-            
+
             <h1 class="text-white mb-2 mt-5">welcome</h1>
             <p class="text-lead text-white">
               Use these awesome forms to login or create new account in your
@@ -162,7 +162,7 @@ export default {
           </div>
         </div>
       </div>
-       
+
     </div>
     <div class="container">
       <div class="row mt-lg-n10 mt-md-n11 mt-n10 justify-content-center">
@@ -171,46 +171,46 @@ export default {
             <div class="card-header text-center pt-4">
               <h5>使用邮箱注册</h5>
             </div>
-          
+
             <div class="card-body">
               <form role="form">
                 <argon-input
-                  id="name"
-                  type="text"
-                  placeholder="昵称"
-                  aria-label="Name"
+                    id="name"
+                    type="text"
+                    placeholder="昵称"
+                    aria-label="Name"
                 />
                 <div class="row"> <!-- 使用 row 将元素放在同一行 -->
-      <div class="col-md-6"> <!-- 使用 col-md-6 将邮箱输入框占据一半的宽度 -->
-        <argon-input
-          id="email"
-          type="email"
-          placeholder="邮箱"
-          aria-label="Email"
-          v-model="email"
-        />
-      </div>
-      <div class="col-md-5"> <!-- 使用 col-md-6 将按钮占据一半的宽度 -->
-        <argon-button
-          variant="gradient"
-          color="dark"
-          v-on:click="sendEmail()"
-        >
-          获取验证码
-      </argon-button>
-      </div>
-    </div>
+                  <div class="col-md-6"> <!-- 使用 col-md-6 将邮箱输入框占据一半的宽度 -->
+                    <argon-input
+                        id="email"
+                        type="email"
+                        placeholder="邮箱"
+                        aria-label="Email"
+                        v-model="email"
+                    />
+                  </div>
+                  <div class="col-md-5"> <!-- 使用 col-md-6 将按钮占据一半的宽度 -->
+                    <argon-button
+                        variant="gradient"
+                        color="dark"
+                        v-on:click="sendEmail()"
+                    >
+                      获取验证码
+                    </argon-button>
+                  </div>
+                </div>
                 <argon-input
-                  id="password"
-                  type="password"
-                  placeholder="密码"
-                  aria-label="Password"
+                    id="password"
+                    type="password"
+                    placeholder="密码"
+                    aria-label="Password"
                 />
                 <argon-input
-                  id="captcha"
-                  type="captcha"
-                  placeholder="验证码"
-                  aria-label="captcha"
+                    id="captcha"
+                    type="captcha"
+                    placeholder="验证码"
+                    aria-label="captcha"
                 />
                 <span class="status">{{ statusMsg }}</span>
                 <argon-radio id = "stu" checked name = "type" style="display: inline-block; margin-right: 17%;">学生</argon-radio>
@@ -220,23 +220,23 @@ export default {
                   <label class="form-check-label" for="flexCheckDefault">
                     我同意
                     <a href="javascript:;" class="text-dark font-weight-bolder"
-                      >所有项目条款</a
+                    >所有项目条款</a
                     >
                   </label>
                 </argon-checkbox>
                 <div class="text-center">
                   <argon-button
-                    fullWidth
-                    color="dark"
-                    variant="gradient"
-                    class="my-4 mb-2"
-                    >注册</argon-button
+                      fullWidth
+                      color="dark"
+                      variant="gradient"
+                      class="my-4 mb-2"
+                  >注册</argon-button
                   >
                 </div>
                 <p class="text-sm mt-3 mb-0">
                   已有账号？
                   <a href="/signin" class="text-dark font-weight-bolder"
-                    >登录</a
+                  >登录</a
                   >
                 </p>
               </form>

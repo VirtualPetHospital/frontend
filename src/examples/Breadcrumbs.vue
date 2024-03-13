@@ -17,6 +17,7 @@ defineProps({
   },
 });
 </script>
+
 <template>
   <nav aria-label="breadcrumb">
     <ol

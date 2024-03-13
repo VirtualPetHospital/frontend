@@ -6,6 +6,7 @@ import Navbar from "@/examples/PageLayout/Navbar.vue";
 import ArgonInput from "@/components/ArgonInput.vue";
 import ArgonSwitch from "@/components/ArgonSwitch.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
+import SignInSlipper from "@/views/components/SignInSlipper.vue";
 const body = document.getElementsByTagName("body")[0];
 const store = useStore();
 
@@ -13,6 +14,7 @@ const store = useStore();
 export default {
   name: "signin",
   components: {
+    SignInSlipper,
     Navbar,
     ArgonInput,
     ArgonSwitch,
@@ -36,36 +38,36 @@ export default {
         this.$axios.post('api/user/judge', {
           userId: this.loginRuleForm.userId,
           password: this.loginRuleForm.password,
-      })
-      .then((res) => {
-          if(res.status == 200){
-            if(res.data===""){
-            console.log(res);
-            alert("请输入正确的邮箱和密码")
-            }else{
-              // VueElement.prototype.Identity = res.data.identity;
-              sessionStorage.setItem("Type", res.data.type);
-              // VueElement.prototype.Email = res.data.userId;
-              sessionStorage.setItem("Email", res.data.email);
-              // VueElement.prototype.password = res.data.password;
-              sessionStorage.setItem("password", res.data.password);
-              // VueElement.prototype.username = res.data.username;
-              sessionStorage.setItem("nickname", res.data.nickname);
-              // console.log(VueElement.prototype.Identity);
-              if(res.data.type==="student"){
-                this.$router.push("/dashboard-student");
-              }else if(res.data.type==="teacher"){
-                this.$router.push("/dashboard-teacher");
-              }else if(res.data.type==="admin"){
-                this.$router.push("/dashboard-admin");
+        })
+            .then((res) => {
+              if(res.status == 200){
+                if(res.data===""){
+                  console.log(res);
+                  alert("请输入正确的邮箱和密码")
+                }else{
+                  // VueElement.prototype.Identity = res.data.identity;
+                  sessionStorage.setItem("Type", res.data.type);
+                  // VueElement.prototype.Email = res.data.userId;
+                  sessionStorage.setItem("Email", res.data.email);
+                  // VueElement.prototype.password = res.data.password;
+                  sessionStorage.setItem("password", res.data.password);
+                  // VueElement.prototype.username = res.data.username;
+                  sessionStorage.setItem("nickname", res.data.nickname);
+                  // console.log(VueElement.prototype.Identity);
+                  if(res.data.type==="student"){
+                    this.$router.push("/dashboard-student");
+                  }else if(res.data.type==="teacher"){
+                    this.$router.push("/dashboard-teacher");
+                  }else if(res.data.type==="admin"){
+                    this.$router.push("/dashboard-admin");
+                  }
+                  this.$router.push("/HospitalGuide");
+                }
               }
-              this.$router.push("/HospitalGuide");
-          }
-          }
-          
-      }).catch(err =>{
+
+            }).catch(err =>{
           console.log(err);
-      });
+        });
       }
     },
     login1() {
@@ -103,7 +105,7 @@ export default {
       onSuccess: this.onSuccess
     };
   },
- 
+
 };
 
 onBeforeMount(() => {
@@ -128,9 +130,9 @@ onBeforeUnmount(() => {
     <div class="row">
       <div class="col-12">
         <Navbar
-          isBlur="blur  border-radius-lg my-3 py-2 start-0 end-0 mx-4 shadow"
-          v-bind:darkMode="true"
-          isBtn="bg-gradient-success"
+            isBlur="blur  border-radius-lg my-3 py-2 start-0 end-0 mx-4 shadow"
+            v-bind:darkMode="true"
+            isBtn="bg-gradient-success"
         />
       </div>
     </div>
@@ -141,7 +143,7 @@ onBeforeUnmount(() => {
         <div class="container">
           <div class="row">
             <div
-              class="mx-auto col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0"
+                class="mx-auto col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0"
             >
               <div class="card card-plain">
                 <div class="pb-0 card-header text-start">
@@ -152,59 +154,60 @@ onBeforeUnmount(() => {
                   <form role="form">
                     <div class="mb-3">
                       <ArgonInput
-                        id="email"
-                        type="email"
-                        placeholder="邮箱"
-                        name="email"
-                        size="lg"
-                        v-model="loginRuleForm.userId"
+                          id="email"
+                          type="email"
+                          placeholder="邮箱"
+                          name="email"
+                          size="lg"
+                          v-model="loginRuleForm.userId"
                       />
                     </div>
                     <div class="mb-3">
                       <ArgonInput
-                        id="password"
-                        type="password"
-                        placeholder="密码"
-                        name="password"
-                        size="lg"
-                        v-model="loginRuleForm.password"
+                          id="password"
+                          type="password"
+                          placeholder="密码"
+                          name="password"
+                          size="lg"
+                          v-model="loginRuleForm.password"
                       />
                     </div>
                     <div class="text-center">
                       <ArgonButton
-                        class="mt-4"
-                        variant="gradient"
-                        color="success"
-                        fullWidth
-                        size="lg"
-                        v-on:click="login1()"
+                          class="mt-4"
+                          variant="gradient"
+                          color="success"
+                          fullWidth
+                          size="lg"
+                          v-on:click="login1()"
                       >
                         登录
                       </ArgonButton>
                     </div>
                   </form>
 
-                <div class="px-1 pt-0 text-center card-footer px-lg-2">
-                  <p class="mx-auto mb-4 text-sm">
-                    还没有账号?
-                    <a
-                      href="/signup"
-                      class="text-success text-gradient font-weight-bold"
-                    >
-                      注册
-                    </a>
-                  </p>
+                  <div class="px-1 pt-0 text-center card-footer px-lg-2">
+                    <p class="mx-auto mb-4 text-sm">
+                      还没有账号?
+                      <a
+                          href="/signup"
+                          class="text-success text-gradient font-weight-bold"
+                      >
+                        注册
+                      </a>
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div
-              class="top-20 my-auto text-center col-6 d-lg-flex d-none h-50 pe-5 position-absolute end-0 justify-content-center flex-column"
-            >
+              <div
+                  class="top-20 my-auto text-center col-6 d-lg-flex d-none h-50 pe-5 position-absolute end-0 justify-content-center flex-column"
+              >
+              <SignInSlipper/>
+              </div>
             </div>
           </div>
-        </div>
-      
-      </div></div>
+
+        </div></div>
     </section>
   </main>
 </template>
