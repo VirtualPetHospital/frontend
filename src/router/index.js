@@ -12,7 +12,7 @@ import qiantai from "../views/qiantai.vue";
 import yizhu from "../views/yizhu.vue";
 import yishi from "../views/yishi.vue";
 import HospitalGuide from "../views/HospitalGuide.vue";
-
+import Myexam from "../views/Myexam.vue"
 const routes = [
   {
     path: "/",
@@ -83,6 +83,11 @@ const routes = [
     path: "/yishi",
     name: "医师模式",
     component: yishi,
+  },
+  {
+    path: "/Myexam",
+    name: "Myexam",
+    component: Myexam,
   },
 
 ];
