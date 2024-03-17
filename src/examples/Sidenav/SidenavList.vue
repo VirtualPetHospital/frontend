@@ -85,8 +85,8 @@ const getRoute = () => {
 
       <li class="nav-item">
         <sidenav-item
-          to="/virtual-reality"
-          :class="getRoute() === 'virtual-reality' ? 'active' : ''"
+          to="/Myexam"
+          :class="getRoute() === 'Myexam' ? 'active' : ''"
           :navText="isRTL ? 'My exam' : '我的考试'"
         >
           <template v-slot:icon>
