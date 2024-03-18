@@ -61,8 +61,8 @@ const getRoute = () => {
 
       <li class="nav-item">
         <sidenav-item
-          to="/virtual-reality"
-          :class="getRoute() === 'virtual-reality' ? 'active' : ''"
+          to="/history/:id"
+          :class="getRoute() === 'history/:id' ? 'active' : ''"
           :navText="isRTL ? 'Historical learning' : '学习历史'"
         >
           <template v-slot:icon>
@@ -73,8 +73,8 @@ const getRoute = () => {
 
       <li class="nav-item">
         <sidenav-item
-          to="/virtual-reality"
-          :class="getRoute() === 'virtual-reality' ? 'active' : ''"
+          to="/my-papers-student"
+          :class="getRoute() === 'my-papers-student' ? 'active' : ''"
           :navText="isRTL ? 'My test paper' : '我的试卷'"
         >
           <template v-slot:icon>

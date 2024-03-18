@@ -249,7 +249,7 @@ onBeforeUnmount(() => {
               <div class="row">
                 <div class="col-md-6">
                   <label for="example-text-input" class="form-control-label"
-                    >Username</label
+                    >nickname</label
                   >
                   <argon-input type="text" value="lucky.jesse" />
                 </div>
