@@ -12,13 +12,24 @@ export default createStore({
     isNavFixed: false,
     isAbsolute: false,
     showNavs: true,
-    showSidenav: true,
     showNavbar: true,
     showFooter: true,
     showMain: true,
     layout: "default",
+    showSidenavTeacher: false,
+    showSidenavStudent: false,
+    showSidenavAdmin: false
   },
   mutations: {
+    setShowSidenavTeacher(state, value) {
+      state.showSidenavTeacher = value; // 将 showSidenavTeacher 的值设置为传入的 value
+    },
+    setShowSidenavAdmin(state, value) {
+      state.showSidenavAdmin = value; // 将 showSidenavTeacher 的值设置为传入的 value
+    },
+    setShowSidenavStudent(state, value) {
+      state.showSidenavStudent = value; // 将 showSidenavTeacher 的值设置为传入的 value
+    },
     toggleConfigurator(state) {
       state.showConfig = !state.showConfig;
     },

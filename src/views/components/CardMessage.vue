@@ -21,7 +21,7 @@
               data-bs-placement="top"
               title="1 New Message"
             >
-              <img alt="Image placeholder" src="@/assets/img/team-2.jpg" />
+              <img alt="Image placeholder" src="../../assets/img/team-3.jpg" />
             </a>
             <a
               href="javascript:;"

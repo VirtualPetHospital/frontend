@@ -15,7 +15,10 @@ Coded by www.creative-tim.com
 <script setup>
 import { computed } from "vue";
 import { useStore } from "vuex";
-import Sidenav from "./examples/Sidenav";
+// import Sidenav from "./examples/Sidenav";
+import SidenavTeacher from "./examples/SidenavTeacher";
+import SidenavAdmin from "./examples/SidenavAdmin";
+import SidenavStudent from "./examples/SidenavStudent";
 import Configurator from "@/examples/Configurator.vue";
 import Navbar from "@/examples/Navbars/Navbar.vue";
 import AppFooter from "@/examples/Footer.vue";
@@ -24,7 +27,9 @@ const store = useStore();
 const isNavFixed = computed(() => store.state.isNavFixed);
 const darkMode = computed(() => store.state.darkMode);
 const isAbsolute = computed(() => store.state.isAbsolute);
-const showSidenav = computed(() => store.state.showSidenav);
+const showSidenavTeacher = computed(() => store.state.showSidenavTeacher);
+const showSidenavAdmin = computed(() => store.state.showSidenavAdmin);
+const showSidenavStudent = computed(() => store.state.showSidenavStudent);
 const layout = computed(() => store.state.layout);
 const showNavbar = computed(() => store.state.showNavbar);
 const showFooter = computed(() => store.state.showFooter);
@@ -49,7 +54,9 @@ const navClasses = computed(() => {
     class="landing-bg h-100 bg-gradient-primary position-fixed w-100"
   ></div>
 
-  <sidenav v-if="showSidenav" />
+  <sidenavTeacher v-if="showSidenavTeacher" />
+  <sidenavAdmin v-if="showSidenavAdmin" />
+  <sidenavStudent v-if="showSidenavStudent" />
 
   <main
     class="main-content position-relative max-height-vh-100 h-100 border-radius-lg"

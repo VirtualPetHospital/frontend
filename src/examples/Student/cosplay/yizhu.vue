@@ -82,9 +82,11 @@
 </template>
 
 <script>
-import yzLunbo1 from "./components/yzLunbo1.vue";
-import yzLunbo2 from "./components/yzLunbo2.vue";
-import yzLunbo3 from "./components/yzLunbo3.vue";
+import yzLunbo1 from "../../../views/components/yzLunbo1.vue";
+import yzLunbo2 from "../../../views/components/yzLunbo2.vue";
+import yzLunbo3 from "../../../views/components/yzLunbo3.vue";
+import {useStore} from "vuex";
+import {onBeforeRouteLeave} from "vue-router";
 
 export default {
   name: "yizhu",
@@ -96,6 +98,19 @@ export default {
     };
   },
   methods: {
+    setup() {
+      const store = useStore();
+
+      // 在组件被挂载后，设置 showSidenavStudent 为 true
+      store.commit('setShowSidenavStudent', true);
+      onBeforeRouteLeave((to, from, next) => {
+        // 在离开此页前关闭sidenavadmin
+        store.commit('setShowSidenavStudent', false);
+        next();
+      });
+
+      return {};
+    },
     gotocos() {
       this.$router.replace('/Cosplay');
     },

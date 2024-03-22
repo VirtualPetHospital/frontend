@@ -33,7 +33,9 @@ import ArgonBadge from "@/components/ArgonBadge.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
 // import ArgonAlert from "@/components/ArgonAlert.vue";
 import Modal from "@/components/Modal.vue";
-import { ref, Vue } from 'vue'; // 导入Vue
+import { ref, Vue } from 'vue';
+import {useStore} from "vuex";
+import {onBeforeRouteLeave} from "vue-router"; // 导入Vue
 const API_URL = `/api/paper`
 
 export default {
@@ -149,7 +151,19 @@ export default {
         console.error(`Paper with id ${id} not found`);
       }
     },
+    setup() {
+      const store = useStore();
 
+      // 在组件被挂载后，设置 showSidenavStudent 为 true
+      store.commit('setShowSidenavStudent', true);
+      onBeforeRouteLeave((to, from, next) => {
+        // 在离开此页前关闭sidenavadmin
+        store.commit('setShowSidenavStudent', false);
+        next();
+      });
+
+      return {};
+    }
 
   },
   components: {

@@ -88,8 +88,10 @@ export default {
         // console.log(Cookies.get("nickname"));// (Cookies.get())
         // Cookies.set('password', encrypt(this.loginRuleForm.password), { expires: 7 });
         this.$router.push("/dashboard-student")
-      } else {
-        alert(this.loginRuleForm.password)
+      } else if(this.loginRuleForm.password == "456"){
+        this.$router.push("/dashboard-admin")
+      }else if(this.loginRuleForm.password=="789"){
+        this.$router.push("/dashboard-teacher")
       }
     },
     onSuccess() {
@@ -106,13 +108,11 @@ export default {
     }
     this.$store.state.hideConfigButton = true;
     this.$store.state.showNavbar = false;
-    this.$store.state.showSidenav = false;
     body.classList.remove("bg-gray-100");
   },
   beforeUnmount() {
     this.$store.state.hideConfigButton = true;
     this.$store.state.showNavbar = true;
-    this.$store.state.showSidenav = true;
     body.classList.add("bg-gray-100");
   },
   mounted() {
@@ -132,7 +132,6 @@ export default {
 onBeforeMount(() => {
   store.state.hideConfigButton = true;
   store.state.showNavbar = false;
-  store.state.showSidenav = false;
   store.state.showFooter = false;
   body.classList.remove("bg-gray-100");
 });
@@ -140,7 +139,6 @@ onBeforeMount(() => {
 onBeforeUnmount(() => {
   store.state.hideConfigButton = false;
   store.state.showNavbar = true;
-  store.state.showSidenav = true;
   store.state.showFooter = true;
   body.classList.add("bg-gray-100");
 });

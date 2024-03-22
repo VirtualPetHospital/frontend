@@ -129,41 +129,7 @@ export default {
 </script>
 <template>
 
-  <div class="container top-0 position-sticky z-index-sticky">
-    <div class="row">
-      <div class="col-12">
-        <navbar isBtn="bg-gradient-light" />
-      </div>
-    </div>
-  </div>
   <main class="main-content mt-0">
-    <div
-        class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
-        style="
-        background-image: url(&quot;https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg&quot;);
-        background-position: top;
-      "
-    >
-      <span class="mask bg-gradient-dark opacity-6"></span>
-      <Navbar
-          isBlur="blur  border-radius-lg my-3 py-2 start-0 end-0 mx-4 shadow"
-          v-bind:darkMode="true"
-          isBtn="bg-gradient-success"
-      />
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-lg-5 text-center mx-auto">
-
-            <h1 class="text-white mb-2 mt-5">welcome</h1>
-            <p class="text-lead text-white">
-              Use these awesome forms to login or create new account in your
-              project for free.
-            </p>
-          </div>
-        </div>
-      </div>
-
-    </div>
     <div class="container">
       <div class="row justify-content-end">
       <div class="row mt-lg-n10 mt-md-n11 mt-n10 justify-content-end">

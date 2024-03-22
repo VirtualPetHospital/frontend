@@ -73,13 +73,28 @@
 </template>
 
 <script>
-import qtLunbo1 from "./components/qtLunbo1.vue";
-import qtLunbo2 from "./components/qtLunbo2.vue";
-import qtLunbo3 from "./components/qtLunbo3.vue";
+import qtLunbo1 from "../../../views/components/qtLunbo1.vue";
+import qtLunbo2 from "../../../views/components/qtLunbo2.vue";
+import qtLunbo3 from "../../../views/components/qtLunbo3.vue";
+import {useStore} from "vuex";
+import {onBeforeRouteLeave} from "vue-router";
 
 export default {
   name: "qiantai",
   methods:{
+    setup() {
+      const store = useStore();
+
+      // 在组件被挂载后，设置 showSidenavStudent 为 true
+      store.commit('setShowSidenavStudent', true);
+      onBeforeRouteLeave((to, from, next) => {
+        // 在离开此页前关闭sidenavadmin
+        store.commit('setShowSidenavStudent', false);
+        next();
+      });
+
+      return {};
+    },
       gotocos(){
           this.$router.replace('/Cosplay')
       },

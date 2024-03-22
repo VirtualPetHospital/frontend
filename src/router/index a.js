@@ -7,10 +7,10 @@ import RTL from "../views/Rtl.vue";
 import Profile from "../views/Profile.vue";
 import Signup from "../views/Signup.vue";
 import Signin from "../views/Signin.vue";
-import Cosplay from "../views/Cosplay.vue";
-import qiantai from "../views/qiantai.vue";
-import yizhu from "../views/yizhu.vue";
-import yishi from "../views/yishi.vue";
+import Cosplay from "../examples/Student/cosplay/Cosplay.vue";
+import qiantai from "../examples/Student/cosplay/qiantai.vue";
+import yizhu from "../examples/Student/cosplay/yizhu.vue";
+import yishi from "../examples/Student/cosplay/yishi.vue";
 const routes = [
   {
     path: "/",
