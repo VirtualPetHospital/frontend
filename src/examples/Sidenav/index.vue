@@ -55,7 +55,7 @@ const darkMode = computed(() => store.state.darkMode);
 </template>
 <style>
 .background-container {
-  background-image: url('../../assets/img/beijintu.png');
+  background-image: url('../../assets/img/background.jpg');
   background-size: cover; /* 背景图片将被缩放以填充整个容器 */
   background-position: center; /* 背景图片在容器中居中显示 */
   height: 300px; /* 背景容器的高度 */

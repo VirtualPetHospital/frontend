@@ -13,11 +13,32 @@ import yizhu from "../views/yizhu.vue";
 import yishi from "../views/yishi.vue";
 import HospitalGuide from "../views/HospitalGuide.vue";
 import Myexam from "../views/Myexam.vue"
+import DashboardTeacher from "@/views/DashboardTeacher.vue";
+import DashboardAdmin from "@/views/DashboardAdmin.vue";
+import DashboardStudent from "@/views/DashboardStudent.vue";
+import MyPapersStudent from "@/examples/paper/MyPapersStudent.vue";
+import PaperInfo from "@/examples/paper/PaperInfo.vue";
+import LearnHistory from "@/examples/history/LearnHistory.vue";
 const routes = [
   {
     path: "/",
     name: "/",
     redirect: "/dashboard-default",
+  },
+  {
+    path: "/dashboard-student",
+    name: "DashboardStudent",
+    component: DashboardStudent,
+  },
+  {
+    path: "/dashboard-teacher",
+    name: "DashboardTeacher",
+    component: DashboardTeacher,
+  },
+  {
+    path: "/dashboard-admin",
+    name: "DashboardAdmin",
+    component: DashboardAdmin,
   },
   {
     path: "/dashboard-default",
@@ -83,6 +104,21 @@ const routes = [
     path: "/yishi",
     name: "医师模式",
     component: yishi,
+  },
+  {
+    path:"/my-papers-student",
+    name:"我的试卷-学生",
+    component:MyPapersStudent,
+  },
+  {
+    path:"/papers/:id",
+    name:"查看试卷",
+    component:PaperInfo,
+  },
+  {
+    path:"/history/:id",
+    name:"查看学习历史",
+    component:LearnHistory,
   },
   {
     path: "/Myexam",

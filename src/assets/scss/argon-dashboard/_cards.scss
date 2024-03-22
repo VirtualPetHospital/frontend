@@ -7,6 +7,9 @@
   .card-body {
     font-family: $font-family-sans-serif;
     padding: $card-body-padding;
+    background-color: #fff;
+    border-bottom-left-radius: 20px; /* 设置左下角圆角为10px */
+    border-bottom-right-radius: 20px;
   }
 
   &.card-plain {

@@ -26,7 +26,7 @@ defineProps({
         class="navbar-brand font-weight-bolder ms-lg-0 ms-3"
         :class="darkMode ? 'text-black' : 'text-white'"
         to="/"
-        >Argon Dashboard 2</router-link
+        >虚拟宠物医院学习系统</router-link
       >
       <button
         class="shadow-none navbar-toggler ms-2"
@@ -46,37 +46,13 @@ defineProps({
       <div class="collapse navbar-collapse" id="navigation">
         <ul class="navbar-nav mx-auto">
           <li class="nav-item">
-            <router-link
-              class="nav-link d-flex align-items-center me-2 active"
-              aria-current="page"
-              to="/dashboard-default"
-            >
-              <i
-                class="fa fa-chart-pie opacity-6 me-1"
-                aria-hidden="true"
-                :class="isBlur ? 'text-dark' : 'text-white'"
-              ></i>
-              Dashboard
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link me-2" to="/profile">
-              <i
-                class="fa fa-user opacity-6 me-1"
-                aria-hidden="true"
-                :class="isBlur ? 'text-dark' : 'text-white'"
-              ></i>
-              Profile
-            </router-link>
-          </li>
-          <li class="nav-item">
             <router-link class="nav-link me-2" to="/signup">
               <i
                 class="fas fa-user-circle opacity-6 me-1"
                 aria-hidden="true"
                 :class="isBlur ? 'text-dark' : 'text-white'"
               ></i>
-              Sign Up
+              注册
             </router-link>
           </li>
           <li class="nav-item">
@@ -86,7 +62,7 @@ defineProps({
                 aria-hidden="true"
                 :class="isBlur ? 'text-dark' : 'text-white'"
               ></i>
-              Sign In
+              登录
             </router-link>
           </li>
         </ul>
