@@ -7,23 +7,23 @@ import RTL from "../views/Rtl.vue";
 import Profile from "../views/Profile.vue";
 import Signup from "../views/Signup.vue";
 import Signin from "../views/Signin.vue";
-import Cosplay from "../views/Cosplay.vue";
-import qiantai from "../views/qiantai.vue";
-import yizhu from "../views/yizhu.vue";
-import yishi from "../views/yishi.vue";
-import HospitalGuide from "../views/HospitalGuide.vue";
-import Myexam from "../views/Myexam.vue"
-import DashboardTeacher from "@/views/DashboardTeacher.vue";
-import DashboardAdmin from "@/views/DashboardAdmin.vue";
-import DashboardStudent from "@/views/DashboardStudent.vue";
-import MyPapersStudent from "@/examples/paper/MyPapersStudent.vue";
-import PaperInfo from "@/examples/paper/PaperInfo.vue";
-import LearnHistory from "@/examples/history/LearnHistory.vue";
+import Cosplay from "../examples/Student/cosplay/Cosplay.vue";
+import qiantai from "../examples/Student/cosplay/qiantai.vue";
+import yizhu from "../examples/Student/cosplay/yizhu.vue";
+import yishi from "../examples/Student/cosplay/yishi.vue";
+import HospitalGuide from "../examples/Student/HospitalGuide.vue";
+import Myexam from "../examples/Student/exams/Myexam.vue"
+import DashboardTeacher from "@/examples/Teacher/DashboardTeacher.vue";
+import DashboardAdmin from "@/examples/Admin/DashboardAdmin.vue";
+import DashboardStudent from "@/examples/Student/DashboardStudent.vue";
+import MyPapersStudent from "@/examples/Student/paper/MyPapersStudent.vue";
+import PaperInfo from "@/examples/Student/paper/PaperInfo.vue";
+import LearnHistory from "@/examples/Student/history/LearnHistory.vue";
 const routes = [
   {
     path: "/",
     name: "/",
-    redirect: "/dashboard-default",
+    redirect: "/signin",
   },
   {
     path: "/dashboard-student",

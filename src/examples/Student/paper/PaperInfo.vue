@@ -10,19 +10,19 @@
           <div v-for="(question, idx) in questions" :key="idx">
             <div>
               <div class="card mb-2 me-3 ms-3 pe-4 ps-4 pt-3 pb-3">
-                <div @click="showHidden(idx)">
+                <div >
                   <div>
                     <h6>{{ idx + 1 }}. {{ question.description }}</h6>
                   </div>
-                  <div v-for="item of question.options" :key="item.id">
-                    <div>
-                      <input @change="getScore(idx)"  type="radio" :id="item.id"
-                             :value="item.id" v-model="question.yourAns" :disabled="!isActive">
-                      <label :for="item.id" class="ms-4 me-4">{{ item.content }}</label>
-                      <i v-if="!isActive && isRightAnswer(item.id, idx)"
-                         class="ni ni-check-bold text-success opacity-10"></i>
+                    <div v-for="item of question.options" :key="item.id">
+                      <div>
+                        <input @change="getScore(idx)"  type="radio" :id="item.id"
+                               :value="item.id" v-model="question.yourAns" :disabled="!isActive">
+                        <label :for="item.id" class="ms-4 me-4">{{ item.content }}</label>
+                        <i v-if="!isActive && isRightAnswer(item.id, idx)"
+                           class="ni ni-check-bold text-success opacity-10"></i>
+                      </div>
                     </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -43,6 +43,8 @@
 
 import ArgonBadge from "@/components/ArgonBadge.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
+import {useStore} from "vuex";
+import {onBeforeRouteLeave} from "vue-router";
 
 const API_URL = `/api/paper`
 
@@ -263,7 +265,7 @@ export default {
     //   }
     // },
     isRightAnswer(id, idx) {
-      return id == this.questions[idx].answer
+        return id == this.questions[idx].answer
     },
     isEqual(l1, l2) {
       if (l1.length != l2.length) {
@@ -277,7 +279,7 @@ export default {
     getScore(idx) {//提交试卷的时候调用//used
       //todo:还没调用
       this.questions[idx].status = 'done'
-      this.questions[idx].uScore = this.questions[idx].yourAns == this.questions[idx].answer ? this.questions[idx].score : 0
+        this.questions[idx].uScore = this.questions[idx].yourAns == this.questions[idx].answer ? this.questions[idx].score : 0
 
     },
     correct(idx) {
@@ -306,6 +308,19 @@ export default {
   mounted() {
     // this.getPaper()
     this.init('p')
+  },
+  setup() {
+    const store = useStore();
+
+    // 在组件被挂载后，设置 showSidenavStudent 为 true
+    store.commit('setShowSidenavStudent', true);
+    onBeforeRouteLeave((to, from, next) => {
+      // 在离开此页前关闭sidenavadmin
+      store.commit('setShowSidenavStudent', false);
+      next();
+    });
+
+    return {};
   },
   created(){
     this.getPaper()

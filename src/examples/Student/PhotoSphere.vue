@@ -106,6 +106,7 @@
     import 'photo-sphere-viewer/dist/photo-sphere-viewer.css'
     import 'photo-sphere-viewer/dist/plugins/markers.css';
     import ArgonButton from "@/components/ArgonButton.vue";
+    import {useStore} from "vuex";
     export default {
         components: {
             ArgonButton,
@@ -736,7 +737,14 @@
             this.room = this.rooms[this.index];
             this.doctor = this.doctors[this.index];   
         },
+      setup() {
+        const store = useStore();
 
+        // 在组件被挂载后，设置 showSidenavStudent 为 true
+        store.commit('setShowSidenavStudent', true);
+
+        return {};
+      },
         
     }
 //     function changeColor(element) {

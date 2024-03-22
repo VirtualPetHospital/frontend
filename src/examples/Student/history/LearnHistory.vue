@@ -1,41 +1,37 @@
 <template>
   <!-- <div v-for="(paper, index) in papers" :key="index" class="row"> -->
-  <div class="row">
-    <div class="col-1"></div>
-    <div class="col">
-      <div class="card p-4">
-        <argon-button @click="goBack" color="secondary" variant="gradient" class="ms-3 col-1">返回</argon-button>
-        <h3 class="ms-3">{{ name }}</h3>
-        <div class="mt-3">
-          <div v-for="(question, idx) in questions" :key="idx">
-            <div>
-              <div class="card mb-2 me-3 ms-3 pe-4 ps-4 pt-3 pb-3">
-                <div @click="showHidden(idx)">
-                  <div>
-                    <h6>{{ idx + 1 }}. {{ question.description }}</h6>
-                  </div>
-                    <div v-for="item of question.options" :key="item.id">
-                      <div>
-                        <input @change="getScore(idx)"  type="radio" :id="item.id"
-                               :value="item.id" v-model="question.yourAns" :disabled="!isActive">
-                        <label :for="item.id" class="ms-4 me-4">{{ item.content }}</label>
-                        <i v-if="!isActive && isRightAnswer(item.id, idx)"
-                           class="ni ni-check-bold text-success opacity-10"></i>
-                      </div>
-                    </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="biaoge">
+    <!-- 表格开始 -->
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col" class="text-center">考试ID</th>
+        <th scope="col" class="text-center">考试名</th>
+        <th scope="col" class="text-center">起始时间</th>
+        <th scope="col" class="text-center">终止时间</th>
+        <th scope="col" class="text-center">考试时长</th>
+        <th scope="col" class="text-center">考试等级</th>
+        <th scope="col" class="text-center">考试详情</th>
+      </tr>
+      </thead>
+      <tbody>
+      <!-- 遍历每个考试项 -->
+      <tr v-for="(exam, index) in exams" :key="index">
+        <td class="text-center">{{ exam.id }}</td>
+        <td class="text-center">{{ exam.name }}</td>
+        <td class="text-center">{{ exam.startTime }}</td>
+        <td class="text-center">{{ exam.endTime }}</td>
+        <td class="text-center">{{ exam.duration }}</td>
+        <td class="text-center">{{ exam.level }}</td>
+        <td class="text-center">
+          <!-- 查看按钮 -->
+          <button @click="viewExamDetails(exam.id)" class="btn btn-primary">查看</button>
+        </td>
+      </tr>
+      </tbody>
 
-      </div>
-    </div>
-    <div class="col-1"></div>
-
-  </div>
-  <div>
-    <pre v-if="showTest">{{ paper }}</pre>
+    </table>
+    <!-- 表格结束 -->
   </div>
 </template>
 
@@ -43,8 +39,10 @@
 
 import ArgonBadge from "@/components/ArgonBadge.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
+import {useStore} from "vuex";
+import {onBeforeRouteLeave} from "vue-router";
 
-const API_URL = `/api/paper`
+const API_URL = `/users/medcases`
 
 export default {
   data() {
@@ -263,7 +261,7 @@ export default {
     //   }
     // },
     isRightAnswer(id, idx) {
-        return id == this.questions[idx].answer
+      return id == this.questions[idx].answer
     },
     isEqual(l1, l2) {
       if (l1.length != l2.length) {
@@ -277,7 +275,7 @@ export default {
     getScore(idx) {//提交试卷的时候调用//used
       //todo:还没调用
       this.questions[idx].status = 'done'
-        this.questions[idx].uScore = this.questions[idx].yourAns == this.questions[idx].answer ? this.questions[idx].score : 0
+      this.questions[idx].uScore = this.questions[idx].yourAns == this.questions[idx].answer ? this.questions[idx].score : 0
 
     },
     correct(idx) {
@@ -307,9 +305,42 @@ export default {
     // this.getPaper()
     this.init('p')
   },
+  setup() {
+    const store = useStore();
+
+    // 在组件被挂载后，设置 showSidenavStudent 为 true
+    store.commit('setShowSidenavStudent', true);
+    onBeforeRouteLeave((to, from, next) => {
+      // 在离开此页前关闭sidenavadmin
+      store.commit('setShowSidenavStudent', false);
+      next();
+    });
+
+    return {};
+  },
   created(){
     this.getPaper()
   }
 }
 
 </script>
+<style scoped>
+.biaoge {
+  background-color: white;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  margin-left: 2%; /* 调整左边距 */
+  margin-right: 2%; /* 调整右边距 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+.table {
+  text-align: center;
+}
+.table th,
+.table td {
+  vertical-align: middle;
+}
+</style>

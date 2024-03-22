@@ -118,7 +118,7 @@ const closeMenu = () => {
                   <div class="py-1 d-flex">
                     <div class="my-auto">
                       <img
-                        src="../../assets/img/team-2.jpg"
+                        src="../../assets/img/team-3.jpg"
                         class="avatar avatar-sm me-3"
                         alt="user image"
                       />

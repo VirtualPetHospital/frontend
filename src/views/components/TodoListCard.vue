@@ -41,7 +41,7 @@
         <li class="checklist-entry list-group-item px-0">
           <div class="checklist-item checklist-item-info d-flex">
             <div class="checklist-info">
-              <h6 class="checklist-title mb-0">Argon Dashboard Launch</h6>
+              <h6 class="checklist-title mb-0">虚拟宠物医院学习系统 Launch</h6>
               <small class="text-xs">02:00 PM</small>
             </div>
             <div class="form-check my-auto ms-auto">

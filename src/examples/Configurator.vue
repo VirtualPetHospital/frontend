@@ -15,7 +15,7 @@ const navbarFixed = () => store.commit("navbarFixed");
 const setSidebarType = (type) => store.commit("sidebarType", type);
 
 const sidebarColor = (color = "success") => {
-  document.querySelector("#sidenav-main").setAttribute("data-color", color);
+  document.querySelector("#sidenavStudent-main").setAttribute("data-color", color);
 };
 
 const darkMode = () => {
