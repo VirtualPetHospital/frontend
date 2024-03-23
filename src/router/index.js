@@ -19,6 +19,7 @@ import DashboardStudent from "@/examples/Student/DashboardStudent.vue";
 import MyPapersStudent from "@/examples/Student/paper/MyPapersStudent.vue";
 import PaperInfo from "@/examples/Student/paper/PaperInfo.vue";
 import LearnHistory from "@/examples/Student/history/LearnHistory.vue";
+import UserManagement from "@/examples/Admin/userManagement/UserManagement.vue"
 const routes = [
   {
     path: "/",
@@ -125,6 +126,11 @@ const routes = [
     name: "Myexam",
     component: Myexam,
   },
+  {
+    path:"/UserManagement",
+    name:"用户管理-管理员",
+    component:UserManagement,
+  },  
 
 ];
 

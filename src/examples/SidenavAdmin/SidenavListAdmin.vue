@@ -23,9 +23,9 @@ const getRoute = () => {
     <ul class="navbar-nav">
       <li class="nav-item">
         <sidenav-item
-            to="/Cosplay"
-            :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '用户管理'"
+            to="/UserManagement"
+            :class="getRoute() === 'UserManagement' ? 'active' : ''"
+            :navText="isRTL ? 'UserManagement' : '用户管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
