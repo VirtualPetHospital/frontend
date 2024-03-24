@@ -10,6 +10,13 @@
     <!-- 表格容器 -->
     <div class="biaoge-container ps-3">
       <table class="table" bgcolor="#ffffff">
+        <!-- <colgroup>
+          <col style="width: 8%">
+          <col style="width: 8%">
+          <col style="width: 70%">
+          <col style="width: 14%">
+        </colgroup> -->
+
         <thead>
           <tr>
             <th scope="col" class="text-center rounded-top-left">选择</th>
@@ -22,7 +29,7 @@
         <tbody>
           <!-- 遍历每个用户项 -->
           <tr v-for="(user, index) in users" :key="index">
-            <td class="text-center rounded-bottom-left"><input type="checkbox" v-model="user.checked"></td>
+            <td class="text-center rounded-bottom-left"  @click="toggleCheckbox(user)"><input type="checkbox" v-model="user.checked"></td>
             <td class="text-center">{{ user.username }}</td>
             <td class="text-center">{{ user.role }}</td>
             <td class="text-center">{{ user.level }}</td>
@@ -125,7 +132,10 @@ export default {
       } else {
         console.log('请至少选择一个要删除的用户');
       }
-    }
+    },
+    toggleCheckbox(user) {
+    user.checked = !user.checked; // 切换多选框的选中状态
+  },
   }
 };
 </script>

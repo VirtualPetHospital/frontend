@@ -1,0 +1,268 @@
+<template>
+    <div>
+      <!-- 按钮容器 -->
+      <div class="buttons-container">
+        <button @click="openAddModal" class="btn btn-success" style="margin-left:4%">新增</button>
+  
+        <button @click="deleteInspection" class="btn btn-danger" style="margin-left:2%">删除</button>
+      </div>
+      
+      <!-- 表格容器 -->
+      <div class="biaoge-container ps-3">
+        <table class="table" bgcolor="#ffffff">
+          <!-- <colgroup>
+            <col style="width: 8%">
+            <col style="width: 8%">
+            <col style="width: 70%">
+            <col style="width: 14%">
+          </colgroup> -->
+  
+          <thead>
+            <tr>
+              <th scope="col" class="text-center rounded-top-left">选择</th>
+              <th scope="col" class="text-center">检测项目名</th>
+              <th scope="col" class="text-center">价格</th>
+              <th scope="col" class="text-center rounded-top-right">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 遍历每个检查项目项 -->
+            <tr v-for="(inspection, index) in inspections" :key="index">
+              <td class="text-center rounded-bottom-left"  @click="toggleCheckbox(inspection)"><input type="checkbox" v-model="inspection.checked"></td>
+              <td class="text-center">{{ inspection.name }}</td>
+              <td class="text-center">{{ inspection.price }}</td>
+              <td class="text-center rounded-bottom-right">
+                <!-- 修改按钮 -->
+                <button @click="openEditModal(inspection)" class="btn btn-primary">修改</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+  
+      <!-- 弹出窗口 -->
+      <transition name="modal">
+        <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
+          
+            <div class="modal-wrapper" @click.stop>
+              <div class="modal-container">
+                <h3>{{ editMode ? '编辑检查项目信息' : '新增检查项目' }}</h3>
+                <form @submit.prevent="editMode ? saveInspection() : saveNewInspection()">
+                  <label>检测项目名：</label>
+                  <input type="text" class="form-control" :value="editMode ? editingInspection.name : newInspection.name" @input="editMode ? editingInspection.name = $event.target.value : newInspection.name = $event.target.value"><br>
+                  <label>价格：</label>
+                  <input type="number" class="form-control" :value="editMode ? editingInspection.price : newInspection.price" @input="editMode ? editingInspection.price = $event.target.value : newInspection.price = $event.target.value"><br>
+                  <div class="button-container">
+                    <button type="submit" class="btn btn-lg btn-block btn-primary">{{ editMode ? '保存' : '添加' }}</button>
+                    <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          
+        </div>
+      </transition>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    data() {
+      return {
+        inspections: [
+          { id: 1, name: 'Inspection 1', price: 50, checked: false },
+          { id: 2, name: 'Inspection 2', price: 75, checked: false },
+          { id: 3, name: 'Inspection 3', price: 100, checked: false }
+        ],
+        editingInspection: null,
+        showEditModal: false, // 控制编辑窗口显示与隐藏
+        editMode: false, // 是否为编辑模式
+        newInspection: { name: '', price: '' } // 新增检查项目的初始信息
+      };
+    },
+    methods: {
+      openEditModal(inspection) {
+        this.editMode = true; // 进入编辑模式
+        this.editingInspection = { ...inspection };
+        this.showEditModal = true; // 打开编辑窗口
+      },
+      openAddModal() {
+        this.editMode = false; // 进入新增模式
+        this.showEditModal = true; // 打开新增检查项目窗口
+      },
+      closeEditModal() {
+        this.showEditModal = false; // 关闭编辑窗口
+        this.editMode = false; // 重置编辑模式
+        this.editingInspection = null; // 清空编辑检查项目信息
+        this.newInspection = { name: '', price: '' }; // 清空新增检查项目信息
+      },
+      saveInspection() {
+        // 更新编辑检查项目信息
+        const index = this.inspections.findIndex(inspection => inspection.id === this.editingInspection.id);
+        if (index !== -1) {
+          this.inspections[index] = { ...this.editingInspection };
+          console.log('保存检查项目信息:', this.editingInspection);
+        } else {
+          console.error('Inspection not found');
+        }
+        this.closeEditModal();
+      },
+      saveNewInspection() {
+        // 添加新增检查项目信息到表格数据中
+        this.inspections.push({ ...this.newInspection, id: this.inspections.length + 1, checked: false });
+        console.log('新增检查项目信息:', this.newInspection);
+        this.closeEditModal();
+      },
+      deleteInspection() {
+        const selectedInspections = this.inspections.filter(inspection => inspection.checked);
+        if (selectedInspections.length > 0) {
+          // 删除选中的检查项目信息
+          selectedInspections.forEach(inspection => {
+            const index = this.inspections.findIndex(i => i.id === inspection.id);
+            if (index !== -1) {
+              this.inspections.splice(index, 1);
+              console.log('已删除检查项目:', inspection);
+            }
+          });
+        } else {
+          console.log('请至少选择一个要删除的检查项目');
+        }
+      },
+      toggleCheckbox(inspection) {
+        inspection.checked = !inspection.checked; // 切换多选框的选中状态
+      },
+    }
+  };
+  </script>
+  
+  <style scoped>
+  .inspection-management-card {
+    width: 100%;
+    max-width: 600px;
+    margin: auto;
+  }
+  
+  .role-play-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .table-container {
+    width: 100%;
+  }
+  
+  .buttons-container {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.biaoge-container {
+  border: 1px solid #ccc; /* 添加外部边框 */
+  border-radius: 10px; /* 添加外部圆角 */
+  overflow: hidden; /* 隐藏内部边框 */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0; /* 去除表格内部间距 */
+}
+
+.table th,
+.table td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #dee2e6;
+}
+
+.table th {
+  background-color: #f2f2f2;
+}
+
+/* 添加单元格之间的中间分隔边框线 */
+.table tbody tr:last-child td {
+  border-bottom: 1px solid #dee2e6; /* 底部边框线 */
+}
+
+.table tbody tr:last-child td:not(:last-child) {
+  border-right: 1px solid #dee2e6; /* 右侧边框线 */
+  border-left: 1px solid #dee2e6;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.rounded-top-left {
+  border-top-left-radius: 10px;
+}
+
+.rounded-top-right {
+  border-top-right-radius: 10px;
+}
+
+.rounded-bottom-left {
+  border-bottom-left-radius: 10px;
+}
+
+.rounded-bottom-right {
+  border-bottom-right-radius: 10px;
+}
+
+/* 弹出窗口样式 */
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-wrapper {
+  width: 100%;
+}
+
+.modal-container {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  width: 40%; /* 设置弹窗宽度 */
+  left: 20%; /* 设置弹窗左侧距离为页面宽度的40% */
+}
+
+.modal-container h3 {
+  margin-bottom: 15px;
+}
+
+.modal-container label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.modal-container input {
+  width: calc(100% - 10px);
+  margin-bottom: 10px;
+}
+.modal-container .button-container {
+  display: flex;
+  justify-content: center; /* 让按钮居中 */
+  width: 100%; /* 让容器宽度和弹窗一样 */
+  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
+}
+
+.modal-container .button-container button {
+  margin: 0 10%; /* 调整按钮之间的间距 */
+}
+</style>
+
+  
