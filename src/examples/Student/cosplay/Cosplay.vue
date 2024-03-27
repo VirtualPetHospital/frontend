@@ -1,5 +1,5 @@
 <template>
-    <div class="py-4 container sectionHeight" >
+    <div class="card p-4" >
      <div class=" row">
          <div class="col-12">
            <div class="role-play-title">角色扮演</div>
@@ -34,20 +34,16 @@
  </script>
 
 <style scoped>
-.container.sectionHeight {
-  background-color: white; /* 设置背景色为白色 */
-  border-radius: 20px;
-  margin-left: 10px;
-  padding:20px;
-  padding-bottom: 20px;
-}
 .role-play-title {
   position: absolute;
-  top: 120px;
+  top: 40px;
   left: 40px;
   font-size: 36px;
   font-weight: bold;
   color: black;
+}
+.card p-4{
+  margin-left: 5px;
 }
 </style>
  

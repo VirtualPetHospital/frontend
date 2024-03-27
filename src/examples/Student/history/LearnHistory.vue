@@ -1,310 +1,122 @@
 <template>
-  <!-- <div v-for="(paper, index) in papers" :key="index" class="row"> -->
-  <div class="biaoge">
-    <!-- 表格开始 -->
-    <table class="table">
-      <thead>
-      <tr>
-        <th scope="col" class="text-center">考试ID</th>
-        <th scope="col" class="text-center">考试名</th>
-        <th scope="col" class="text-center">起始时间</th>
-        <th scope="col" class="text-center">终止时间</th>
-        <th scope="col" class="text-center">考试时长</th>
-        <th scope="col" class="text-center">考试等级</th>
-        <th scope="col" class="text-center">考试详情</th>
-      </tr>
-      </thead>
-      <tbody>
-      <!-- 遍历每个考试项 -->
-      <tr v-for="(exam, index) in exams" :key="index">
-        <td class="text-center">{{ exam.id }}</td>
-        <td class="text-center">{{ exam.name }}</td>
-        <td class="text-center">{{ exam.startTime }}</td>
-        <td class="text-center">{{ exam.endTime }}</td>
-        <td class="text-center">{{ exam.duration }}</td>
-        <td class="text-center">{{ exam.level }}</td>
-        <td class="text-center">
-          <!-- 查看按钮 -->
-          <button @click="viewExamDetails(exam.id)" class="btn btn-primary">查看</button>
-        </td>
-      </tr>
-      </tbody>
-
-    </table>
-    <!-- 表格结束 -->
+  <div class="card p-4" >
+    <div class=" row">
+      <div class="col-12">
+        <h3>学习历史</h3>
+        <el-table :data="pageRecords" stripe style="margin-top: 20px" >
+          <el-table-column prop="medcase_id" label="病例ID"></el-table-column>
+          <el-table-column prop="name" label="病例名称"></el-table-column>
+          <el-table-column tooltip-effect=“dark” id="mycol" prop="info_description" label="信息描述" ></el-table-column>
+          <el-table-column label="查看病例详情">
+            <template #default="{row}">
+              <el-button type="text" class="custom-button" @click="jumpToMedcase(row.medcase_id)">查看</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-pagination
+            :total="total"
+            :page-num="pageNum"
+            :page-size="pageSize"
+            @current-change="handleCurrentChange"
+            @size-change="handleSizeChange"
+            layout="total, prev, pager, next, jumper"
+        ></el-pagination>
+      </div>
+    </div>
   </div>
 </template>
-
 <script>
 
-import ArgonBadge from "@/components/ArgonBadge.vue";
-import ArgonButton from "@/components/ArgonButton.vue";
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router";
-
-const API_URL = `/users/medcases`
-
-export default {
-  data() {
-    return {
-      qId: '',//选择题目
-      qScore: '',//设置分数
-      paper_id: "p1",
-      name: "数学考试1",
-
-      questions: [
-        {
-          question_id: "q01",
-          description: "1+1=",
-          options: [
-            {
-              id: 1,
-              content: "1"
-            },
-            {
-              id: 2,
-              content: "2"
-            },
-            {
-              id: 3,
-              content: "3"
-            }
-          ],
-          answer: 2,
-          category_id:98,
-        },
-        {
-          question_id: "q01",
-          description: "1+1=",
-          options: [
-            {
-              id: 1,
-              content: "1"
-            },
-            {
-              id: 2,
-              content: "2"
-            },
-            {
-              id: 3,
-              content: "3"
-            }
-          ],
-          answer: 2,
-          category_id:98,
-        }
-      ],
-      //status: 'undo',//完成考试状态'undo','todo','done'
-      isActive: false,//如果是交互的则为true，否则为false.[只有学生操作是true,老师编辑试卷、批改试卷，学生查看试卷都是false]
-      isResult: false,//用来展示题目的正状态：正确、错误、待评审
-      editScore: false,//用来修改分数(新建/修改试卷的时候为true；其他时候为false)
-      editUScore: false,//用来修改学生分数（批改时为true；其他时候为false）
-
-      showTest: false,//打印测试信息
-      mock: false,//用来HTTP测试
+import {ElPagination,ElTable, ElTableColumn} from "element-plus";
+import axios from "axios";
+export default{
+  name:"LearnHistory",
+  components:{
+    ElTable,
+    ElPagination,
+    ElTableColumn
+  },
+  data(){
+    return{
+      pageNum: 1,
+      pageSize: 10,
+      total: 0,
+      records: [],
+      pageRecords:[]
     }
   },
-  components: {
-    ArgonButton,
-
+  created() {
+    this.fetchLearnHistoryMock();
   },
-  methods: {
-    async getPaper() {
-      const id = this.$route.params.id;
-      console.log(this.$route.params);//打印结果为{user:'david'}
-      const url = `${API_URL}?paperId=${id}`
-      // const url = `${API_URL}/`
-
-      if (!this.mock) {
-        this.paper =  await (await fetch(url)).json()
-        console.log(this.paper)
-      }
-      /* mock */
-      if (this.mock) {
-        this.paper = {
-          "id": id,
-          "name": "数学考试1",
-          "time": {
-            "hours": "2",
-            "mins": "10"
-          },
-          "permission": "public",
-          "userId": "",
-          "questions": [
-            {
-              "id": "q01",
-              "description": "1+1=",
-              "options": [
-                {
-                  "id": 1,
-                  "content": "1"
-                },
-                {
-                  "id": 2,
-                  "content": "2"
-                },
-                {
-                  "id": 3,
-                  "content": "3"
-                }
-              ],
-              "answer": 2,
-              "type": "single",
-              "category": "A",
-              "disease": "A1",
-              "analysis": "1+1=2",
-              "score": 5
+  methods:{
+    async fetchLearnHistory(user_id, pageNum, pageSize) {
+        try {
+          const response = await axios.get("/users/medcases", {
+            params: {
+              user_id: user_id,
+              page: pageNum,
+              size: pageSize,
             },
-            {
-              "id": "q02",
-              "description": "1+2=",
-              "options": [
-                {
-                  "id": 1,
-                  "content": "1"
-                },
-                {
-                  "id": 2,
-                  "content": "three"
-                },
-                {
-                  "id": 3,
-                  "content": "3"
-                },
-                {
-                  "id": 4,
-                  "content": "4"
-                }
-              ],
-              "answer": [
-                2,
-                3
-              ],
-              "type": "multiple",
-              "category": "B",
-              "disease": "B2",
-              "analysis": "1+2=3",
-              "score": 10
-            },
-            {
-              "id": "q05",
-              "description": "1+4=",
-              "options": [],
-              "answer": [
-                "5",
-                "五"
-              ],
-              "type": "short",
-              "category": "C",
-              "disease": "C1",
-              "analysis": "1+4=5",
-              "score": 5
-            },
-            {
-              "id": "q04",
-              "stem": "1+23=",
-              "options": [],
-              "answer": "",
-              "type": "long",
-              "category": "D",
-              "disease": "D2",
-              "analysis": "1+23=24",
-              "score": 10
-            }
-          ]
+          });
+          const { code, data, msg } = response.data;
+          if (code === 200) {
+            const { total, records } = data;
+            this.total = total; // 更新总记录数
+            this.records = records; // 更新记录数据
+            this.fetchPageLearnHistory(); // 更新当前页数据
+          } else {
+            throw new Error(msg);
+          }
+        } catch (error) {
+          console.error("Error fetching learn history:", error);
+          throw error;
         }
-      }
-    },
-    init(mode) {
-      switch (mode) {
-        case 't'://test 测试
-          this.showTest = true
-          break;
-        case 'p'://teacher paper 老师组卷
-          // this.question.yourAns = []//used
-          this.editScore = false
-          break;
-        case 'e'://student exam  学生考试
-          this.isActive = true
-          break;
-        case 'r'://student result 学生答卷
-          this.isResult = true
-          break;
-        case 'w'://teacher watch 审批
-          this.editUScore = true
-          this.isResult = true
-          break;
-        default:
-          this.editUScore = false
-          this.editScore = false
-          this.isActive = false
-          this.isResult = false
-          break;
-      }
-    },
-    getPaperId(result) {
-      //todo：需要修改
-      if (result.ok) {
-        return result.json().id
-      } else {
-        return "Q01_test"
-      }
-    },
-    goBack() {
-      this.$router.back()
-    },
-    // showHidden(idx) {
-    //   if (this.isActive) {
-    //     this.questions[idx].hidden = false
-    //   } else {
-    //     this.questions[idx].hidden = !this.paper.questions[idx].hidden
-    //   }
-    // },
-    isRightAnswer(id, idx) {
-      return id == this.questions[idx].answer
-    },
-    isEqual(l1, l2) {
-      if (l1.length != l2.length) {
-        return false
-      } else {
-        l1 = l1.sort
-        l2 = l2.sort
-        return l1 == l2
-      }
-    },
-    getScore(idx) {//提交试卷的时候调用//used
-      //todo:还没调用
-      this.questions[idx].status = 'done'
-      this.questions[idx].uScore = this.questions[idx].yourAns == this.questions[idx].answer ? this.questions[idx].score : 0
 
+      },
+    jumpToMedcase(medcaseId){
+      this.$router.push({name:'Medcase',params:{medcaseId:medcaseId}});
     },
-    correct(idx) {
-      if (this.questions[idx].status == 'done') {
-        return this.questions[idx].uScore == this.questions[idx].score
-      }
-      return false
-    },
-    wrong(idx) {
-      if (this.questions[idx].status == 'done') {
-        return this.questions[idx].uScore != this.questions[idx].score
+      fetchLearnHistoryMock()
+      {
+        const mockData = {
+          total: 50, // 模拟总记录数
+          records: []
+        };
 
-      }
-      return false
+        // 生成50条模拟记录
+        for (let i = 1; i <= 50; i++) {
+          mockData.records.push({
+            medcase_id: i,
+            name: `病例 ${i}`,
+            info_description: `这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。这是病例 ${i} 的信息描述。`
+          });
+        }
+        this.total = mockData.total;
+        this.records = mockData.records;
+        this.fetchPageLearnHistory();
+      },
+      fetchPageLearnHistory()
+      {
+        this.pageRecords = [];
+        for (let i = (this.pageNum - 1) * this.pageSize; i < this.total; i++) {
+          //把遍历的数据添加到pageTicket里面
+          this.pageRecords.push(this.records[i]);
+          //判断是否达到一页的要求
+          if (this.pageRecords.length === this.pageSize) break;
+        }
+      },
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.fetchPageLearnHistory();
     },
-    waiting(idx) {
-      return this.questions[idx].status == 'todo'
+    // 分页 current 变化
+    handleCurrentChange(pageNum) { // 处理页码改变事件
+      this.pageNum = pageNum; // 更新当前页码
+      this.fetchPageLearnHistory(); // 重新获取数据
+    }
     },
-    undo(idx) {
-      return this.questions[idx].status == 'undo'
-    },
-    todo(idx) {
-      return this.questions[idx].status == 'todo'
-    },
-  },
-  mounted() {
-    // this.getPaper()
-    this.init('p')
-  },
   setup() {
     const store = useStore();
 
@@ -315,32 +127,47 @@ export default {
       store.commit('setShowSidenavStudent', false);
       next();
     });
-
     return {};
-  },
-  created(){
-    this.getPaper()
+  }
+
+};
+</script>
+
+<style scoped>
+.container.sectionHeight {
+  background-color: white; /* 设置背景色为白色 */
+  border-radius: 20px;
+  margin-left: 10px;
+  padding:20px;
+  padding-bottom: 20px;
+}
+.custom-button {
+  margin-left: 15px;
+  /* 设置背景颜色 */
+  background-color: #b6e6ff;
+  /* 设置边框颜色和样式 */
+  border: 2px solid #01A7F0;
+  /* 设置字体颜色 */
+  color: #00449C;
+  padding-left: 10px;
+  padding-right: 10px;
+  /* 设置字体大小 */
+  font-size: 14px;
+  /* 设置圆角 */
+  border-radius: 3px;
+  /* 设置按钮悬停时的背景颜色 */
+  &:hover {
+    background-color: #FFFFFF;
+    border-color: #66B1FF;
   }
 }
-
-</script>
-<style scoped>
-.biaoge {
-  background-color: white;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  margin-left: 2%; /* 调整左边距 */
-  margin-right: 2%; /* 调整右边距 */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
+.el-table-column .cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.table {
-  text-align: center;
+.card.p-4{
+  margin-left: 5px;
 }
-.table th,
-.table td {
-  vertical-align: middle;
-}
+#mycol /deep/ .el-tooltip__popper{ max-width:50% }
 </style>

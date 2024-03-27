@@ -48,8 +48,8 @@ const getRoute = () => {
 
       <li class="nav-item">
         <sidenav-item
-            to="/billing"
-            :class="getRoute() === 'billing' ? 'active' : ''"
+            to="/Category"
+            :class="getRoute() === 'Category' ? 'active' : ''"
             :navText="isRTL ? 'Case learning' : '病例学习'"
         >
           <template v-slot:icon>

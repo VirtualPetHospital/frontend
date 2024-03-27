@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Dashboard from "../views/Dashboard.vue";
 import Tables from "../views/Tables.vue";
-import Billing from "../views/Billing.vue";
 import VirtualReality from "../views/VirtualReality.vue";
 import RTL from "../views/Rtl.vue";
 import Profile from "../views/Profile.vue";
@@ -19,16 +18,17 @@ import DashboardStudent from "@/examples/Student/DashboardStudent.vue";
 import MyPapersStudent from "@/examples/Student/paper/MyPapersStudent.vue";
 import PaperInfo from "@/examples/Student/paper/PaperInfo.vue";
 import LearnHistory from "@/examples/Student/history/LearnHistory.vue";
-import UserManagement from "@/examples/Admin/userManagement/UserManagement.vue"
-import MedcaseManagement from "@/examples/Admin/medcaseManagement/MedcaseManagement.vue"
-import InspectionManagement from "../examples/Admin/inspectionManagement/InspectionManagement.vue"
-import MedicineManagement from "../examples/Admin/medicineManagement/MedicineManagement.vue"
-import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue"
+import Category from "@/examples/Student/Medicase/Category.vue";
+import Disease from "@/examples/Student/Medicase/Disease.vue";
+import Medcase from "@/examples/Student/Medicase/Medcase.vue";
+import Operation from "@/examples/Student/Medicase/Operation.vue";
+import Medicines from "@/examples/Student/Medicase/Medicines.vue";
+import TakeExam from "@/examples/Student/exams/TakeExam.vue";
 const routes = [
   {
     path: "/",
     name: "/",
-    redirect: "/signin",
+    redirect: "/Signin",
   },
   {
     path: "/dashboard-student",
@@ -66,9 +66,9 @@ const routes = [
     component: Tables,
   },
   {
-    path: "/billing",
-    name: "Billing",
-    component: Billing,
+    path: "/Category",
+    name: "病例学习",
+    component: Category,
   },
   {
     path: "/virtual-reality",
@@ -84,6 +84,11 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: Profile,
+  },
+  {
+    path: '/:diseaseName/medcases',
+    name: 'Disease',
+    component: Disease,
   },
   {
     path: "/signin",
@@ -117,8 +122,13 @@ const routes = [
   },
   {
     path:"/papers/:id",
-    name:"查看试卷",
+    name:"WatchPaper",
     component:PaperInfo,
+  },
+  {
+    path:"/takeexam/:id",
+    name:"TakeExam",
+    component:TakeExam,
   },
   {
     path:"/history/:id",
@@ -126,36 +136,25 @@ const routes = [
     component:LearnHistory,
   },
   {
+    path:"/medcase/:medcaseId",
+    name:"Medcase",
+    component:Medcase,
+  },
+  {
+    path:"/:medcaseId/medicines",
+    name:"Medicines",
+    component:Medicines,
+  },
+  {
+    path:"/operation/:operation_id",
+    name:"Operation",
+    component:Operation,
+  },
+  {
     path: "/Myexam",
     name: "Myexam",
     component: Myexam,
   },
-  {
-    path:"/UserManagement",
-    name:"用户管理-管理员",
-    component:UserManagement,
-  },
-  {
-    path:"/MedcaseManagement",
-    name:"病例管理-管理员",
-    component:MedcaseManagement,
-  },  
-  {
-    path:"/InspectionManagement",
-    name:"检查项目管理-管理员",
-    component:InspectionManagement,
-  }, 
-  {
-    path:"/MedicineManagement",
-    name:"药品管理-管理员",
-    component:MedicineManagement,
-  },
-  {
-    path:"/RoomManagement",
-    name:"科室管理-管理员",
-    component:RoomManagement,
-  },
-
 
 ];
 
