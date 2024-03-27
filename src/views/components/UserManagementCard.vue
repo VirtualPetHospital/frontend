@@ -10,12 +10,13 @@
     <!-- 表格容器 -->
     <div class="biaoge-container ps-3">
       <table class="table" bgcolor="#ffffff">
-        <!-- <colgroup>
-          <col style="width: 8%">
-          <col style="width: 8%">
-          <col style="width: 70%">
-          <col style="width: 14%">
-        </colgroup> -->
+        <colgroup>
+          <col style="width: 15%">
+          <col style="width: 20%">
+          <col style="width: 20%">
+          <col style="width: 20%">
+          <col style="width: 25%">
+        </colgroup>
 
         <thead>
           <tr>
@@ -182,7 +183,9 @@ export default {
   padding: 8px;
   text-align: center;
   border: 1px solid #dee2e6;
+  white-space: pre-wrap; /* 添加此行 */
 }
+
 
 .table th {
   background-color: #f2f2f2;

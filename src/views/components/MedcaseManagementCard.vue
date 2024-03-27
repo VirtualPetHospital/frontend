@@ -230,7 +230,9 @@ export default {
     padding: 8px;
     text-align: center;
     border: 1px solid #dee2e6;
+    white-space: pre-wrap; /* 添加此行 */
   }
+
   
   .table th {
     background-color: #f2f2f2;
