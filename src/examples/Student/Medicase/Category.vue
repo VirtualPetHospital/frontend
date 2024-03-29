@@ -11,7 +11,7 @@
 <!--            <el-tab-pane label="病种名4">4</el-tab-pane>-->
 <!--          </el-tabs>-->
           <el-tabs type="border-card" class="rounded-tabs" >
-            <el-tab-pane v-for="category in categories" :key="category.category_id" :label="category.category_name">
+            <el-tab-pane v-for="category in categories" :key="category.category_id" :label="category.name">
               <el-row>
                 <el-col v-for="(disease, index) in diseases[category.category_id]" :key="index" :span="8" >
                   <el-button class="custom-button" style="margin-bottom: 10px;margin-left: 20px" @click="fetchMedCases(disease.name,disease.disease_id)">{{ disease.name }}</el-button>
@@ -46,6 +46,7 @@ export default{
       diseases:{},
       infoKeyword:"",
       meKeyword:'',
+      categoriesObj:[],
     }
   },
   props:{
@@ -55,36 +56,50 @@ export default{
     }
   },
   mounted() {
-    this.fetchCategoriesMock();
+    this.fetchCategories();
   },
   methods:{
     fetchMedCases(diseaseName,diseaseId){
       this.$router.push({ name: 'Disease', params: { diseaseName: diseaseName,diseaseId:diseaseId }});
     },
     fetchCategories(){
+      console.log('session '+sessionStorage);
       axios.get(
-          '/categories',
+          '/api/categories',
           {
             params:{
               name_keyword:''
+            },
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
             }
           }
       ).then(response=>{
-        this.categories=response.data;
+        this.categories=
+            JSON.stringify(response.data.data);
+        console.log("category "+this.categories);
         this.fetchDiseasesForCategories();
       }).catch(error=>{
         console.error('获取病种失败',error);
       })
     },
     fetchDiseasesForCategories(){
-      this.categories.forEach(category=>{
-        axios.get(`/diseases/categories/${category.category_id}`).then
+      for(var category in this.categories){
+        axios.get(`/api/diseases/categories/${category['category_id']}`,
+            {headers:{
+                'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+        },
+              withCredentials : true}
+        ).then
         (response=>{
-          this.$set(this.diseases,category.category_id,response.data);
+          this.categories[category.category_id].diseasesf =response.data.data;
         }).catch(error=>{
           console.error('获取疾病失败',error);
         });
-      });
+        }
     },
     fetchCategoriesMock() {
       return new Promise((resolve, reject) => {

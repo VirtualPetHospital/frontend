@@ -25,7 +25,7 @@
               align="center"
               label="操作">
             <template v-slot="scope">
-                <el-button class="custom-button" @click="watchPaper(scope.row.examId)" type="text" size="small" style="margin-left: 10px">
+                <el-button class="custom-button" @click="watchPaper(scope.row.examId,scope.row.paper.name)" type="text" size="small" style="margin-left: 10px">
                   查看
               </el-button>
             </template>
@@ -89,6 +89,7 @@ export default{
                 paper: this.responseData.data.records[i].paper
               };
               this.papers.push(paperInfo);
+              console.log("correctnum"+paperInfo.paper.correct_num);
             }
             this.total=this.responseData.data.total;
 
@@ -121,9 +122,55 @@ export default{
       this.pageNum = pageNum; // 更新当前页码
       this.fetchPagePapers(); // 重新获取数据
     },
-    watchPaper(examId){
-      this.$router.push({name:'WatchPaper',params:{id: examId}});
+    watchPaper(examId,paperName){
+
+      this.$router.push({name:'WatchPaper',params:{id: examId,name:paperName}});
     },
+    correctNum(examId){
+      try{
+        const response=axios.get('/answer-sheets/' ,
+            {
+              params: {
+                exam_id:examId,
+              },}
+        );
+        const answers=response.data.answers;
+        const correctAnswers = answers.filter(answer => answer.answer === answer.option);
+        return correctAnswers;
+      }catch(error){
+        console.log("获取正确数失败",error);
+      }
+    },
+    correctNumMock(examId) {
+      try {
+        // 模拟 axios.get 方法的行为，返回一个 Promise 对象
+        const response = Promise.resolve({
+          data: {
+            answers: [
+              { answer_sheet_id: 1, user_id: 57, option: 'D', exam_id: 62, question_id: 85,answer:'D'},
+              { answer_sheet_id: 2, user_id: 57, option: 'A', exam_id: 62, question_id: 86 ,answer:'A'},
+              // 添加更多的 answer 对象作为示例数据
+            ]
+          }
+        });
+
+        // 使用 then 方法来处理异步操作并获取数据
+        return response.then(res => {
+          // 提取答案数组
+          const answers = res.data.answers;
+
+          // 使用 filter() 方法计算符合条件的元素数量
+          const correctAnswers = answers.filter(answer => answer.answer === answer.option).length;
+
+          // 返回符合条件的答案数量
+          return correctAnswers;
+        });
+      } catch (error) {
+        console.error("获取正确数失败", error);
+        throw error; // 抛出错误
+      }
+    },
+
     fetchPapersMock(){
       this.responseData ={
         "code": 0,
@@ -139,10 +186,9 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
                 "paper_id": 101,
                 "name": "试卷1",
-                "question_num": 30,
+                "question_num": 3,
                 "questions": [
                   {
                     "question_id": 1,
@@ -178,8 +224,7 @@ export default{
               "paper": {
                 "paper_id": 102,
                 "name": "试卷2",
-                "correct_num":2,
-                "question_num": 25,
+                "question_num": 3,
                 "questions": [
                   {
                     "question_id": 3,
@@ -213,7 +258,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -250,7 +294,6 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
                 "paper_id": 101,
                 "name": "试卷1",
                 "question_num": 30,
@@ -289,7 +332,6 @@ export default{
               "paper": {
                 "paper_id": 102,
                 "name": "试卷2",
-                "correct_num":2,
                 "question_num": 25,
                 "questions": [
                   {
@@ -324,7 +366,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -361,7 +402,6 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
                 "paper_id": 101,
                 "name": "试卷1",
                 "question_num": 30,
@@ -400,7 +440,6 @@ export default{
               "paper": {
                 "paper_id": 102,
                 "name": "试卷2",
-                "correct_num":2,
                 "question_num": 25,
                 "questions": [
                   {
@@ -435,7 +474,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -472,7 +510,6 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
                 "paper_id": 101,
                 "name": "试卷1",
                 "question_num": 30,
@@ -511,7 +548,6 @@ export default{
               "paper": {
                 "paper_id": 102,
                 "name": "试卷2",
-                "correct_num":2,
                 "question_num": 25,
                 "questions": [
                   {
@@ -546,7 +582,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -583,7 +618,42 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
+                "paper_id": 101,
+                "name": "试卷1",
+                "question_num": 30,
+                "questions": [
+                  {
+                    "question_id": 1,
+                    "description": "问题1的描述",
+                    "answer": "答案1",
+                    "A": "选项A",
+                    "B": "选项B",
+                    "C": "选项C",
+                    "D": "选项D",
+                    "category_id": 1
+                  },
+                  {
+                    "question_id": 2,
+                    "description": "问题2的描述",
+                    "answer": "答案2",
+                    "A": "选项A",
+                    "B": "选项B",
+                    "C": "选项C",
+                    "D": "选项D",
+                    "category_id": 2
+                  }
+                ]
+              },
+              "participated": 50
+            },
+            {
+              "exam_id": 1,
+              "name": "考试1",
+              "start_time": "2024-03-25 08:00:00",
+              "end_time": "2024-03-25 10:00:00",
+              "duration": 120,
+              "level": 3,
+              "paper": {
                 "paper_id": 101,
                 "name": "试卷1",
                 "question_num": 30,
@@ -620,44 +690,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "paper_id": 102,
-                "name": "试卷2",
-                "correct_num":2,
-                "question_num": 25,
-                "questions": [
-                  {
-                    "question_id": 3,
-                    "description": "问题3的描述",
-                    "answer": "答案3",
-                    "A": "选项A",
-                    "B": "选项B",
-                    "C": "选项C",
-                    "D": "选项D",
-                    "category_id": 1
-                  },
-                  {
-                    "question_id": 4,
-                    "description": "问题4的描述",
-                    "answer": "答案4",
-                    "A": "选项A",
-                    "B": "选项B",
-                    "C": "选项C",
-                    "D": "选项D",
-                    "category_id": 3
-                  }
-                ]
-              },
-              "participated": 40
-            },
-            {
-              "exam_id": 2,
-              "name": "考试2",
-              "start_time": "2024-03-26 09:00:00",
-              "end_time": "2024-03-26 11:00:00",
-              "duration": 120,
-              "level": 2,
-              "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -694,7 +726,6 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
                 "paper_id": 101,
                 "name": "试卷1",
                 "question_num": 30,
@@ -731,44 +762,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "paper_id": 102,
-                "name": "试卷2",
-                "correct_num":2,
-                "question_num": 25,
-                "questions": [
-                  {
-                    "question_id": 3,
-                    "description": "问题3的描述",
-                    "answer": "答案3",
-                    "A": "选项A",
-                    "B": "选项B",
-                    "C": "选项C",
-                    "D": "选项D",
-                    "category_id": 1
-                  },
-                  {
-                    "question_id": 4,
-                    "description": "问题4的描述",
-                    "answer": "答案4",
-                    "A": "选项A",
-                    "B": "选项B",
-                    "C": "选项C",
-                    "D": "选项D",
-                    "category_id": 3
-                  }
-                ]
-              },
-              "participated": 40
-            },
-            {
-              "exam_id": 2,
-              "name": "考试2",
-              "start_time": "2024-03-26 09:00:00",
-              "end_time": "2024-03-26 11:00:00",
-              "duration": 120,
-              "level": 2,
-              "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -805,7 +798,6 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
                 "paper_id": 101,
                 "name": "试卷1",
                 "question_num": 30,
@@ -842,44 +834,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "paper_id": 102,
-                "name": "试卷2",
-                "correct_num":2,
-                "question_num": 25,
-                "questions": [
-                  {
-                    "question_id": 3,
-                    "description": "问题3的描述",
-                    "answer": "答案3",
-                    "A": "选项A",
-                    "B": "选项B",
-                    "C": "选项C",
-                    "D": "选项D",
-                    "category_id": 1
-                  },
-                  {
-                    "question_id": 4,
-                    "description": "问题4的描述",
-                    "answer": "答案4",
-                    "A": "选项A",
-                    "B": "选项B",
-                    "C": "选项C",
-                    "D": "选项D",
-                    "category_id": 3
-                  }
-                ]
-              },
-              "participated": 40
-            },
-            {
-              "exam_id": 2,
-              "name": "考试2",
-              "start_time": "2024-03-26 09:00:00",
-              "end_time": "2024-03-26 11:00:00",
-              "duration": 120,
-              "level": 2,
-              "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -916,7 +870,6 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
                 "paper_id": 101,
                 "name": "试卷1",
                 "question_num": 30,
@@ -953,44 +906,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "paper_id": 102,
-                "name": "试卷2",
-                "correct_num":2,
-                "question_num": 25,
-                "questions": [
-                  {
-                    "question_id": 3,
-                    "description": "问题3的描述",
-                    "answer": "答案3",
-                    "A": "选项A",
-                    "B": "选项B",
-                    "C": "选项C",
-                    "D": "选项D",
-                    "category_id": 1
-                  },
-                  {
-                    "question_id": 4,
-                    "description": "问题4的描述",
-                    "answer": "答案4",
-                    "A": "选项A",
-                    "B": "选项B",
-                    "C": "选项C",
-                    "D": "选项D",
-                    "category_id": 3
-                  }
-                ]
-              },
-              "participated": 40
-            },
-            {
-              "exam_id": 2,
-              "name": "考试2",
-              "start_time": "2024-03-26 09:00:00",
-              "end_time": "2024-03-26 11:00:00",
-              "duration": 120,
-              "level": 2,
-              "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -1027,7 +942,6 @@ export default{
               "duration": 120,
               "level": 3,
               "paper": {
-                "correct_num":1,
                 "paper_id": 101,
                 "name": "试卷1",
                 "question_num": 30,
@@ -1066,7 +980,6 @@ export default{
               "paper": {
                 "paper_id": 102,
                 "name": "试卷2",
-                "correct_num":2,
                 "question_num": 25,
                 "questions": [
                   {
@@ -1094,6 +1007,42 @@ export default{
               "participated": 40
             },
             {
+              "exam_id": 1,
+              "name": "考试1",
+              "start_time": "2024-03-25 08:00:00",
+              "end_time": "2024-03-25 10:00:00",
+              "duration": 120,
+              "level": 3,
+              "paper": {
+                "paper_id": 101,
+                "name": "试卷1",
+                "question_num": 30,
+                "questions": [
+                  {
+                    "question_id": 1,
+                    "description": "问题1的描述",
+                    "answer": "答案1",
+                    "A": "选项A",
+                    "B": "选项B",
+                    "C": "选项C",
+                    "D": "选项D",
+                    "category_id": 1
+                  },
+                  {
+                    "question_id": 2,
+                    "description": "问题2的描述",
+                    "answer": "答案2",
+                    "A": "选项A",
+                    "B": "选项B",
+                    "C": "选项C",
+                    "D": "选项D",
+                    "category_id": 2
+                  }
+                ]
+              },
+              "participated": 50
+            },
+            {
               "exam_id": 2,
               "name": "考试2",
               "start_time": "2024-03-26 09:00:00",
@@ -1101,7 +1050,6 @@ export default{
               "duration": 120,
               "level": 2,
               "paper": {
-                "correct_num":3,
                 "paper_id": 102,
                 "name": "试卷2",
                 "question_num": 25,
@@ -1138,11 +1086,20 @@ export default{
       if (this.responseData && this.responseData.data && this.responseData.data.records.length > 0) {
         // 使用 map 方法遍历所有记录并提取 paper 字段
         for(let i=0;i<this.responseData.data.records.length;i++){
+          let tmpPaper=this.responseData.data.records[i].paper;
+          this.correctNumMock(this.responseData.data.records[i].exam_id)
+              .then(correct_num => {
+                tmpPaper.correct_num = correct_num;
+              })
+              .catch(error => {
+                console.error("获取正确数失败", error);
+              });
           let paperInfo = {
             examId: this.responseData.data.records[i].exam_id,
-            paper: this.responseData.data.records[i].paper
+            paper: tmpPaper
           };
           this.papers.push(paperInfo);
+          console.log(paperInfo);
         }
         this.total=this.responseData.data.total;
         // 输出获取到的所有 paper 数组
