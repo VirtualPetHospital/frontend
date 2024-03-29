@@ -1,279 +1,315 @@
 <template>
-    <div>
-      <!-- 按钮容器 -->
-      <div class="buttons-container">
-        <button @click="openAddModal" class="btn btn-success" style="margin-left:4%">新增</button>
-  
-        <button @click="deleteRoom" class="btn btn-danger" style="margin-left:2%">删除</button>
+  <div class="container sectionHeight">
+
+    <!-- 搜索栏 -->
+    <el-input
+      v-model="searchText"
+      placeholder="输入科室名进行搜索"
+      clearable
+      @clear="handleClearSearch"
+      @input="handleSearch"
+      v-show="!dialogVisible && !modifyDialogVisible"
+    ></el-input>
+
+   <!-- 新增弹窗 -->
+    <el-dialog
+      title="新增科室"
+      v-model="dialogVisible"
+      width="10%"
+      :before-close="handleCloseDialog"
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="科室名" prop="roomName">
+          <el-input v-model="form.roomName"></el-input>
+        </el-form-item>
+        <el-form-item label="上传图片" prop="image">
+          <el-upload
+            action="/your-upload-url"
+            :on-success="handleUploadSuccess"
+            :before-upload="beforeUpload"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input v-model="form.description"></el-input>
+        </el-form-item>
+        <el-form-item label="科室设施" prop="facilities">
+          <el-input v-model="form.facilities"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirm">确定</el-button>
       </div>
-      
-      <!-- 表格容器 -->
-      <div class="biaoge-container ps-3">
-        <table class="table" bgcolor="#ffffff">
-          <colgroup>
-            <col style="width: 8%">
-            <col style="width: 8%">
-            <col style="width: 8%">
-            <col style="width: 64%">
-            <col style="width: 12%">
-          </colgroup>
-  
-          <thead>
-            <tr>
-              <th scope="col" class="text-center rounded-top-left">选择</th>
-              <th scope="col" class="text-center">科室名</th>
-              <th scope="col" class="text-center">图片</th>
-              <th scope="col" class="text-center rounded-top-right" style="word-break: break-word;">描述</th>
-              <th scope="col" class="text-center">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- 遍历每个科室项 -->
-            <tr v-for="(room, index) in rooms" :key="index">
-              <td class="text-center rounded-bottom-left"  @click="toggleCheckbox(room)"><input type="checkbox" v-model="room.checked"></td>
-              <td class="text-center">{{ room.name }}</td>
-              <td class="text-center"><img :src="room.image" style="max-width: 100px; max-height: 100px;"></td>
-              <td class="text-center" style="overflow-wrap: break-word;">{{ room.description }}</td>
-              <td class="text-center rounded-bottom-right">
-                <!-- 修改按钮 -->
-                <button @click="openEditModal(room)" class="btn btn-primary">修改</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    </el-dialog>
+
+    <!-- 修改弹窗 -->
+    <el-dialog
+      title="修改科室"
+      v-model="modifyDialogVisible"
+      width="10%"
+      :before-close="handleCloseModifyDialog"
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="科室名" prop="roomName">
+          <el-input v-model="form.roomName"></el-input>
+        </el-form-item>
+        <el-form-item label="上传图片" prop="image">
+          <el-upload
+            action="/your-upload-url"
+            :on-success="handleUploadSuccess"
+            :before-upload="beforeUpload"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input v-model="form.description"></el-input>
+        </el-form-item>
+        <el-form-item label="科室设施" prop="facilities">
+          <el-input v-model="form.facilities"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="modifyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleModifyConfirm">确定</el-button>
       </div>
-  
-      <!-- 弹出窗口 -->
-      <transition name="modal">
-        <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
-          
-            <div class="modal-wrapper" @click.stop>
-              <div class="modal-container">
-                <h3>{{ editMode ? '编辑科室信息' : '新增科室' }}</h3>
-                <form @submit.prevent="editMode ? saveRoom() : saveNewRoom()">
-                  <label>科室名：</label>
-                  <input type="text" class="form-control" :value="editMode ? editingRoom.name : newRoom.name" @input="editMode ? editingRoom.name = $event.target.value : newRoom.name = $event.target.value"><br>
-                  <label>图片：</label>
-                  <input type="text" class="form-control" :value="editMode ? editingRoom.image : newRoom.image" @input="editMode ? editingRoom.image = $event.target.value : newRoom.image = $event.target.value"><br>
-                  <label>描述：</label>
-                  <textarea class="form-control" rows="4" :value="editMode ? editingRoom.description : newRoom.description" @input="editMode ? editingRoom.description = $event.target.value : newRoom.description = $event.target.value"></textarea><br>
-                  <div class="button-container">
-                    <button type="submit" class="btn btn-lg btn-block btn-primary">{{ editMode ? '保存' : '添加' }}</button>
-                    <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          
-        </div>
-      </transition>
+    </el-dialog>
+
+
+    <!-- 按钮区域 -->
+    <div class="row mb-4" v-show="!dialogVisible && !modifyDialogVisible">
+      <div class="col-6">
+        <el-button type="primary" @click="handleAdd">新增</el-button>
+        <el-button type="danger" @click="handleDelete">删除</el-button>
+        <el-button type="success" @click="openModifyDialog">修改</el-button>
+      </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        rooms: [
-          { id: 1, name: 'Room 1', image: 'room1.jpg', description: 'Description of Room 1', checked: false },
-          { id: 2, name: 'Room 2', image: 'room2.jpg', description: 'Description of Room 2', checked: false },
-          { id: 3, name: 'Room 3', image: 'room3.jpg', description: 'Description of Room 3', checked: false }
-        ],
-        editingRoom: null,
-        showEditModal: false, // 控制编辑窗口显示与隐藏
-        editMode: false, // 是否为编辑模式
-        newRoom: { name: '', image: '', description: '' } // 新增科室的初始信息
-      };
+
+    <!-- 表格 -->
+    <div class="row" v-show="!dialogVisible && !modifyDialogVisible">
+      <div class="col-12">
+        <div class="room-management-container">
+          <el-table
+            :data="filteredRooms"
+            stripe
+            style="width: 100%;"
+            highlight-current-row
+            @row-click="handleRowClick"
+          >
+            <el-table-column prop="id" label="ID"></el-table-column>
+            <el-table-column prop="roomName" label="科室名"></el-table-column>
+            <el-table-column prop="image" label="图片"></el-table-column>
+            <el-table-column prop="description" label="描述"></el-table-column>
+            <el-table-column prop="facilities" label="科室设施"></el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分页组件 -->
+    <div class="row" v-show="!dialogVisible && !modifyDialogVisible">
+      <div class="col-12">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="currentPage"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="pageSize"
+          :total="rooms.length"
+          layout="sizes, total, prev, pager, next,jumper"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<script>
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+
+export default {
+  components: {
+    ElButton,
+    ElDialog,
+    ElForm,
+    ElFormItem,
+    ElInput,
+    ElPagination,
+    ElTable,
+    ElTableColumn,
+  },
+  data() {
+    return {
+      searchText: '',
+      dialogVisible: false,
+      modifyDialogVisible: false,
+      form: {
+        id: '',
+        roomName: '',
+        description: '',
+        facilities: '',
+      },
+      rules: {
+        id: [{ required: true, message: '请输入ID', trigger: 'blur' }],
+        roomName: [{ required: true, message: '请输入科室名', trigger: 'blur' }],
+      },
+      rooms: [
+        { id: 1, roomName: "Room1", description: "Description1", facilities: "Facilities1" },
+        { id: 2, roomName: "Room2", description: "Description2", facilities: "Facilities2" },
+        { id: 3, roomName: "Room3", description: "Description3", facilities: "Facilities3" },
+        // 其他科室数据...
+      ],
+      currentPage: 1,
+      pageSize: 10,
+      selectedRow: null,
+      imageUrl: '', // 存储上传图片的URL
+    };
+  },
+  computed: {
+    currentPageData() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.rooms.slice(startIndex, endIndex);
     },
-    methods: {
-      openEditModal(room) {
-        this.editMode = true; // 进入编辑模式
-        this.editingRoom = { ...room };
-        this.showEditModal = true; // 打开编辑窗口
-      },
-      openAddModal() {
-        this.editMode = false; // 进入新增模式
-        this.showEditModal = true; // 打开新增科室窗口
-      },
-      closeEditModal() {
-        this.showEditModal = false; // 关闭编辑窗口
-        this.editMode = false; // 重置编辑模式
-        this.editingRoom = null; // 清空编辑科室信息
-        this.newRoom = { name: '', image: '', description: '' }; // 清空新增科室信息
-      },
-      saveRoom() {
-        // 更新编辑科室信息
-        const index = this.rooms.findIndex(room => room.id === this.editingRoom.id);
+    filteredRooms() {
+      const filtered = this.rooms.filter(room =>
+        room.roomName.toLowerCase().includes(this.searchText.toLowerCase())
+      );
+      return filtered;
+    },
+  },
+  methods: {
+    validatePrice(rule, value, callback) {
+      if (value === '' || value === null) {
+        callback(new Error('请输入价格'));
+      } else if (!isNaN(value) && parseFloat(value) >= 0 && parseFloat(value) <= 99999.99) {
+        callback();
+      } else {
+        callback(new Error('价格范围为0.00至99999.99'));
+      }
+    },
+    handleSearch() {
+      // 处理搜索功能
+      // 触发计算属性重新计算过滤后的科室
+    },
+    handleClearSearch() {
+      // 处理清除搜索文本
+      this.searchText = '';
+    },
+    handleAdd() {
+      this.dialogVisible = true;
+      this.form.id = this.rooms.length + 1;
+    },
+    handleConfirm() {
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          this.rooms.push({ ...this.form });
+          this.dialogVisible = false;
+          this.$refs.form.resetFields();
+        } else {
+          return false;
+        }
+      });
+    },
+    handleDelete() {
+      if (this.selectedRow) {
+        const index = this.rooms.findIndex(room => room === this.selectedRow);
         if (index !== -1) {
-          this.rooms[index] = { ...this.editingRoom };
-          console.log('保存科室信息:', this.editingRoom);
-        } else {
-          console.error('Room not found');
+          this.rooms.splice(index, 1);
+          this.selectedRow = null;
         }
-        this.closeEditModal();
-      },
-      saveNewRoom() {
-        // 添加新增科室信息到表格数据中
-        this.rooms.push({ ...this.newRoom, id: this.rooms.length + 1, checked: false });
-        console.log('新增科室信息:', this.newRoom);
-        this.closeEditModal();
-      },
-      deleteRoom() {
-        const selectedRooms = this.rooms.filter(room => room.checked);
-        if (selectedRooms.length > 0) {
-          // 删除选中的科室信息
-          selectedRooms.forEach(room => {
-            const index = this.rooms.findIndex(r => r.id === room.id);
-            if (index !== -1) {
-              this.rooms.splice(index, 1);
-              console.log('已删除科室:', room);
-            }
-          });
+      }
+    },
+    handleSizeChange(val) {
+      this.pageSize = val;
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val;
+    },
+    handleCloseDialog(done) {
+      this.dialogVisible = false;
+    },
+    handleCloseModifyDialog(done) {
+      this.modifyDialogVisible = false;
+    },
+    handleRowClick(row) {
+      if (this.selectedRow === row) {
+        this.selectedRow = null;
+      } else {
+        this.selectedRow = row;
+      }
+    },
+    openModifyDialog() {
+      if (this.selectedRow) {
+        this.form.id = this.selectedRow.id;
+        this.form.roomName = this.selectedRow.roomName;
+        this.form.description = this.selectedRow.description;
+        this.form.facilities = this.selectedRow.facilities;
+        this.form.price = this.selectedRow.price;
+        this.modifyDialogVisible = true;
+      } else {
+        console.log('没有选择');
+      }
+    },
+    handleModifyConfirm() {
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          const index = this.rooms.findIndex(room => room.id === this.form.id);
+          if (index !== -1) {
+            this.rooms[index] = { ...this.form };
+          }
+          this.modifyDialogVisible = false;
+          this.$refs.form.resetFields();
         } else {
-          console.log('请至少选择一个要删除的科室');
+          return false;
         }
-      },
-      toggleCheckbox(room) {
-        room.checked = !room.checked;
-      },
-    }
+      });
+    },
+    handleUploadSuccess(response, file) {
+      this.imageUrl = URL.createObjectURL(file.raw);
+      this.form.image = this.imageUrl; // 将上传成功后的图片URL赋值给表单中的image属性
+    },
+    beforeUpload(file) {
+      const isJPG = file.type === 'image/jpeg' || file.type === 'image/png';
+      if (!isJPG) {
+        this.$message.error('只能上传 JPG/PNG 格式的图片');
+      }
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        this.$message.error('图片大小不能超过 2MB');
+      }
+      return isJPG && isLt2M;
+    },
+  },
 };
 </script>
+
 <style scoped>
-.room-management-card {
-  width: 100%;
-  max-width: 600px;
-  margin: auto;
-}
-
-.role-play-title {
-  font-size: 36px;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.table-container {
-  width: 100%;
-}
-
-.buttons-container {
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.biaoge-container {
-  border: 1px solid #ccc; /* 添加外部边框 */
-  border-radius: 10px; /* 添加外部圆角 */
-  overflow: hidden; /* 隐藏内部边框 */
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  border-spacing: 0; /* 去除表格内部间距 */
-}
-
-.table th,
-.table td {
-  padding: 8px;
-  text-align: center;
-  border: 1px solid #dee2e6;
-  white-space: pre-wrap;
-}
-
-.table th {
-  background-color: #f2f2f2;
-}
-
-/* 添加单元格之间的中间分隔边框线 */
-.table tbody tr:last-child td {
-  border-bottom: 1px solid #dee2e6; /* 底部边框线 */
-}
-
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  border-left: 1px solid #dee2e6;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.rounded-top-left {
-  border-top-left-radius: 10px;
-}
-
-.rounded-top-right {
-  border-top-right-radius: 10px;
-}
-
-.rounded-bottom-left {
-  border-bottom-left-radius: 10px;
-}
-
-.rounded-bottom-right {
-  border-bottom-right-radius: 10px;
-}
-
-/* 弹出窗口样式 */
-.modal-mask {
-  position: fixed;
-  z-index: 9998;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-wrapper {
-  width: 100%;
-}
-
-.modal-container {
+.container.sectionHeight {
+  background-color: white;
+  border-radius: 20px;
+  margin-left: 10px;
   padding: 20px;
-  background-color: #ffffff;
-  border-radius: 5px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-  width: 40%; /* 设置弹窗宽度 */
-  left: 20%; /* 设置弹窗左侧距离为页面宽度的40% */
+  padding-bottom: 20px;
+  overflow-y: auto;
 }
 
-.modal-container h3 {
-  margin-bottom: 15px;
+.room-management-container {
+  width: 100%;
 }
-
-.modal-container label {
-  display: block;
-  margin-bottom: 10px;
-}
-
-.modal-container input {
-  width: calc(100% - 10px);
-  margin-bottom: 10px;
-}
-
-.modal-container textarea {
-  width: calc(100% - 10px);
-  margin-bottom: 10px;
-  overflow-wrap: break-word; /* 自动换行 */
-}
-
-.modal-container .button-container {
-  display: flex;
-  justify-content: center; /* 让按钮居中 */
-  width: 100%; /* 让容器宽度和弹窗一样 */
-  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
-}
-
-.modal-container .button-container button {
-  margin: 0 10%; /* 调整按钮之间的间距 */
-}
-
 </style>
+

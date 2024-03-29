@@ -1,270 +1,375 @@
 <template>
-    <div>
-      <!-- 按钮容器 -->
-      <div class="buttons-container">
-        <button @click="openAddModal" class="btn btn-success" style="margin-left:4%">新增</button>
-  
-        <button @click="deleteInspection" class="btn btn-danger" style="margin-left:2%">删除</button>
+  <div class="container sectionHeight">
+    <!-- 搜索栏 -->
+    <el-input
+      v-model="searchText"
+      placeholder="输入检测项目名进行搜索"
+      clearable
+      @clear="handleClearSearch"
+      @input="handleSearch"
+    ></el-input>
+
+    <!-- 新增弹窗 -->
+    <el-dialog
+      title="新增检测项目"
+      v-model="dialogVisible"
+      width="30%"
+      :before-close="handleCloseDialog"
+      scrollable
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="检测项目名" prop="name">
+          <el-input v-model="form.name"></el-input>
+        </el-form-item>
+        <el-form-item label="价格" prop="price">
+          <el-input v-model.number="form.price" type="number"></el-input>
+        </el-form-item>
+        <el-form-item label="上界" prop="upperBound">
+          <el-input v-model.number="form.upperBound" type="number"></el-input>
+        </el-form-item>
+        <el-form-item label="下界" prop="lowerBound">
+          <el-input v-model.number="form.lowerBound" type="number"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirm">确定</el-button>
       </div>
-      
-      <!-- 表格容器 -->
-      <div class="biaoge-container ps-3">
-        <table class="table" bgcolor="#ffffff">
-          <colgroup>
-            <col style="width: 15%">
-            <col style="width: 50%">
-            <col style="width: 15%">
-            <col style="width: 20%">
-          </colgroup>
-  
-          <thead>
-            <tr>
-              <th scope="col" class="text-center rounded-top-left">选择</th>
-              <th scope="col" class="text-center">检测项目名</th>
-              <th scope="col" class="text-center">价格</th>
-              <th scope="col" class="text-center rounded-top-right">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- 遍历每个检查项目项 -->
-            <tr v-for="(inspection, index) in inspections" :key="index">
-              <td class="text-center rounded-bottom-left"  @click="toggleCheckbox(inspection)"><input type="checkbox" v-model="inspection.checked"></td>
-              <td class="text-center">{{ inspection.name }}</td>
-              <td class="text-center">{{ inspection.price }}</td>
-              <td class="text-center rounded-bottom-right">
-                <!-- 修改按钮 -->
-                <button @click="openEditModal(inspection)" class="btn btn-primary">修改</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    </el-dialog>
+
+    <!-- 修改弹窗 -->
+      <el-dialog
+      title="修改检测项目"
+      v-model="modifyDialogVisible"
+      width="30%"
+      :before-close="handleCloseModifyDialog"
+      scrollable
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="modifyForm" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="检测项目名" prop="name">
+          <el-input v-model="form.name"></el-input>
+        </el-form-item>
+        <el-form-item label="价格" prop="price">
+          <el-input v-model.number="form.price" type="number"></el-input>
+        </el-form-item>
+        <el-form-item label="上界" prop="upperBound">
+          <el-input v-model.number="form.upperBound" type="number"></el-input>
+          <!-- 显示上下界验证错误信息 -->
+          <span v-if="errors.upperBound" class="error-message">{{ errors.upperBound }}</span>
+        </el-form-item>
+        <el-form-item label="下界" prop="lowerBound">
+          <el-input v-model.number="form.lowerBound" type="number"></el-input>
+          <!-- 显示上下界验证错误信息 -->
+          <span v-if="errors.lowerBound" class="error-message">{{ errors.lowerBound }}</span>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="modifyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleModifyConfirm">确定</el-button>
       </div>
-  
-      <!-- 弹出窗口 -->
-      <transition name="modal">
-        <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
-          
-            <div class="modal-wrapper" @click.stop>
-              <div class="modal-container">
-                <h3>{{ editMode ? '编辑检查项目信息' : '新增检查项目' }}</h3>
-                <form @submit.prevent="editMode ? saveInspection() : saveNewInspection()">
-                  <label>检测项目名：</label>
-                  <input type="text" class="form-control" :value="editMode ? editingInspection.name : newInspection.name" @input="editMode ? editingInspection.name = $event.target.value : newInspection.name = $event.target.value"><br>
-                  <label>价格：</label>
-                  <input type="number" class="form-control" :value="editMode ? editingInspection.price : newInspection.price" @input="editMode ? editingInspection.price = $event.target.value : newInspection.price = $event.target.value"><br>
-                  <div class="button-container">
-                    <button type="submit" class="btn btn-lg btn-block btn-primary">{{ editMode ? '保存' : '添加' }}</button>
-                    <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          
-        </div>
-      </transition>
+    </el-dialog>
+
+    <!-- 按钮区域 -->
+    <div class="row mb-4">
+      <div class="col-6">
+        <el-button type="primary" @click="handleAdd">新增</el-button>
+        <el-button type="danger" @click="handleDelete">删除</el-button>
+        <el-button type="success" @click="openModifyDialog">修改</el-button>
+      </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        inspections: [
-          { id: 1, name: 'Inspection 1', price: 50, checked: false },
-          { id: 2, name: 'Inspection 2', price: 75, checked: false },
-          { id: 3, name: 'Inspection 3', price: 100, checked: false }
+
+    <!-- 表格 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="user-management-container">
+          <el-table
+            :data="filteredInspections"
+            stripe
+            style="width: 100%;"
+            highlight-current-row
+            @row-click="handleRowClick"
+            :filters="filters"
+            :filter-method="handleFilter"
+          >
+            <el-table-column prop="id" label="ID"></el-table-column>
+            <el-table-column prop="name" label="检测项目名"></el-table-column>
+            <el-table-column prop="price" label="价格" align="right"></el-table-column>
+            <el-table-column prop="upperBound" label="上界" align="right"></el-table-column>
+            <el-table-column prop="lowerBound" label="下界" align="right"></el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分页组件 -->
+    <div class="row">
+      <div class="col-12">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="currentPage"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="pageSize"
+          :total="inspections.length"
+          layout="sizes, total, prev, pager, next, jumper"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+
+export default {
+  components: {
+    ElButton,
+    ElDialog,
+    ElForm,
+    ElFormItem,
+    ElInput,
+    ElPagination,
+    ElTable,
+    ElTableColumn,
+  },
+  data() {
+    return {
+      searchText: '',
+      dialogVisible: false,
+      modifyDialogVisible: false, // 控制修改弹窗的显示状态
+      form: {
+        id: '',
+        name: '',
+        price: 0, // 设置为数字类型的0
+        upperBound: 0, // 设置为数字类型的0
+        lowerBound: 0 // 设置为数字类型的0
+      },
+      errors: { // 用于存储验证错误信息
+        upperBound: '', // 上界验证错误信息
+        lowerBound: '', // 下界验证错误信息
+      },
+      rules: {
+        id: [{ required: true, message: '请输入ID', trigger: 'blur' }],
+        name: [{ required: true, message: '请输入检测项目名', trigger: 'blur' }],
+        price: [
+          { required: true, message: '请输入价格', trigger: 'blur' },
+          { validator: this.validatePrice, trigger: 'blur' }
         ],
-        editingInspection: null,
-        showEditModal: false, // 控制编辑窗口显示与隐藏
-        editMode: false, // 是否为编辑模式
-        newInspection: { name: '', price: '' } // 新增检查项目的初始信息
-      };
+        upperBound: [
+          { required: true, message: '请输入上界', trigger: 'blur' },
+          { validator: this.validateBound, trigger: 'blur' }
+        ],
+        lowerBound: [
+          { required: true, message: '请输入下界', trigger: 'blur' },
+          { validator: this.validateBound, trigger: 'blur' }
+        ]
+      },
+      inspections: [
+      { id: 1, name: "Inspection1", price: 100, upperBound: 30, lowerBound: 10 },
+        { id: 2, name: "Inspection2", price: 200, upperBound: 50, lowerBound: 20 },
+        { id: 3, name: "Inspection3", price: 150, upperBound: 40, lowerBound: 15 },
+        // 其他检测项目数据...
+      ],
+      currentPage: 1,
+      pageSize: 10,
+      selectedRow: null,
+      filters: {}
+    };
+  },
+
+  computed:  {
+    // 计算当前页显示的数据
+    currentPageData() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.inspections.slice(startIndex, endIndex);
     },
-    methods: {
-      openEditModal(inspection) {
-        this.editMode = true; // 进入编辑模式
-        this.editingInspection = { ...inspection };
-        this.showEditModal = true; // 打开编辑窗口
-      },
-      openAddModal() {
-        this.editMode = false; // 进入新增模式
-        this.showEditModal = true; // 打开新增检查项目窗口
-      },
-      closeEditModal() {
-        this.showEditModal = false; // 关闭编辑窗口
-        this.editMode = false; // 重置编辑模式
-        this.editingInspection = null; // 清空编辑检查项目信息
-        this.newInspection = { name: '', price: '' }; // 清空新增检查项目信息
-      },
-      saveInspection() {
-        // 更新编辑检查项目信息
-        const index = this.inspections.findIndex(inspection => inspection.id === this.editingInspection.id);
-        if (index !== -1) {
-          this.inspections[index] = { ...this.editingInspection };
-          console.log('保存检查项目信息:', this.editingInspection);
-        } else {
-          console.error('Inspection not found');
-        }
-        this.closeEditModal();
-      },
-      saveNewInspection() {
-        // 添加新增检查项目信息到表格数据中
-        this.inspections.push({ ...this.newInspection, id: this.inspections.length + 1, checked: false });
-        console.log('新增检查项目信息:', this.newInspection);
-        this.closeEditModal();
-      },
-      deleteInspection() {
-        const selectedInspections = this.inspections.filter(inspection => inspection.checked);
-        if (selectedInspections.length > 0) {
-          // 删除选中的检查项目信息
-          selectedInspections.forEach(inspection => {
-            const index = this.inspections.findIndex(i => i.id === inspection.id);
+    filteredInspections() {
+      // 如果搜索文本为空，则返回原始数据
+      if (this.searchText.trim() === '') {
+        return this.inspections;
+      }
+      // 根据搜索文本过滤检测项目
+      const filtered = this.inspections.filter(inspection =>
+        inspection.name.toLowerCase().includes(this.searchText.toLowerCase())
+      );
+      return filtered;
+    },
+  },
+  methods: {
+    handleSearch() {
+      // 处理搜索功能
+      // 触发计算属性重新计算过滤后的检测项目
+    },
+    handleClearSearch() {
+      // 处理清除搜索文本
+      this.searchText = '';
+    },
+    // 自定义验证函数，验证价格范围是否在 0 到 99999.99 之间
+    validatePrice(rule, value, callback) {
+      if (value < 0 || value > 99999.99) {
+        callback(new Error('价格范围必须在0.00到99999.99之间'));
+      } else {
+        callback();
+      }
+    },
+    // 自定义验证函数，验证上界和下界是否在 0 到 99999.99 之间
+    validateBound(rule, value, callback) {
+      if (value < 0 || value > 99999.99) {
+        callback(new Error('范围必须在0.00到99999.99之间'));
+      } else {
+        callback();
+      }
+    },
+    // 处理新增按钮点击事件
+    handleAdd() {
+      // 打开新增弹窗
+      this.dialogVisible = true;
+      // 自动生成新的 ID
+      this.form.id = this.inspections.length + 1;
+    },
+    // 处理弹窗确定按钮点击事件
+    handleConfirm() {
+      // 表单验证
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          if (this.modifyDialogVisible) {
+            // 执行修改操作
+            const index = this.inspections.findIndex(inspection => inspection.id === this.selectedRow.id);
             if (index !== -1) {
-              this.inspections.splice(index, 1);
-              console.log('已删除检查项目:', inspection);
+              this.inspections[index] = { ...this.form };
+              this.modifyDialogVisible = false;
+              this.$refs.form.resetFields();
             }
-          });
+          } else {
+            // 执行新增操作
+            this.inspections.push({ ...this.form });
+            this.dialogVisible = false;
+            this.$refs.form.resetFields();
+          }
         } else {
-          console.log('请至少选择一个要删除的检查项目');
+          return false;
         }
-      },
-      toggleCheckbox(inspection) {
-        inspection.checked = !inspection.checked; // 切换多选框的选中状态
-      },
-    }
-  };
-  </script>
-  
-  <style scoped>
-  .inspection-management-card {
-    width: 100%;
-    max-width: 600px;
-    margin: auto;
-  }
-  
-  .role-play-title {
-    font-size: 36px;
-    font-weight: bold;
-    color: black;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  
-  .table-container {
-    width: 100%;
-  }
-  
-  .buttons-container {
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: flex-end;
-}
+      });
+    },
+    // 处理删除按钮点击事件
+    handleDelete() {
+      if (this.selectedRow) {
+        const index = this.inspections.findIndex(inspection => inspection === this.selectedRow);
+        if (index !== -1) {
+          this.inspections.splice(index, 1);
+          this.selectedRow = null;
+        }
+      }
+    },
+    // 处理每页显示条数改变事件
+    handleSizeChange(val) {
+      this.pageSize = val;
+    },
+    // 处理页码改变事件
+    handleCurrentChange(val) {
+      this.currentPage = val;
+    },
+    // 弹窗关闭前的回调
+    handleCloseDialog(done) {
+      this.dialogVisible = false;
+    },
+    // 修改弹窗关闭前的回调
+    handleCloseModifyDialog(done) {
+      this.modifyDialogVisible = false;
+    },
+    // 处理行点击事件
+    handleRowClick(row) {
+      if (this.selectedRow === row) {
+        // 取消选中状态
+        this.selectedRow = null;
+      } else {
+        // 设置选中状态
+        this.selectedRow = row;
+      }
+    },
+    // 处理表格筛选
+    handleFilter(filters) {
+      this.filters = filters;
+    },
+    // 打开修改弹窗
+    openModifyDialog() {
+      if (this.selectedRow) {
+        this.form.id = this.selectedRow.id;
+        this.form.name = this.selectedRow.name;
+        this.form.price = this.selectedRow.price;
+        this.form.upperBound = this.selectedRow.upperBound;
+        this.form.lowerBound = this.selectedRow.lowerBound;
 
-.biaoge-container {
-  border: 1px solid #ccc; /* 添加外部边框 */
-  border-radius: 10px; /* 添加外部圆角 */
-  overflow: hidden; /* 隐藏内部边框 */
-}
+        // 设置修改弹窗可见
+        this.modifyDialogVisible = true;
+      } else {
+        console.log('没有选择');
+        // 如果没有选中行，提示用户选择行
+        // this.$message({
+        //   type: 'warning',
+        //   message: '请先选择要修改的行',
+        // });
+      }
+    },
+    handleModifyConfirm() {
+      // 表单验证
+      this.$refs.modifyForm.validate((valid) => {
+        if (valid) {
+          // 检查上下界
+          if (this.form.upperBound < this.form.lowerBound) {
+            // 更新错误信息
+            this.errors.upperBound = '上界必须大于下界';
+            this.errors.lowerBound = '下界必须小于上界';
+            return;
+          }
+          // 执行修改操作
+          const index = this.inspections.findIndex(inspection => inspection.id === this.selectedRow.id);
+          if (index !== -1) {
+            this.inspections[index] = { ...this.form };
+            this.modifyDialogVisible = false;
+            this.$refs.modifyForm.resetFields();
+          }
+          // 清空错误信息
+          this.errors.upperBound = '';
+          this.errors.lowerBound = '';
+        } else {
+          return false;
+        }
+      });
+    },
+  },
+};
+</script>
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  border-spacing: 0; /* 去除表格内部间距 */
-}
-
-.table th,
-.table td {
-  padding: 8px;
-  text-align: center;
-  border: 1px solid #dee2e6;
-  white-space: pre-wrap; /* 添加此行 */
-}
-
-
-.table th {
-  background-color: #f2f2f2;
-}
-
-/* 添加单元格之间的中间分隔边框线 */
-.table tbody tr:last-child td {
-  border-bottom: 1px solid #dee2e6; /* 底部边框线 */
-}
-
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  border-left: 1px solid #dee2e6;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.rounded-top-left {
-  border-top-left-radius: 10px;
-}
-
-.rounded-top-right {
-  border-top-right-radius: 10px;
-}
-
-.rounded-bottom-left {
-  border-bottom-left-radius: 10px;
-}
-
-.rounded-bottom-right {
-  border-bottom-right-radius: 10px;
-}
-
-/* 弹出窗口样式 */
-.modal-mask {
-  position: fixed;
-  z-index: 9998;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-wrapper {
-  width: 100%;
-}
-
-.modal-container {
+<style scoped>
+.container.sectionHeight {
+  background-color: white;
+  border-radius: 20px;
+  margin-left: 10px;
   padding: 20px;
-  background-color: #ffffff;
-  border-radius: 5px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-  width: 40%; /* 设置弹窗宽度 */
-  left: 20%; /* 设置弹窗左侧距离为页面宽度的40% */
+  padding-bottom: 20px;
+  overflow-y: auto; /* 添加此样式以使内容超出时自动显示垂直滚动条 */
 }
 
-.modal-container h3 {
-  margin-bottom: 15px;
+.user-management-container {
+  width: 100%;
 }
-
-.modal-container label {
-  display: block;
-  margin-bottom: 10px;
-}
-
-.modal-container input {
-  width: calc(100% - 10px);
-  margin-bottom: 10px;
-}
-.modal-container .button-container {
-  display: flex;
-  justify-content: center; /* 让按钮居中 */
-  width: 100%; /* 让容器宽度和弹窗一样 */
-  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
-}
-
-.modal-container .button-container button {
-  margin: 0 10%; /* 调整按钮之间的间距 */
+.error-message {
+  color: red;
+  font-size: 12px;
 }
 </style>
 
-  

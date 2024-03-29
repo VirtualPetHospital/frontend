@@ -3,8 +3,8 @@
       <div class="row">
         <div class="col-12">
           <div class="user-management-container">
-            <div class="role-play-title">用户管理</div>
-            <UserManagementCard />
+            <div class="role-play-title">疾病管理</div>
+            <DiseaseManagementCard />
           </div>
           
         </div>
@@ -13,19 +13,19 @@
   </template>
   
   <script>
-  import UserManagementCard from "../../../views/components/UserManagementCard.vue";
+  import DiseaseManagementCard from "../../../views/components/DiseaseManagementCard.vue";
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
   
   export default {
     name: "Cosplay",
     components: {
-      UserManagementCard,
+        DiseaseManagementCard,
     },
     setup() {
       const store = useStore();
   
-      // 在组件被挂载后，设置 showSidenavStudent 为 true
+      // 在组件被挂载后，设置 showSidenavAdmin 为 true
       store.commit("setShowSidenavAdmin", true);
       onBeforeRouteLeave((to, from, next) => {
         // 在离开此页前关闭sidenavadmin
@@ -44,15 +44,10 @@
     margin-left: 10px;
     padding: 20px;
     padding-bottom: 20px;
-    overflow-y: auto;
-  }
-  .container {
-    height: 100%;
   }
   
   .user-management-container {
     width: 100%; /* 设置容器宽度为100% */
-    height: 100%;
   }
   
   .role-play-title {
@@ -67,6 +62,7 @@
     max-width: 100%; /* 设置表格最大宽度为容器的100% */
     border-collapse: separate;
     border-spacing: 0;
+    border-radius: 20px;
   }
   </style>
   
