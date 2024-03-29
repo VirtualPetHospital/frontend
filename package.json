@@ -22,7 +22,7 @@
   "dependencies": {
     "@arco-design/web-vue": "^2.55.0",
     "@popperjs/core": "2.11.8",
-    "axios": "^1.6.7",
+    "axios": "^1.6.8",
     "bootstrap": "5.3.3",
     "chart.js": "4.4.1",
     "core-js": "3.36.0",
@@ -59,7 +59,7 @@
     "prettier": "3.2.5",
     "sass": "1.71.1",
     "sass-loader": "13.3.2",
-    "webpack": "^4.0.0"
+    "webpack": "^5.91.0"
   },
   "engines": {
     "node": ">=8 <=21"
