@@ -9,12 +9,15 @@ import 'element-ui/lib/theme-chalk/index.css'
 import VueVideoPlayer from 'vue-video-player'
 import 'video.js/dist/video-js.css'
 import 'vue-video-player/src/custom-theme.css'
-
+import * as ElIconModules from '@element-plus/icons'
+import axios from "axios";
+import app from "@/App.vue";
 
 const appInstance = createApp(App);
 appInstance.use(store);
 appInstance.use(router);
 appInstance.use(ArgonDashboard);
+appInstance.config.globalProperties.$axios = axios;
 appInstance.use(VueVideoPlayer);
 appInstance.mount("#app");
 const debounce = (fn, delay) => {
@@ -28,6 +31,7 @@ const debounce = (fn, delay) => {
         }, delay)
     }
 }
+
 
 const _ResizeObserver = window.ResizeObserver;
 window.ResizeObserver = class ResizeObserver extends _ResizeObserver{

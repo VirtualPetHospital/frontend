@@ -61,7 +61,8 @@ export default{
     * 跳转逻辑*/
     watch(row){
       const paperId=row.paper.paper_id;
-      this.$router.push({name:'WatchPaper',params:{id: paperId}});
+      const paperName=row.paper.name;
+      this.$router.push({name:'WatchPaper',params:{id: paperId,name:paperName}});
     },
     take(row){
       const examId=row.exam_id;
@@ -117,7 +118,8 @@ export default{
       duration: '2小时',
       level: '普通',
       paper:{
-        paper_id:1
+        paper_id:1,
+        name:'a'
       },
       participated: 1,
     });

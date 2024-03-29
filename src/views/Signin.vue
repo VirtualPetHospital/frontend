@@ -1,25 +1,27 @@
 
 <script xmlns:z-index="http://www.w3.org/1999/xhtml">
-import { onBeforeUnmount, onBeforeMount} from "vue";
-import { useStore } from "vuex";
+import {onBeforeUnmount, onBeforeMount, reactive} from "vue";
 import Navbar from "@/examples/PageLayout/Navbar.vue";
 import ArgonInput from "@/components/ArgonInput.vue";
-import ElementPlus from "element-plus";
+import {ElButton, ElCard, ElCheckbox, ElForm, ElFormItem, ElInput} from "element-plus";
 import ArgonButton from "@/components/ArgonButton.vue";
-import ArgonCheckbox from "@/components/ArgonCheckbox.vue";
-import Cookies from "js-cookie";
-import {encrypt} from "@/utils/jsencrypt";
+import axios from "axios";
+import {useStore} from "vuex";
 const body = document.getElementsByTagName("body")[0];
 const store = useStore();
-
 
 export default {
   name: "signin",
   components: {
-    ArgonCheckbox,
+
     Navbar,
     ArgonInput,
-    ElementPlus,
+    ElCheckbox,
+    ElForm,
+    ElCard,
+    ElFormItem,
+    ElButton,
+    ElInput,
     ArgonButton,
   },
   data() {
@@ -34,51 +36,75 @@ export default {
     }
   },
   methods: {
-    login() {
-      if (this.loginRuleForm.nickname == "" || this.loginRuleForm.password == "") {
-        alert("输入不能为空")
-      } else {
-        this.$axios.post('api/user/judge', {
-          nickname: this.loginRuleForm.nickname,
-          password: this.loginRuleForm.password,
-        })
-            .then((res) => {
-              if(res.status == 200){
-                if(res.data===""){
-                  console.log(res);
-                  alert("请输入正确的邮箱和密码")
-                }else{
-                  if(this.loginRuleForm.rememberMe){
-                    Cookies.set('nickname', this.loginRuleForm.nickname, { expires: 7 }); // 保存7天
-                    Cookies.set('password', this.loginRuleForm.password, { expires: 7 });
-                  }else{
-                    Cookies.remove('nickname');
-                    Cookies.remove('password');
-                  }
-                  sessionStorage.setItem("Type", res.data.type);
-                  sessionStorage.setItem("Email", res.data.email);
-                  sessionStorage.setItem("password", res.data.password);
-                  sessionStorage.setItem("nickname", res.data.nickname);
+    handleLoginSuccess(userType) {
+      console.log(userType);
+      switch (userType) {
+        case 'student':
+        {this.$router.push('/dashboard-student');
+          break;}
+        case 'teacher':
+        {this.$router.push('/dashboard-teacher');
+          break;}
+        case 'administrator':
+        {this.$router.push('/dashboard-admin');
+          break;}
+        default:
+          console.error('未知的用户类型:', userType);
+          // 可以跳转到一个默认页面或者输出错误信息
+          break;
+      }
+    },
+    async login() {
+      var data = JSON.stringify({
+        "nickname": this.loginRuleForm.nickname,
+        "password": this.loginRuleForm.password
+      });
+      let config = {
+        method: 'post',
+        url: '/api/users/login',
+        headers: {
+          'Session':sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        },
+        withCredentials : true,
+        data : data
+      };
+      console.log(this.loginRuleForm.nickname);
+      try {
+        axios(config)
+            .then(response => {
+              console.log(response.headers['session']);
+              sessionStorage.setItem('nickname', this.loginRuleForm.nickname);
+              sessionStorage.setItem('password', this.loginRuleForm.password);
+              sessionStorage.setItem("type",response.data.data.type);
+              sessionStorage.setItem('sessionId',response.headers['session']);
+              this.handleLoginSuccess(response.data.data.type);
 
-                  if(res.data.type==="student"){
-                    this.$router.push("/dashboard-student");
-                  }else if(res.data.type==="teacher"){
-                    this.$router.push("/dashboard-teacher");
-                  }else if(res.data.type==="admin"){
-                    this.$router.push("/dashboard-admin");
-                  }
-                  this.$router.push("/HospitalGuide");
-                }
-              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
 
-            }).catch(err =>{
-          console.log(err);
-        });
+      } catch (error) {
+        console.error('登录失败', error);
+        // 处理登录失败的情况
       }
     },
     login1() {
       console.log("你好");
+      console.log(this.loginRuleForm.nickname);
       if(this.loginRuleForm.rememberMe){
+        sessionStorage.setItem('nickname', this.loginRuleForm.nickname);
+        sessionStorage.setItem('password', this.loginRuleForm.password);
+        const rememberedNickname = sessionStorage.getItem('nickname');
+        const rememberedPassword = sessionStorage.getItem('password');
+
+        // 检查用户名和密码是否存在
+        if (rememberedNickname && rememberedPassword) {
+          // 如果用户名和密码都存在，则输出它们
+          console.log("记住的用户名:", rememberedNickname);
+          console.log("记住的密码:", rememberedPassword);
+        }
         alert("true");
       }else{
         alert("false");
@@ -99,13 +125,13 @@ export default {
     }
   },
   created() {
-    const rememberednickname = Cookies.get('nickname');
-    const rememberedPassword = Cookies.get('password');
-    if (rememberednickname && rememberedPassword) {
-      this.nickname = rememberednickname;
-      this.password = rememberedPassword;
-      this.rememberMe = true;
-    }
+    // const rememberedNickname = sessionStorage.getItem('nickname');
+    // const rememberedPassword = sessionStorage.getItem('password');
+    // if (rememberedNickname && rememberedPassword) {
+    //   this.loginRuleForm.nickname = rememberedNickname;
+    //   this.loginRuleForm.password = rememberedPassword;
+    //   this.loginRuleForm.rememberMe = true; // 这里假设记住密码复选框是默认勾选的
+    // }
     this.$store.state.hideConfigButton = true;
     this.$store.state.showNavbar = false;
     body.classList.remove("bg-gray-100");
@@ -170,44 +196,22 @@ onBeforeUnmount(() => {
                   <p class="mb-0">输入用户名与密码</p>
                 </div>
                 <div class="card-body">
-                  <form role="form">
-                    <div class="mb-3">
-                      <ArgonInput
-                          id="nickname"
-                          type="nickname"
-                          placeholder="用户名"
-                          name="nickname"
-                          size="lg"
-                          v-model="loginRuleForm.nickname"
-                      />
-                    </div>
-                    <div class="mb-3">
-                      <ArgonInput
-                          id="password"
-                          type="password"
-                          placeholder="密码"
-                          name="password"
-                          size="lg"
-                          v-model="loginRuleForm.password"
-                      />
-                    </div>
-                    <element-checkbox
+                    <el-form :model="loginRuleForm" label-position="left" status-icon :rules="rules" ref="ruleForm"  class="demo-ruleForm">
+                      <el-form-item prop="nickname">
+                        <el-input type="nickname" v-model="loginRuleForm.nickname" placeholder="用户名" autocomplete="off"></el-input>
+                      </el-form-item>
+                      <el-form-item  prop="password">
+                        <el-input type="password" v-model="loginRuleForm.password" placeholder="密码" autocomplete="off"></el-input>
+                      </el-form-item>
+                      <el-form-item>
+                    <el-checkbox
                         v-model="loginRuleForm.rememberMe"
-                    >记住密码</element-checkbox
-                    >
-                    <div class="text-center">
-                      <ArgonButton
-                          class="mt-4"
-                          variant="gradient"
-                          color="success"
-                          fullWidth
-                          size="lg"
-                          v-on:click="login1()"
-                      >
-                        登录
-                      </ArgonButton>
-                    </div>
-                  </form>
+                    >记住密码</el-checkbox>
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button style="background-color: rgba(255,127,0,0.6)" @click="login">登录</el-button>
+                      </el-form-item>
+                  </el-form>
 
                   <div class="px-1 pt-0 text-center card-footer px-lg-2">
                     <p class="mx-auto mb-4 text-sm">
