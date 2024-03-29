@@ -22,9 +22,9 @@ const getRoute = () => {
     <ul class="navbar-nav">
       <li class="nav-item">
         <sidenav-item
-            to="/Cosplay"
-            :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '我的试卷'"
+            to="/ProblemsManagement"
+            :class="getRoute() === 'ProblemsManagement' ? 'active' : ''"
+            :navText="isRTL ? 'ProblemsManagement' : '题库管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
@@ -33,21 +33,51 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
 
-        <sidenav-item
-            to="/Cosplay"
-            :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '我的考试'"
+        <!-- <sidenav-item
+            to="/PapersTeacher"
+            :class="getRoute() === 'PapersTeacher' ? 'active' : ''"
+            :navText="isRTL ? 'PapersTeacher' : '试卷管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
           </template>
-        </sidenav-item>
+        </sidenav-item> -->
+        <sidenav-item
+    :to="{ name: '试卷管理' }"
+    :class="getRoute() === '试卷管理' ? 'active' : ''"
+    :navText="isRTL ? 'PapersTeacher' : '试卷管理'"
+>
+    <template v-slot:icon>
+        <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+    </template>
+</sidenav-item>
+<!-- <sidenav-item
+    :to="'/PapersTeacher'" 
+    :class="getRoute() === '试卷管理' ? 'active' : ''"
+    :navText="isRTL ? 'PapersTeacher' : '试卷管理'"
+>
+    <template v-slot:icon>
+        <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+    </template>
+</sidenav-item> -->
+
+      </li>
+      <li class="nav-item">
+        <sidenav-item
+    :to="{ name: '考试管理' }"
+    :class="getRoute() === '考试管理' ? 'active' : ''"
+    :navText="isRTL ? 'ExamsTeacher' : '考试管理'"
+>
+    <template v-slot:icon>
+        <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+    </template>
+</sidenav-item>
       </li>
       <li class="nav-item">
         <sidenav-item
             to="/Cosplay"
             :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '新增问题'"
+            :navText="isRTL ? 'Cosplay' : '个人主页'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
