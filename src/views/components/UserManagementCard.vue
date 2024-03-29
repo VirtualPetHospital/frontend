@@ -1,280 +1,333 @@
 <template>
-  <div>
-    <!-- 按钮容器 -->
-    <div class="buttons-container">
-      <button @click="openAddModal" class="btn btn-success" style="margin-left:4%">新增</button>
+  <div class="container sectionHeight">
 
-      <button @click="deleteUser" class="btn btn-danger" style="margin-left:2%">删除</button>
-    </div>
-    
-    <!-- 表格容器 -->
-    <div class="biaoge-container ps-3">
-      <table class="table" bgcolor="#ffffff">
-        <colgroup>
-          <col style="width: 15%">
-          <col style="width: 20%">
-          <col style="width: 20%">
-          <col style="width: 20%">
-          <col style="width: 25%">
-        </colgroup>
+    <!-- 搜索栏 -->
+    <el-input
+      v-model="searchText"
+      placeholder="输入用户名或身份进行搜索"
+      clearable
+      @clear="handleClearSearch"
+      @input="handleSearch"
+    ></el-input>
 
-        <thead>
-          <tr>
-            <th scope="col" class="text-center rounded-top-left">选择</th>
-            <th scope="col" class="text-center">用户名</th>
-            <th scope="col" class="text-center">角色</th>
-            <th scope="col" class="text-center">等级</th>
-            <th scope="col" class="text-center rounded-top-right">操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- 遍历每个用户项 -->
-          <tr v-for="(user, index) in users" :key="index">
-            <td class="text-center rounded-bottom-left"  @click="toggleCheckbox(user)"><input type="checkbox" v-model="user.checked"></td>
-            <td class="text-center">{{ user.username }}</td>
-            <td class="text-center">{{ user.role }}</td>
-            <td class="text-center">{{ user.level }}</td>
-            <td class="text-center rounded-bottom-right">
-              <!-- 修改按钮 -->
-              <button @click="openEditModal(user)" class="btn btn-primary">修改</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 弹出窗口 -->
-    <transition name="modal">
-      <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
-        
-          <div class="modal-wrapper" @click.stop>
-            <div class="modal-container">
-              <h3>{{ editMode ? '编辑用户信息' : '新增用户' }}</h3>
-              <form @submit.prevent="editMode ? saveUser() : saveNewUser()">
-                <label>用户：</label>
-                <input type="text" class="form-control" :value="editMode ? editingUser.username : newUser.username" @input="editMode ? editingUser.username = $event.target.value : newUser.username = $event.target.value"><br>
-                <label>角色：</label>
-                <input type="text" class="form-control" :value="editMode ? editingUser.role : newUser.role" @input="editMode ? editingUser.role = $event.target.value : newUser.role = $event.target.value"><br>
-                <label>等级：</label>
-                <input type="number" class="form-control" :value="editMode ? editingUser.level : newUser.level" @input="editMode ? editingUser.level = $event.target.value : newUser.level = $event.target.value"><br>
-                <div class="button-container">
-                  <button type="submit" class="btn btn-lg btn-block btn-primary">{{ editMode ? '保存' : '添加' }}</button>
-                  <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
-                </div>
-              </form>
-            </div>
-          </div>
+    <!-- 新增弹窗 -->
+    <el-dialog
+      title="新增表格元素"
+      v-model="dialogVisible"
+      width="10%"
+      :before-close="handleCloseDialog"
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username"></el-input>
+        </el-form-item>
+        <el-form-item label="角色" prop="role">
+          <el-input v-model="form.role"></el-input>
+        </el-form-item>
+        <el-form-item label="等级" prop="level">
+          <el-input v-model="form.level"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirm">确定</el-button>
         
       </div>
-    </transition>
+    </el-dialog>
+
+    <!-- 修改弹窗 -->
+    <el-dialog
+      title="修改表格元素"
+      v-model="modifyDialogVisible"
+      width="10%"
+      :before-close="handleCloseModifyDialog"
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username"></el-input>
+        </el-form-item>
+        <el-form-item label="角色" prop="role">
+          <el-input v-model="form.role"></el-input>
+        </el-form-item>
+        <el-form-item label="等级" prop="level">
+          <el-input v-model="form.level"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="modifyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleModifyConfirm">确定</el-button>
+        
+      </div>
+    </el-dialog>
+
+    <!-- 按钮区域 -->
+    <div class="row mb-4">
+      <div class="col-6">
+        <el-button type="primary" @click="handleAdd">新增</el-button>
+        <el-button type="danger" @click="handleDelete">删除</el-button>
+        <el-button type="success" @click="openModifyDialog">修改</el-button>
+      </div>
+    </div>
+
+    <!-- 表格 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="user-management-container">
+          <el-table
+            :data="filteredUsers"
+            stripe
+            style="width: 100%;"
+            highlight-current-row
+            @row-click="handleRowClick"
+            :filters="filters"
+            :filter-method="handleFilter"
+          >
+            <el-table-column prop="id" label="ID"></el-table-column>
+            <el-table-column prop="username" label="用户名"></el-table-column>
+            <el-table-column
+              prop="role"
+              label="角色"
+              :filters="roleFilters"
+              :filter-method="handleRoleFilter"
+            >
+              <template #default="{ row }">{{ row.role }}</template>
+            </el-table-column>
+            <el-table-column prop="level" label="等级"></el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分页组件 -->
+    <div class="row">
+      <div class="col-12">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="currentPage"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="pageSize"
+          :total="users.length"
+          layout="sizes, total, prev, pager, next,jumper"
+        ></el-pagination>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+
 export default {
+  components: {
+    ElButton,
+    ElDialog,
+    ElForm,
+    ElFormItem,
+    ElInput,
+    ElPagination,
+    ElTable,
+    ElTableColumn,
+  },
   data() {
     return {
+      searchText: '',
+      dialogVisible: false, // 控制新增弹窗的显示状态
+      modifyDialogVisible: false, // 控制修改弹窗的显示状态
+      form: {
+        id: '', // 初始为空
+        username: '',
+        role: '学生',
+        level: '1'
+      },
+      rules: {
+        id: [{ required: true, message: '请输入ID', trigger: 'blur' }],
+        username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+        role: [{ required: true, message: '请输入角色', trigger: 'blur' }],
+        level: [{ required: true, message: '请输入等级', trigger: 'blur' }]
+      },
       users: [
-        { id: 1, username: 'User1', role: '老师', level: 3, checked: false },
-        { id: 2, username: 'User2', role: '学生', level: 2, checked: false },
-        { id: 3, username: 'User3', role: '管理员', level: 5, checked: false }
+        { id: 1, username: "User1", role: "老师", level: 23 },
+        { id: 2, username: "User2", role: "老师", level: 32 },
+        { id: 3, username: "User3", role: "学生", level: 3 },
+        { id: 4, username: "User4", role: "学生", level: 3 },
+        { id: 5, username: "User5", role: "管理员", level: 55 },
+        { id: 6, username: "User6", role: "管理员", level: 35 },
+        // 其他用户数据...
       ],
-      editingUser: null,
-      showEditModal: false, // 控制编辑窗口显示与隐藏
-      editMode: false, // 是否为编辑模式
-      newUser: { username: '', role: '', level: '' } // 新增用户的初始信息
+      currentPage: 1, // 当前页码
+      pageSize: 10, // 每页显示条数
+      selectedRow: null, // 存储选中的行数据
+      // 角色筛选器选项
+      roleFilters: [
+        { text: '学生', value: '学生' },
+        { text: '老师', value: '老师' },
+        { text: '管理员', value: '管理员' }
+      ],
+      // 当前的筛选器
+      filters: {
+        role: [] // 初始为空，表示未选择任何角色
+      }
     };
   },
-  methods: {
-    openEditModal(user) {
-      this.editMode = true; // 进入编辑模式
-      this.editingUser
-      this.editingUser = { ...user };
-      this.showEditModal = true; // 打开编辑窗口
+  computed: {
+    // 计算当前页显示的数据
+    currentPageData() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.users.slice(startIndex, endIndex);
     },
-    openAddModal() {
-      this.editMode = false; // 进入新增模式
-      this.showEditModal = true; // 打开新增用户窗口
+    // 根据搜索文本过滤用户
+    filteredUsers() {
+      const filtered = this.users.filter(user =>
+        user.username.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        user.role.toLowerCase().includes(this.searchText.toLowerCase())
+      );
+      return filtered;
     },
-    closeEditModal() {
-      this.showEditModal = false; // 关闭编辑窗口
-      this.editMode = false; // 重置编辑模式
-      this.editingUser = null; // 清空编辑用户信息
-      this.newUser = { username: '', role: '', level: '' }; // 清空新增用户信息
-    },
-    saveUser() {
-      // 更新编辑用户信息
-      const index = this.users.findIndex(user => user.id === this.editingUser.id);
-      if (index !== -1) {
-        this.users[index] = { ...this.editingUser };
-        console.log('保存用户信息:', this.editingUser);
-      } else {
-        console.error('User not found');
-      }
-      this.closeEditModal();
-    },
-    saveNewUser() {
-      // 添加新增用户信息到表格数据中
-      this.users.push({ ...this.newUser, id: this.users.length + 1, checked: false });
-      console.log('新增用户信息:', this.newUser);
-      this.closeEditModal();
-    },
-    deleteUser() {
-      const selectedUsers = this.users.filter(user => user.checked);
-      if (selectedUsers.length > 0) {
-        // 删除选中的用户信息
-        selectedUsers.forEach(user => {
-          const index = this.users.findIndex(u => u.id === user.id);
-          if (index !== -1) {
-            this.users.splice(index, 1);
-            console.log('已删除用户:', user);
-          }
-        });
-      } else {
-        console.log('请至少选择一个要删除的用户');
-      }
-    },
-    toggleCheckbox(user) {
-    user.checked = !user.checked; // 切换多选框的选中状态
   },
-  }
+  methods: {
+    handleSearch() {
+      // 处理搜索功能
+      // 触发计算属性重新计算过滤后的用户
+    },
+    handleClearSearch() {
+      // 处理清除搜索文本
+      this.searchText = '';
+    },
+    // 处理新增按钮点击事件
+    handleAdd() {
+      // 打开新增弹窗
+      this.dialogVisible = true;
+      // 自动生成新的 ID
+      this.form.id = this.users.length + 1;
+    },
+    // 处理新增弹窗确定按钮点击事件
+    handleConfirm() {
+      // 表单验证
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          // 添加新数据到表格
+          this.users.push({ ...this.form });
+          // 关闭新增弹窗
+          this.dialogVisible = false;
+          // 清空表单数据
+          this.$refs.form.resetFields();
+        } else {
+          return false;
+        }
+      });
+    },
+    // 处理删除按钮点击事件
+    handleDelete() {
+      if (this.selectedRow) {
+        const index = this.users.findIndex(user => user === this.selectedRow);
+        if (index !== -1) {
+          this.users.splice(index, 1);
+          this.selectedRow = null;
+        }
+      }
+    },
+    // 处理每页显示条数改变事件
+    handleSizeChange(val) {
+      this.pageSize = val;
+    },
+    // 处理页码改变事件
+    handleCurrentChange(val) {
+      this.currentPage = val;
+    },
+    // 处理新增弹窗关闭前的回调
+    handleCloseDialog(done) {
+      this.dialogVisible = false;
+    },
+    // 处理修改弹窗关闭前的回调
+    handleCloseModifyDialog(done) {
+      this.modifyDialogVisible = false;
+    },
+    // 处理行点击事件
+    handleRowClick(row) {
+      if (this.selectedRow === row) {
+        // 取消选中状态
+        this.selectedRow = null;
+      } else {
+        // 设置选中状态
+        this.selectedRow = row;
+      }
+    },
+    // 处理角色筛选器变化
+    handleRoleFilter(value, row) {
+      return this.filters.role.length === 0 || this.filters.role.includes(row.role);
+    },
+    // 处理表格筛选
+    handleFilter(filters) {
+      this.filters = filters;
+    },
+    // 处理修改按钮点击事件
+    openModifyDialog() {
+      // 检查是否有选中的行
+      if (this.selectedRow) {
+        // 将选中行的数据填充到表单中
+        this.form.id = this.selectedRow.id;
+        this.form.username = this.selectedRow.username;
+        this.form.role = this.selectedRow.role;
+        this.form.level = this.selectedRow.level;
+
+        // 设置修改弹窗可见
+        this.modifyDialogVisible = true;
+      } else {
+        console.log('没有选择')
+        // 如果没有选中行，提示用户选择行
+        // this.$message({
+        //   type: 'warning',
+        //   message: '请先选择要修改的行',
+        // });
+      }
+    },
+    // 处理修改弹窗确定按钮点击事件
+    handleModifyConfirm() {
+      // 表单验证
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          // 更新用户数据
+          const index = this.users.findIndex(user => user.id === this.form.id);
+          if (index !== -1) {
+            this.users[index] = { ...this.form };
+          }
+          // 关闭修改弹窗
+          this.modifyDialogVisible = false;
+          // 清空表单数据
+          this.$refs.form.resetFields();
+        } else {
+          return false;
+        }
+      });
+    },
+  },
 };
 </script>
 
 <style scoped>
-.user-management-card {
-  width: 100%;
-  max-width: 600px;
-  margin: auto;
+.container.sectionHeight {
+  background-color: white;
+  border-radius: 20px;
+  margin-left: 10px;
+  padding: 20px;
+  padding-bottom: 20px;
 }
 
-.role-play-title {
-  font-size: 36px;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.table-container {
+.user-management-container {
   width: 100%;
 }
-
-.buttons-container {
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.biaoge-container {
-  border: 1px solid #ccc; /* 添加外部边框 */
-  border-radius: 10px; /* 添加外部圆角 */
-  overflow: hidden; /* 隐藏内部边框 */
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  border-spacing: 0; /* 去除表格内部间距 */
-}
-
-.table th,
-.table td {
-  padding: 8px;
-  text-align: center;
-  border: 1px solid #dee2e6;
-  white-space: pre-wrap; /* 添加此行 */
-}
-
-
-.table th {
-  background-color: #f2f2f2;
-}
-
-/* 添加单元格之间的中间分隔边框线 */
-.table tbody tr:last-child td {
-  border-bottom: 1px solid #dee2e6; /* 底部边框线 */
-}
-
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  border-left: 1px solid #dee2e6;
-}
-
-
-.text-center {
-  text-align: center;
-}
-
-.rounded-top-left {
-  border-top-left-radius: 10px;
-}
-
-.rounded-top-right {
-  border-top-right-radius: 10px;
-}
-
-.rounded-bottom-left {
-  border-bottom-left-radius: 10px;
-}
-
-.rounded-bottom-right {
-  border-bottom-right-radius: 10px;
-}
-
-
-/* 弹出窗口样式 */
-.modal-mask {
-position: fixed;
-z-index: 9998;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background-color: rgba(0, 0, 0, 0.5);
-display: flex;
-justify-content: center;
-align-items: center;
-}
-
-.modal-wrapper {
-width: 100%;
-}
-
-.modal-container {
-padding: 20px;
-background-color: #ffffff;
-border-radius: 5px;
-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-width: 40%; /* 设置弹窗宽度 */
-left: 20%; /* 设置弹窗左侧距离为页面宽度的40% */
-}
-
-.modal-container h3 {
-margin-bottom: 15px;
-}
-
-.modal-container label {
-display: block;
-margin-bottom: 10px;
-}
-
-.modal-container input {
-width: calc(100% - 10px);
-margin-bottom: 10px;
-}
-.modal-container .button-container {
-  display: flex;
-  justify-content: center; /* 让按钮居中 */
-  width: 100%; /* 让容器宽度和弹窗一样 */
-  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
-}
-
-.modal-container .button-container button {
-  margin: 0 10%; /* 调整按钮之间的间距 */
-}
-
-
-
-
 </style>

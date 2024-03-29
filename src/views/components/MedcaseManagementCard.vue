@@ -1,328 +1,401 @@
 <template>
-    <div>
-      <!-- 下拉选择框 -->
-      <div class="form-group" style="margin-bottom: 10px">
-        <label for="speciesSelect">选择病种名：</label>
-        <select class="form-control" v-model="selectedSpecies" @change="filterBySpecies">
-          <option value="">全部</option>
-          <option v-for="species in speciesList" :value="species">{{ species }}</option>
-        </select>
+  <div class="container sectionHeight">
+    <!-- 搜索栏 -->
+    <el-input
+      v-model="searchText"
+      placeholder="输入病例名进行搜索"
+      clearable
+      @clear="handleClearSearch"
+      @input="handleSearch"
+      v-show="!dialogVisible && !modifyDialogVisible"
+    ></el-input>
+
+    <!-- 新增弹窗 -->
+    <el-dialog
+      title="新增病例"
+      v-model="dialogVisible"
+      width="30%"
+      :before-close="handleCloseDialog"
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="病例ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="病种名" prop="diseaseType">
+          <el-select v-model="form.diseaseType" placeholder="请选择" popper-append-to-body>
+            <el-option
+              v-for="type in diseaseTypes"
+              :key="type"
+              :label="type"
+              :value="type"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="疾病名" prop="diseaseName">
+          <el-input v-model="form.diseaseName"></el-input>
+        </el-form-item>
+        <el-form-item label="价格" prop="price">
+          <el-input v-model="form.price"></el-input>
+        </el-form-item>
+        <el-form-item label="诊断结果" prop="diagnosisResult">
+          <el-input v-model="form.diagnosisResult"></el-input>
+        </el-form-item>
+        <el-form-item label="病例名" prop="medcaseName">
+          <el-input v-model="form.medcaseName"></el-input>
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input v-model="form.description"></el-input>
+        </el-form-item>
+        <el-form-item label="接诊图片" prop="image">
+          <el-upload
+            action="/your-upload-url"
+            :on-success="handleUploadSuccess"
+            :before-upload="beforeUpload"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="接诊视频" prop="video">
+          <el-upload
+            action="/your-upload-url"
+            :on-success="handleUploadSuccess"
+            :before-upload="beforeUpload"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirm">确定</el-button>
       </div>
-  
-      <!-- 按钮容器 -->
-      <div class="buttons-container">
-        <!-- 左侧按钮 -->
-        <div style="float: left;">
-          <button @click="openAddSpeciesModal" class="btn btn-primary btn-left">新增病种</button>
-          <button @click="openAddDiseaseModal" class="btn btn-primary btn-left">新增疾病</button>
-        </div>
-        
-        <!-- 右侧按钮 -->
-        <div style="float: right;">
-          <button @click="openAddModal" class="btn btn-success btn-left">新增</button>
-          <button @click="deleteMedCase" class="btn btn-danger btn-left">删除</button>
-        </div>
+    </el-dialog>
+
+    <!-- 修改弹窗 -->
+    <el-dialog
+      title="修改病例"
+      v-model="modifyDialogVisible"
+      width="30%"
+      :before-close="handleCloseModifyDialog"
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="病例ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="病种名" prop="diseaseType">
+          <el-select v-model="form.diseaseType" placeholder="请选择" popper-append-to-body>
+            <el-option
+              v-for="type in diseaseTypes"
+              :key="type"
+              :label="type"
+              :value="type"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="疾病名" prop="diseaseName">
+          <el-input v-model="form.diseaseName"></el-input>
+        </el-form-item>
+        <el-form-item label="价格" prop="price">
+          <el-input v-model="form.price"></el-input>
+        </el-form-item>
+        <el-form-item label="诊断结果" prop="diagnosisResult">
+          <el-input v-model="form.diagnosisResult"></el-input>
+        </el-form-item>
+        <el-form-item label="病例名" prop="medcaseName">
+          <el-input v-model="form.medcaseName"></el-input>
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input v-model="form.description"></el-input>
+        </el-form-item>
+        <el-form-item label="接诊图片" prop="image">
+          <el-upload
+            action="/your-upload-url"
+            :on-success="handleUploadSuccess"
+            :before-upload="beforeUpload"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="接诊视频" prop="video">
+          <el-upload
+            action="/your-upload-url"
+            :on-success="handleUploadSuccess"
+            :before-upload="beforeUpload"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="modifyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleModifyConfirm">确定</el-button>
       </div>
-      
-      <!-- 表格容器 -->
-      <div class="biaoge-container ps-3">
-        <table class="table" bgcolor="#ffffff">
-          <thead>
-            <tr>
-              <th scope="col" class="text-center rounded-top-left">选择</th>
-              <th scope="col" class="text-center">病例id</th>
-              <th scope="col" class="text-center">病种名</th>
-              <th scope="col" class="text-center">疾病名</th>
-              <th scope="col" class="text-center">病例名</th>
-              <th scope="col" class="text-center">病例描述</th>
-              <th scope="col" class="text-center">详情</th>
-              <th scope="col" class="text-center rounded-top-right">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- 遍历每个病例项 -->
-            <tr v-for="(medcase, index) in filteredMedCases" :key="index">
-              <td class="text-center rounded-bottom-left" @click="toggleCheckbox(medcase)"><input type="checkbox" v-model="medcase.checked"></td>
-              <td class="text-center">{{ medcase.id }}</td>
-              <td class="text-center">{{ medcase.species }}</td>
-              <td class="text-center">{{ medcase.disease }}</td>
-              <td class="text-center">{{ medcase.caseName }}</td>
-              <td class="text-center">{{ medcase.caseDescription }}</td>
-              <td class="text-center rounded-bottom-right">
-                <!-- 详情按钮 -->
-                <button @click="viewDetails(medcase)" class="btn btn-info">详情</button>
-              </td>
-              <td class="text-center rounded-bottom-right">
-                <!-- 修改按钮 -->
-                <button @click="openEditModal(medcase)" class="btn btn-primary">修改</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    </el-dialog>
+
+    <!-- 按钮区域 -->
+    <div class="row mb-4" v-show="!dialogVisible && !modifyDialogVisible">
+      <div class="col-6">
+        <el-button type="primary" @click="handleAdd">新增</el-button>
+        <el-button type="danger" @click="handleDelete">删除</el-button>
+        <el-button type="success" @click="openModifyDialog">修改</el-button>
       </div>
-  
-      <!-- 弹出窗口 -->
-      <transition name="modal">
-        <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
-          
-            <div class="modal-wrapper" @click.stop>
-              <div class="modal-container">
-                <h3>{{ editMode ? '编辑病例信息' : '新增病例' }}</h3>
-                <form @submit.prevent="editMode ? saveMedCase() : saveNewMedCase()">
-                  <label>病例id：</label>
-                  <input type="text" class="form-control" :value="editMode ? editingMedCase.id : newMedCase.id" @input="editMode ? editingMedCase.id = $event.target.value : newMedCase.id = $event.target.value"><br>
-                  <label>病种名：</label>
-                  <input type="text" class="form-control" :value="editMode ? editingMedCase.species : newMedCase.species" @input="editMode ? editingMedCase.species = $event.target.value : newMedCase.species = $event.target.value"><br>
-                  <label>疾病名：</label>
-                  <input type="text" class="form-control" :value="editMode ? editingMedCase.disease : newMedCase.disease" @input="editMode ? editingMedCase.disease = $event.target.value : newMedCase.disease = $event.target.value"><br>
-                  <label>病例名：</label>
-                  <input type="text" class="form-control" :value="editMode ? editingMedCase.caseName : newMedCase.caseName" @input="editMode ? editingMedCase.caseName = $event.target.value : newMedCase.caseName = $event.target.value"><br>
-                  <label>病例描述：</label>
-                  <input type="text" class="form-control" :value="editMode ? editingMedCase.caseDescription : newMedCase.caseDescription" @input="editMode ? editingMedCase.caseDescription = $event.target.value : newMedCase.caseDescription = $event.target.value"><br>
-                  <div class="button-container">
-                    <button type="submit" class="btn btn-lg btn-block btn-primary">{{ editMode ? '保存' : '添加' }}</button>
-                    <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          
-        </div>
-      </transition>
     </div>
-  </template>
-  
-  
-  <script>
+
+    <!-- 表格 -->
+    <div class="row" v-show="!dialogVisible && !modifyDialogVisible">
+      <div class="col-12">
+        <div class="room-management-container">
+          <el-table
+            :data="filteredMedcases"
+            stripe
+            style="width: 100%;"
+            highlight-current-row
+            @row-click="handleRowClick"
+          >
+          <el-table-column prop="id" label="病例ID"></el-table-column>
+            <el-table-column prop="diseaseType" label="病种名"></el-table-column>
+            <el-table-column prop="diseaseName" label="疾病名"></el-table-column>
+            <el-table-column prop="price" label="价格"></el-table-column>
+            <el-table-column prop="diagnosisResult" label="诊断结果"></el-table-column>
+            <el-table-column prop="medcaseName" label="病例名"></el-table-column>
+            <el-table-column prop="image" label="接诊图片"></el-table-column>
+            <el-table-column prop="video" label="接诊视频"></el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分页组件 -->
+    <div class="row" v-show="!dialogVisible && !modifyDialogVisible">
+      <div class="col-12">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="currentPage"
+          :page-size="pageSize"
+          :total="medcases.length"
+          layout="sizes, total, prev, pager, next, jumper"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElUpload, ElSelect, ElOption } from "element-plus";
+
 export default {
-    data() {
-        return {
-        medcases: [
-            { id: 1, species: '种类1', disease: '疾病1', caseName: '病例1', caseDescription: '病例描述1', checked: false },
-            { id: 2, species: '种类2', disease: '疾病2', caseName: '病例2', caseDescription: '病例描述2', checked: false },
-            { id: 3, species: '种类3', disease: '疾病3', caseName: '病例3', caseDescription: '病例描述3', checked: false }
-        ],
-        editingMedCase: null,
-        showEditModal: false, // 控制编辑窗口显示与隐藏
-        editMode: false, // 是否为编辑模式
-        newMedCase: { id: '', species: '', disease: '', caseName: '', caseDescription: '' }, // 新增病例的
-        selectedSpecies: '', // 选择的病种名
-        speciesList: [], // 病种名列表
-        };
+  components: {
+    ElButton,
+    ElDialog,
+    ElForm,
+    ElFormItem,
+    ElInput,
+    ElPagination,
+    ElTable,
+    ElTableColumn,
+    ElUpload,
+    ElSelect,
+    ElOption
+  },
+  data() {
+    return {
+      searchText: '',
+      dialogVisible: false,
+      modifyDialogVisible: false,
+      form: {
+        id: '',
+        diseaseType: '', // 新增病例类型字段
+        diseaseName: '',
+        price: '',
+        diagnosisResult: '',
+        medcaseName: '',
+        description: '',
+        image: '',
+        video: ''
+      },
+      rules: {
+        id: [{ required: true, message: '请输入病例ID', trigger: 'blur' }],
+        diseaseType: [{ required: true, message: '请选择病种名', trigger: 'change' }],
+        diseaseName: [{ required: true, message: '请输入疾病名', trigger: 'blur' }],
+        price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+        diagnosisResult: [{ required: true, message: '请输入诊断结果', trigger: 'blur' }],
+        medcaseName: [{ required: true, message: '请输入病例名', trigger: 'blur' }],
+        description: [{ required: true, message: '请输入描述', trigger: 'blur' }]
+      },
+      diseaseTypes: ['Type1', 'Type2', 'Type3'], // 可选的病种名
+      medcases: [
+        { id: 1, diseaseType: "Type1", diseaseName: "Disease1", price: "Price1", diagnosisResult: "DiagnosisResult1", medcaseName: "Medcase1", description: "Description1", image: "Image1", video: "Video1" },
+        { id: 2, diseaseType: "Type2", diseaseName: "Disease2", price: "Price2", diagnosisResult: "DiagnosisResult2", medcaseName: "Medcase2", description: "Description2", image: "Image2", video: "Video2" },
+        { id: 3, diseaseType: "Type3", diseaseName: "Disease3", price: "Price3", diagnosisResult: "DiagnosisResult3", medcaseName: "Medcase3", description: "Description3", image: "Image3", video: "Video3" },
+        // 其他病例数据...
+      ],
+      currentPage: 1,
+      pageSize: 10,
+      selectedRow: null,
+      imageUrl: '', // 存储上传图片的URL
+      videoUrl: '', // 存储上传视频的URL
+    };
+  },
+  computed: {
+    currentPageData() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.medcases.slice(startIndex, endIndex);
     },
-    computed: {
-        // 根据选择的病种名过滤病例列表
-        filteredMedCases() {
-        if (this.selectedSpecies === '') {
-            return this.medcases; // 如果没有选择病种名，则返回所有病例
+    filteredMedcases() {
+      const filtered = this.medcases.filter(medcase =>
+        medcase.medcaseName.toLowerCase().includes(this.searchText.toLowerCase())
+      );
+      return filtered;
+    },
+  },
+  methods: {
+    handleSearch() {
+      // 处理搜索功能
+      // 触发计算属性重新计算过滤后的病例
+    },
+    handleClearSearch() {
+      // 处理清除搜索文本
+      this.searchText = '';
+    },
+    handleAdd() {
+      this.dialogVisible = true;
+      this.form.id = this.medcases.length + 1;
+    },
+    handleConfirm() {
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          this.medcases.push({ ...this.form });
+          this.dialogVisible = false;
+          this.$refs.form.resetFields();
         } else {
-            return this.medcases.filter(medcase => medcase.species === this.selectedSpecies); // 否则只返回匹配选择的病种名的病例
+          return false;
         }
-        }
+      });
     },
- 
-    methods: {
-      openEditModal(medcase) {
-        this.editMode = true; // 进入编辑模式
-        this.editingMedCase = { ...medcase };
-        this.showEditModal = true; // 打开编辑窗口
-      },
-      openAddModal() {
-        this.editMode = false; // 进入新增模式
-        this.showEditModal = true; // 打开新增病例窗口
-      },
-      closeEditModal() {
-        this.showEditModal = false; // 关闭编辑窗口
-        this.editMode = false; // 重置编辑模式
-        this.editingMedCase = null; // 清空编辑病例信息
-        this.newMedCase = { id: '', species: '', disease: '', caseName: '', caseDescription: '' }; // 清空新增病例信息
-        },
-        saveMedCase() {
-        // 更新编辑病例信息
-        const index = this.medcases.findIndex(medcase => medcase.id === this.editingMedCase.id);
+    handleDelete() {
+      if (this.selectedRow) {
+        const index = this.medcases.findIndex(medcase => medcase === this.selectedRow);
         if (index !== -1) {
-            this.medcases[index] = { ...this.editingMedCase };
-            console.log('保存病例信息:', this.editingMedCase);
-        } else {
-            console.error('MedCase not found');
+          this.medcases.splice(index, 1);
+          this.selectedRow = null;
         }
-        this.closeEditModal();
-        },
-        saveNewMedCase() {
-        // 添加新增病例信息到表格数据中
-        this.medcases.push({ ...this.newMedCase, id: this.medcases.length + 1, checked: false });
-        console.log('新增病例信息:', this.newMedCase);
-        this.closeEditModal();
-        },
-        deleteMedCase() {
-        const selectedMedCases = this.medcases.filter(medcase => medcase.checked);
-        if (selectedMedCases.length > 0) {
-            // 删除选中的病例信息
-            selectedMedCases.forEach(medcase => {
-            const index = this.medcases.findIndex(m => m.id === medcase.id);
-            if (index !== -1) {
-                this.medcases.splice(index, 1);
-                console.log('已删除病例:', medcase);
-            }
-            });
+      }
+    },
+    handleSizeChange(val) {
+      this.pageSize = val;
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val;
+    },
+    handleCloseDialog(done) {
+      this.dialogVisible = false;
+    },
+    handleCloseModifyDialog(done) {
+      this.modifyDialogVisible = false;
+    },
+    handleRowClick(row) {
+      if (this.selectedRow === row) {
+        this.selectedRow = null;
+      } else {
+        this.selectedRow = row;
+      }
+    },
+    openModifyDialog() {
+      if (this.selectedRow) {
+        this.form.id = this.selectedRow.id;
+        this.form.diseaseType = this.selectedRow.diseaseType;
+        this.form.diseaseName = this.selectedRow.diseaseName;
+        this.form.price = this.selectedRow.price;
+        this.form.diagnosisResult = this.selectedRow.diagnosisResult;
+        this.form.medcaseName = this.selectedRow.medcaseName;
+        this.form.description = this.selectedRow.description;
+        this.form.image = this.selectedRow.image;
+        this.form.video = this.selectedRow.video;
+        this.modifyDialogVisible = true;
+      } else {
+        console.log('没有选择');
+      }
+    },
+    handleModifyConfirm() {
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          const index = this.medcases.findIndex(medcase => medcase.id === this.form.id);
+          if (index !== -1) {
+            this.medcases[index] = { ...this.form };
+          }
+          this.modifyDialogVisible = false;
+          this.$refs.form.resetFields();
         } else {
-            console.log('请至少选择一个要删除的病例');
+          return false;
         }
-        },
-        viewDetails(medcase) {
-        // 这里可以编写跳转到详情页面的代码，例如使用路由进行页面跳转
-        console.log('查看病例详情:', medcase);
-        },
-        toggleCheckbox(medcase) {
-        medcase.checked = !medcase.checked; // 切换多选框的选中状态
-        },
-        filterBySpecies() {
-        // 这里可以根据需要对病例进行筛选
-        },
-    }
+      });
+    },
+    handleUploadSuccess(response, file) {
+      if (file.raw.type.startsWith('image')) {
+        const isLt2M = file.size / 1024 / 1024 < 2;
+        if (!isLt2M) {
+          this.$message.error('图片大小不能超过 2MB');
+        }
+        this.imageUrl = URL.createObjectURL(file.raw);
+        this.form.image = this.imageUrl; // 将上传成功后的图片URL赋值给表单中的image属性
+        return isLt2M;
+      } else if (file.raw.type.startsWith('video')) {
+        const isLt10M = file.size / 1024 / 1024 < 10;
+        if (!isLt10M) {
+          this.$message.error('视频大小不能超过 10MB');
+        }
+        this.videoUrl = URL.createObjectURL(file.raw);
+        this.form.video = this.videoUrl; // 将上传成功后的视频URL赋值给表单中的video属性
+        return isLt10M;
+      } else {
+        this.$message.error('只能上传 JPG/PNG 格式的图片或MP4格式的视频');
+        return false;
+      }
+    },
+    beforeUpload(file) {
+      const isJPGorPNG = file.type === 'image/jpeg' || file.type === 'image/png';
+      const isMP4 = file.type === 'video/mp4';
+      if (!isJPGorPNG && !isMP4) {
+        this.$message.error('上传文件只能是 JPG/PNG 格式的图片或 MP4 格式的视频');
+      }
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      if (!isJPGorPNG && !isMP4) {
+        this.$message.error('上传文件只能是 JPG/PNG 格式的图片或 MP4 格式的视频');
+      }
+      if (isJPGorPNG && !isLt2M) {
+        this.$message.error('图片大小不能超过 2MB');
+      }
+      if (isMP4 && !isLt10M) {
+        this.$message.error('视频大小不能超过 10MB');
+      }
+      return (isJPGorPNG && isLt2M) || (isMP4 && isLt10M);
+    },
+  },
 };
 </script>
-  
-  
-  
-  <style scoped>
-  .user-management-card {
-    width: 100%;
-    max-width: 600px;
-    margin: auto;
-  }
-  
-  .role-play-title {
-    font-size: 36px;
-    font-weight: bold;
-    color: black;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  
-  .table-container {
-    width: 100%;
-  }
-  
-  .buttons-container {
-    margin-bottom: 10px;
-    display: flex;
-    justify-content:space-between;
-  }
-  .buttons-container .btn-left {
-    margin-right: 20px; /* 调整左侧按钮的右外边距 */
-  }
-  
-  .biaoge-container {
-    border: 1px solid #ccc; /* 添加外部边框 */
-    border-radius: 10px; /* 添加外部圆角 */
-    overflow: hidden; /* 隐藏内部边框 */
-  }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    border-spacing: 0; /* 去除表格内部间距 */
-  }
-  
-  .table th,
-  .table td {
-    padding: 8px;
-    text-align: center;
-    border: 1px solid #dee2e6;
-    white-space: pre-wrap; /* 添加此行 */
-  }
 
-  
-  .table th {
-    background-color: #f2f2f2;
-  }
-  
-  /* 添加单元格之间的中间分隔边框线 */
-  .table tbody tr:last-child td {
-    border-bottom: 1px solid #dee2e6; /* 底部边框线 */
-  }
-  
-  .table tbody tr:last-child td:not(:last-child) {
-    border-right: 1px solid #dee2e6; /* 右侧边框线 */
-    border-left: 1px solid #dee2e6;
-  }
-  
-  
-  .text-center {
-    text-align: center;
-  }
-  
-  .rounded-top-left {
-    border-top-left-radius: 10px;
-  }
-  
-  .rounded-top-right {
-    border-top-right-radius: 10px;
-  }
-  
-  .rounded-bottom-left {
-    border-bottom-left-radius: 10px;
-  }
-  
-  .rounded-bottom-right {
-    border-bottom-right-radius: 10px;
-  }
-  
-  
-  /* 弹出窗口样式 */
-  .modal-mask {
-  position: fixed;
-  z-index: 9998;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  }
-  
-  .modal-wrapper {
-  width: 100%;
-  }
-  
-  .modal-container {
+<style scoped>
+.container.sectionHeight {
+  background-color: white;
+  border-radius: 20px;
+  margin-left: 10px;
   padding: 20px;
-  background-color: #ffffff;
-  border-radius: 5px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-  width: 40%; /* 设置弹窗宽度 */
-  left: 20%; /* 设置弹窗左侧距离为页面宽度的40% */
-  }
-  
-  .modal-container h3 {
-  margin-bottom: 15px;
-  }
-  
-  .modal-container label {
-  display: block;
-  margin-bottom: 10px;
-  }
-  
-  .modal-container input {
-  width: calc(100% - 10px);
-  margin-bottom: 10px;
-  }
-  .modal-container .button-container {
-    display: flex;
-    justify-content: center; /* 让按钮居中 */
-    width: 100%; /* 让容器宽度和弹窗一样 */
-    box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
-  }
-  
-  .modal-container .button-container button {
-    margin: 0 10%; /* 调整按钮之间的间距 */
-  }
-  
-  
-  
-  
-  </style>
-  
+  padding-bottom: 20px;
+  overflow-y: auto;
+}
+
+.room-management-container {
+  width: 100%;
+}
+</style>
+
+           

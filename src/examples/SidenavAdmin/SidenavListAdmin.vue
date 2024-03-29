@@ -45,6 +45,17 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
         <sidenav-item
+            to="/DiseaseManagement"
+            :class="getRoute() === 'DiseaseManagement' ? 'active' : ''"
+            :navText="isRTL ? 'DiseaseManagement' : '疾病管理'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
+      <li class="nav-item">
+        <sidenav-item
             to="/InspectionManagement"
             :class="getRoute() === 'InspectionManagement' ? 'active' : ''"
             :navText="isRTL ? 'InspectionManagement' : '检查项目管理'"
