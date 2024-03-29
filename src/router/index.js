@@ -19,6 +19,19 @@ import DashboardStudent from "@/examples/Student/DashboardStudent.vue";
 import MyPapersStudent from "@/examples/Student/paper/MyPapersStudent.vue";
 import PaperInfo from "@/examples/Student/paper/PaperInfo.vue";
 import LearnHistory from "@/examples/Student/history/LearnHistory.vue";
+import ProblemsManagement from "@/examples/Teacher/problem/ProblemsManagement.vue";
+import PapersTeacher from "../examples/Teacher/paper/PapersTeacher.vue";
+import PapersInfo from "../examples/Teacher/paper/PapersInfo.vue";
+import SelectQuestions from "../examples/Teacher/paper/SelectQuestions.vue";
+import SelectPaper from "../examples/Teacher/exam/SelectPaper.vue";
+import ExamsTeacher from "../examples/Teacher/exam/ExamsTeacher.vue";
+import UserManagement from "@/examples/Admin/userManagement/UserManagement.vue"
+import MedcaseManagement from "@/examples/Admin/medcaseManagement/MedcaseManagement.vue"
+import InspectionManagement from "../examples/Admin/inspectionManagement/InspectionManagement.vue"
+import MedicineManagement from "../examples/Admin/medicineManagement/MedicineManagement.vue"
+import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue"
+import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue"
+
 const routes = [
   {
     path: "/",
@@ -124,6 +137,90 @@ const routes = [
     path: "/Myexam",
     name: "Myexam",
     component: Myexam,
+  },
+  {
+    path:"/ProblemsManagement",
+    name:"ProblemsManagement",
+    component: ProblemsManagement,
+  },
+  {
+    path:"/PapersTeacher",
+    name:"试卷管理",
+    component:PapersTeacher,
+  },
+  // {
+  //   path: "/PapersTeacher",
+  //   name: "试卷管理",
+  //   component: PapersTeacher,
+  //   props: route => ({
+  //     problemmax: route.params.problemmax,
+  //     tempname1: route.params.tempname1,
+  //     temphours1: route.params.temphours1,
+  //     tempmins1: route.params.tempmins1,
+  //     tempproblems: route.params.tempproblems,
+  //     flag: route.params.flag
+  //   })
+  // },
+  {
+    path:"/Papers/:id",
+    name:"查看试卷",
+    component:PapersInfo,
+  },
+  {
+    path:"/SelectQuestions/:tempname/:tempproblemcount/:temphours/:tempmins",
+    name:"选择试题",
+    component:SelectQuestions,
+  },
+  {
+    path:"/PapersTeacher/:problemmax/:tempname1/:temphours1/:tempmins1/:tempproblems/:flag",
+    name:"管理试卷",
+    component:PapersTeacher,
+    props:true,
+  },
+  {
+    path:"/ExamsTeacher",
+    name:"考试管理",
+    component:ExamsTeacher,
+  },
+  {
+    path:"/SelectPaper/:tempname/:tempexamlevel/:temphours/:tempmins",
+    name:"选择试卷",
+    component:SelectPaper,
+  },
+  {
+    path:"/ExamsTeacher/:tempexamlevel1/:tempname1/:temphours1/:tempmins1/:temppaper/:temppapername/:flag",
+    name:"管理考试",
+    component:ExamsTeacher,
+  },
+  {
+    path:"/UserManagement",
+    name:"用户管理-管理员",
+    component:UserManagement,
+  },
+  {
+    path:"/MedcaseManagement",
+    name:"病例管理-管理员",
+    component:MedcaseManagement,
+  },  
+  {
+    path:"/InspectionManagement",
+    name:"检查项目管理-管理员",
+    component:InspectionManagement,
+  }, 
+  {
+    path:"/MedicineManagement",
+    name:"药品管理-管理员",
+    component:MedicineManagement,
+  },
+  {
+    path:"/RoomManagement",
+    name:"科室管理-管理员",
+    component:RoomManagement,
+  },
+  {
+    path:"/DiseaseManagement",
+    name:"疾病管理-管理员",
+    component:DiseaseManagement,
   },
 
 ];
