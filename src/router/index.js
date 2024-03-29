@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Dashboard from "../views/Dashboard.vue";
 import Tables from "../views/Tables.vue";
-import Billing from "../views/Billing.vue";
 import VirtualReality from "../views/VirtualReality.vue";
 import RTL from "../views/Rtl.vue";
 import Profile from "../views/Profile.vue";
@@ -19,6 +18,13 @@ import DashboardStudent from "@/examples/Student/DashboardStudent.vue";
 import MyPapersStudent from "@/examples/Student/paper/MyPapersStudent.vue";
 import PaperInfo from "@/examples/Student/paper/PaperInfo.vue";
 import LearnHistory from "@/examples/Student/history/LearnHistory.vue";
+import Category from "@/examples/Student/Medicase/Category.vue";
+import Disease from "@/examples/Student/Medicase/Disease.vue";
+import Medcase from "@/examples/Student/Medicase/Medcase.vue";
+import Operation from "@/examples/Student/Medicase/Operation.vue";
+import Medicines from "@/examples/Student/Medicase/Medicines.vue";
+import TakeExam from "@/examples/Student/exams/TakeExam.vue";
+
 import ProblemsManagement from "@/examples/Teacher/problem/ProblemsManagement.vue";
 import PapersTeacher from "../examples/Teacher/paper/PapersTeacher.vue";
 import PapersInfo from "../examples/Teacher/paper/PapersInfo.vue";
@@ -36,7 +42,7 @@ const routes = [
   {
     path: "/",
     name: "/",
-    redirect: "/signin",
+    redirect: "/Signin",
   },
   {
     path: "/dashboard-student",
@@ -74,9 +80,9 @@ const routes = [
     component: Tables,
   },
   {
-    path: "/billing",
-    name: "Billing",
-    component: Billing,
+    path: "/Category",
+    name: "病例学习",
+    component: Category,
   },
   {
     path: "/virtual-reality",
@@ -92,6 +98,11 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: Profile,
+  },
+  {
+    path: '/:diseaseName/medcases',
+    name: 'Disease',
+    component: Disease,
   },
   {
     path: "/signin",
@@ -125,13 +136,33 @@ const routes = [
   },
   {
     path:"/papers/:id",
-    name:"查看试卷",
+    name:"WatchPaper",
     component:PaperInfo,
+  },
+  {
+    path:"/takeexam/:id",
+    name:"TakeExam",
+    component:TakeExam,
   },
   {
     path:"/history/:id",
     name:"查看学习历史",
     component:LearnHistory,
+  },
+  {
+    path:"/medcase/:medcaseId",
+    name:"Medcase",
+    component:Medcase,
+  },
+  {
+    path:"/:medcaseId/medicines",
+    name:"Medicines",
+    component:Medicines,
+  },
+  {
+    path:"/operation/:operation_id",
+    name:"Operation",
+    component:Operation,
   },
   {
     path: "/Myexam",

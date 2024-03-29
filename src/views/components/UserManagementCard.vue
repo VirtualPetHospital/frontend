@@ -1,0 +1,333 @@
+<template>
+  <div class="container sectionHeight">
+
+    <!-- 搜索栏 -->
+    <el-input
+      v-model="searchText"
+      placeholder="输入用户名或身份进行搜索"
+      clearable
+      @clear="handleClearSearch"
+      @input="handleSearch"
+    ></el-input>
+
+    <!-- 新增弹窗 -->
+    <el-dialog
+      title="新增表格元素"
+      v-model="dialogVisible"
+      width="10%"
+      :before-close="handleCloseDialog"
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username"></el-input>
+        </el-form-item>
+        <el-form-item label="角色" prop="role">
+          <el-input v-model="form.role"></el-input>
+        </el-form-item>
+        <el-form-item label="等级" prop="level">
+          <el-input v-model="form.level"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirm">确定</el-button>
+        
+      </div>
+    </el-dialog>
+
+    <!-- 修改弹窗 -->
+    <el-dialog
+      title="修改表格元素"
+      v-model="modifyDialogVisible"
+      width="10%"
+      :before-close="handleCloseModifyDialog"
+    >
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <!-- ID字段设置为不可编辑 -->
+        <el-form-item label="ID">
+          <el-input v-model="form.id" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username"></el-input>
+        </el-form-item>
+        <el-form-item label="角色" prop="role">
+          <el-input v-model="form.role"></el-input>
+        </el-form-item>
+        <el-form-item label="等级" prop="level">
+          <el-input v-model="form.level"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 按钮 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="modifyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleModifyConfirm">确定</el-button>
+        
+      </div>
+    </el-dialog>
+
+    <!-- 按钮区域 -->
+    <div class="row mb-4">
+      <div class="col-6">
+        <el-button type="primary" @click="handleAdd">新增</el-button>
+        <el-button type="danger" @click="handleDelete">删除</el-button>
+        <el-button type="success" @click="openModifyDialog">修改</el-button>
+      </div>
+    </div>
+
+    <!-- 表格 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="user-management-container">
+          <el-table
+            :data="filteredUsers"
+            stripe
+            style="width: 100%;"
+            highlight-current-row
+            @row-click="handleRowClick"
+            :filters="filters"
+            :filter-method="handleFilter"
+          >
+            <el-table-column prop="id" label="ID"></el-table-column>
+            <el-table-column prop="username" label="用户名"></el-table-column>
+            <el-table-column
+              prop="role"
+              label="角色"
+              :filters="roleFilters"
+              :filter-method="handleRoleFilter"
+            >
+              <template #default="{ row }">{{ row.role }}</template>
+            </el-table-column>
+            <el-table-column prop="level" label="等级"></el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分页组件 -->
+    <div class="row">
+      <div class="col-12">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page.sync="currentPage"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="pageSize"
+          :total="users.length"
+          layout="sizes, total, prev, pager, next,jumper"
+        ></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+
+export default {
+  components: {
+    ElButton,
+    ElDialog,
+    ElForm,
+    ElFormItem,
+    ElInput,
+    ElPagination,
+    ElTable,
+    ElTableColumn,
+  },
+  data() {
+    return {
+      searchText: '',
+      dialogVisible: false, // 控制新增弹窗的显示状态
+      modifyDialogVisible: false, // 控制修改弹窗的显示状态
+      form: {
+        id: '', // 初始为空
+        username: '',
+        role: '学生',
+        level: '1'
+      },
+      rules: {
+        id: [{ required: true, message: '请输入ID', trigger: 'blur' }],
+        username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+        role: [{ required: true, message: '请输入角色', trigger: 'blur' }],
+        level: [{ required: true, message: '请输入等级', trigger: 'blur' }]
+      },
+      users: [
+        { id: 1, username: "User1", role: "老师", level: 23 },
+        { id: 2, username: "User2", role: "老师", level: 32 },
+        { id: 3, username: "User3", role: "学生", level: 3 },
+        { id: 4, username: "User4", role: "学生", level: 3 },
+        { id: 5, username: "User5", role: "管理员", level: 55 },
+        { id: 6, username: "User6", role: "管理员", level: 35 },
+        // 其他用户数据...
+      ],
+      currentPage: 1, // 当前页码
+      pageSize: 10, // 每页显示条数
+      selectedRow: null, // 存储选中的行数据
+      // 角色筛选器选项
+      roleFilters: [
+        { text: '学生', value: '学生' },
+        { text: '老师', value: '老师' },
+        { text: '管理员', value: '管理员' }
+      ],
+      // 当前的筛选器
+      filters: {
+        role: [] // 初始为空，表示未选择任何角色
+      }
+    };
+  },
+  computed: {
+    // 计算当前页显示的数据
+    currentPageData() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.users.slice(startIndex, endIndex);
+    },
+    // 根据搜索文本过滤用户
+    filteredUsers() {
+      const filtered = this.users.filter(user =>
+        user.username.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        user.role.toLowerCase().includes(this.searchText.toLowerCase())
+      );
+      return filtered;
+    },
+  },
+  methods: {
+    handleSearch() {
+      // 处理搜索功能
+      // 触发计算属性重新计算过滤后的用户
+    },
+    handleClearSearch() {
+      // 处理清除搜索文本
+      this.searchText = '';
+    },
+    // 处理新增按钮点击事件
+    handleAdd() {
+      // 打开新增弹窗
+      this.dialogVisible = true;
+      // 自动生成新的 ID
+      this.form.id = this.users.length + 1;
+    },
+    // 处理新增弹窗确定按钮点击事件
+    handleConfirm() {
+      // 表单验证
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          // 添加新数据到表格
+          this.users.push({ ...this.form });
+          // 关闭新增弹窗
+          this.dialogVisible = false;
+          // 清空表单数据
+          this.$refs.form.resetFields();
+        } else {
+          return false;
+        }
+      });
+    },
+    // 处理删除按钮点击事件
+    handleDelete() {
+      if (this.selectedRow) {
+        const index = this.users.findIndex(user => user === this.selectedRow);
+        if (index !== -1) {
+          this.users.splice(index, 1);
+          this.selectedRow = null;
+        }
+      }
+    },
+    // 处理每页显示条数改变事件
+    handleSizeChange(val) {
+      this.pageSize = val;
+    },
+    // 处理页码改变事件
+    handleCurrentChange(val) {
+      this.currentPage = val;
+    },
+    // 处理新增弹窗关闭前的回调
+    handleCloseDialog(done) {
+      this.dialogVisible = false;
+    },
+    // 处理修改弹窗关闭前的回调
+    handleCloseModifyDialog(done) {
+      this.modifyDialogVisible = false;
+    },
+    // 处理行点击事件
+    handleRowClick(row) {
+      if (this.selectedRow === row) {
+        // 取消选中状态
+        this.selectedRow = null;
+      } else {
+        // 设置选中状态
+        this.selectedRow = row;
+      }
+    },
+    // 处理角色筛选器变化
+    handleRoleFilter(value, row) {
+      return this.filters.role.length === 0 || this.filters.role.includes(row.role);
+    },
+    // 处理表格筛选
+    handleFilter(filters) {
+      this.filters = filters;
+    },
+    // 处理修改按钮点击事件
+    openModifyDialog() {
+      // 检查是否有选中的行
+      if (this.selectedRow) {
+        // 将选中行的数据填充到表单中
+        this.form.id = this.selectedRow.id;
+        this.form.username = this.selectedRow.username;
+        this.form.role = this.selectedRow.role;
+        this.form.level = this.selectedRow.level;
+
+        // 设置修改弹窗可见
+        this.modifyDialogVisible = true;
+      } else {
+        console.log('没有选择')
+        // 如果没有选中行，提示用户选择行
+        // this.$message({
+        //   type: 'warning',
+        //   message: '请先选择要修改的行',
+        // });
+      }
+    },
+    // 处理修改弹窗确定按钮点击事件
+    handleModifyConfirm() {
+      // 表单验证
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          // 更新用户数据
+          const index = this.users.findIndex(user => user.id === this.form.id);
+          if (index !== -1) {
+            this.users[index] = { ...this.form };
+          }
+          // 关闭修改弹窗
+          this.modifyDialogVisible = false;
+          // 清空表单数据
+          this.$refs.form.resetFields();
+        } else {
+          return false;
+        }
+      });
+    },
+  },
+};
+</script>
+
+<style scoped>
+.container.sectionHeight {
+  background-color: white;
+  border-radius: 20px;
+  margin-left: 10px;
+  padding: 20px;
+  padding-bottom: 20px;
+}
+
+.user-management-container {
+  width: 100%;
+}
+</style>

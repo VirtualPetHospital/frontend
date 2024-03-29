@@ -23,9 +23,9 @@ const getRoute = () => {
     <ul class="navbar-nav">
       <li class="nav-item">
         <sidenav-item
-            to="/Cosplay"
-            :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '用户管理'"
+            to="/UserManagement"
+            :class="getRoute() === 'UserManagement' ? 'active' : ''"
+            :navText="isRTL ? 'UserManagement' : '用户管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
@@ -34,9 +34,9 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
         <sidenav-item
-            to="/Cosplay"
-            :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '病例管理'"
+            to="/MedcaseManagement"
+            :class="getRoute() === 'MedcaseManagement' ? 'active' : ''"
+            :navText="isRTL ? 'MedcaseManagement' : '病例管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
@@ -45,9 +45,9 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
         <sidenav-item
-            to="/Cosplay"
-            :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '检查项目管理'"
+            to="/DiseaseManagement"
+            :class="getRoute() === 'DiseaseManagement' ? 'active' : ''"
+            :navText="isRTL ? 'DiseaseManagement' : '疾病管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
@@ -56,9 +56,9 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
         <sidenav-item
-            to="/Cosplay"
-            :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '药品管理'"
+            to="/InspectionManagement"
+            :class="getRoute() === 'InspectionManagement' ? 'active' : ''"
+            :navText="isRTL ? 'InspectionManagement' : '检查项目管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
@@ -67,9 +67,20 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
         <sidenav-item
-            to="/Cosplay"
-            :class="getRoute() === 'Cosplay' ? 'active' : ''"
-            :navText="isRTL ? 'Cosplay' : '科室管理'"
+            to="/MedicineManagement"
+            :class="getRoute() === 'MedicineManagement' ? 'active' : ''"
+            :navText="isRTL ? 'MedicineManagement' : '药品管理'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
+      <li class="nav-item">
+        <sidenav-item
+            to="/RoomManagement"
+            :class="getRoute() === 'RoomManagement' ? 'active' : ''"
+            :navText="isRTL ? 'RoomManagement' : '科室管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>

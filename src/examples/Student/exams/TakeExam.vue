@@ -12,27 +12,31 @@
                   <div><i class="fs28">{{paper.question_num}}</i><i class="fs12 co333">题</i></div>
                 </div>
               </div>
-              <div class="itemInner">
-                <div class="fs16">
-                  单选题
+              <div class="twoItem pd20">
+                <p class="fs14">做题进度</p>
+                <el-progress :percentage="this.answerPro" :format="format"></el-progress>
+              </div>
+                <div class="itemInner">
+                  <div class="fs16">
+                    单选题
                 </div>
-                <div class="box-list">
-                  <div
-                      class="box normal-box question_cbox"
-                      v-for="(question,index) in paper.questions"
-                      :key="index"
-                  >
+                  <div class="box-list">
                     <div
-                        :class="{ 'checki': !checkResult[question.question_id], 'checked': checkResult[question.question_id] }"
-                        @click="selectQuestion(question.question_id, index)"
+                        class="box normal-box question_cbox"
+                        v-for="(question,index) in paper.questions"
+                        :key="index"
                     >
-                      {{index+1}}
+                      <div
+                          :class="{ 'checki': !checkResult[question.question_id], 'checked': checkResult[question.question_id] }"
+                          @click="selectQuestion(question.question_id, index)"
+                      >
+                        {{index+1}}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-            </div>
+              </div>
           </el-aside>
           <el-main style="padding:5px">
             <el-card style="border-radius: 10px">
@@ -43,17 +47,20 @@
             </el-card>
             <el-card style="border-radius: 10px;margin-top:10px">
               <div v-if="selectedQuestion">
-                <span>选项</span>
+              <span>选项</span>
                 <div>
-                  <el-radio-group v-model="selectedAns">
-                    <el-radio :label="1" @click="submitAnswer(selectedQuestion.question_id,1)">{{selectedQuestion.a}}</el-radio>
-                    <el-radio :label="2" @click="submitAnswer(selectedQuestion.question_id,2)">{{selectedQuestion.b}}</el-radio>
-                    <el-radio :label="3" @click="submitAnswer(selectedQuestion.question_id,3)">{{selectedQuestion.c}}</el-radio>
-                    <el-radio :label="4" @click="submitAnswer(selectedQuestion.question_id,4)">{{selectedQuestion.d}}</el-radio>
-                  </el-radio-group>
+                <el-radio-group v-model="selectedAns">
+                  <el-radio :label="1" @click="submitAnswer(selectedQuestion.question_id,1)">{{selectedQuestion.a}}</el-radio>
+                  <el-radio :label="2" @click="submitAnswer(selectedQuestion.question_id,2)">{{selectedQuestion.b}}</el-radio>
+                  <el-radio :label="3" @click="submitAnswer(selectedQuestion.question_id,3)">{{selectedQuestion.c}}</el-radio>
+                  <el-radio :label="4" @click="submitAnswer(selectedQuestion.question_id,4)">{{selectedQuestion.d}}</el-radio>
+                </el-radio-group>
                 </div>
               </div>
             </el-card>
+            <div>
+              <el-button style="position: absolute;margin-top: 10px; right:30px" class="custom-button" @click="submitExam">提交</el-button>
+            </div>
           </el-main>
         </el-container>
 
@@ -124,19 +131,19 @@ export default{
       if(qid!==null&&qid>=0&&qid<this.paper.question_num){
         const existingAnswerIndex = this.answerSheet.findIndex(item => item.question_id === qid);
         if (existingAnswerIndex !== -1) {
-          // If the question is already in the answerSheet, update the answer
-          this.answerSheet[existingAnswerIndex].answer = ans;
-          console.log(qid+"选择变为"+this.answerSheet[existingAnswerIndex].answer );
-        }else{
-          this.answerSheet.push({
-            question_id: qid,
-            answer: ans
-          });
-          this.answerCurrent++;
-          this.checkResult[qid]=true;
-          this.format();
+        // If the question is already in the answerSheet, update the answer
+        this.answerSheet[existingAnswerIndex].answer = ans;
+        console.log(qid+"选择变为"+this.answerSheet[existingAnswerIndex].answer );
+      }else{
+        this.answerSheet.push({
+          question_id: qid,
+          answer: ans
+        });
+        this.answerCurrent++;
+        this.checkResult[qid]=true;
+        this.format();
           console.log(qid+"选择是"+ans );
-        }}
+      }}
     },
     format() {
       if (this.paper.question_num) {
@@ -157,7 +164,7 @@ export default{
     initCheckResult() {
       // 初始化checkResult对象
       this.paper.questions.forEach(question => {
-        this.checkResult[question.question_id]=false;
+       this.checkResult[question.question_id]=false;
       });
     },
     fetchExam(examId){
@@ -251,7 +258,7 @@ export default{
         .then(()=>{
           this.initCheckResult();
         }).catch(error=>{
-      console.error('获取试卷失败',error);
+          console.error('获取试卷失败',error);
     });
 
   },
@@ -295,7 +302,6 @@ export default{
 
 .card.p-4{
   margin-left: 5px;
-  margin-bottom: 10px;
 }
 /* Scoped styles for the el-aside component */
 .asideLeft {
@@ -414,5 +420,5 @@ export default{
       border-radius: 50%;
       cursor: pointer;
     }
-  }}
+    }}
 </style>
