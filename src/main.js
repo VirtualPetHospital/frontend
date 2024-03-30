@@ -12,6 +12,7 @@ import 'vue-video-player/src/custom-theme.css'
 import * as ElIconModules from '@element-plus/icons'
 import axios from "axios";
 import app from "@/App.vue";
+import 'element-plus/theme-chalk/index.css';
 
 const appInstance = createApp(App);
 appInstance.use(store);
