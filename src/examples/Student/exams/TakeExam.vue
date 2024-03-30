@@ -59,7 +59,7 @@
               </div>
             </el-card>
             <div>
-              <el-button style="position: absolute;margin-top: 10px; right:30px" class="custom-button" @click="submitExam">提交</el-button>
+              <el-button style="position: absolute;margin-top: 10px; right:30px" class="custom-button" @click="submitExam" :disabled="handin">提交</el-button>
             </div>
           </el-main>
         </el-container>
@@ -74,7 +74,7 @@ import { defineComponent, ref, reactive} from 'vue'
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router";
 import {ElHeader, ElRadio, ElRadioGroup, ElAside, ElContainer
-  , ElMain, ElProgress,ElCard,ElButton
+  , ElMain, ElProgress,ElCard,ElButton,ElPopover
 } from "element-plus";
 import axios from "axios";
 export default{
@@ -94,13 +94,17 @@ export default{
         question_num:null,
         questions:[]
       },
-      checkResult:[], // 左侧栏、右侧栏、答题结果栏
+      checkResult:[],
       answerCurrent:0,
       answerPro:0,
-      answerSheet:[],
+      answerSheet:[{
+        question_id:null,
+        answer:null
+      }],
       selectedQuestion:null,
       selectedAns:null,
       deadline:null,
+      handin:true,
     }
   },
   methods:{
@@ -108,12 +112,28 @@ export default{
       const index = this.paper.questions.findIndex(question => question.question_id === questionId);
       if (index !== -1) {
         this.selectedQuestion = this.paper.questions[index];
-        this.selectedAns=null;
+        const existChoice=this.answerSheet.findIndex(answer=>answer.question_id===questionId);
+        console.log(existChoice);
+        if(existChoice!==-1){
+          let ans=this.answerSheet[existChoice].answer;
+          if(ans==='A'){
+            this.selectedAns=1;
+          }else if(ans==='B'){
+            this.selectedAns=2;
+          }else if(ans==='C'){
+            this.selectedAns=3;
+          }else if(ans==='D'){
+            this.selectedAns=4;
+          }
+          console.log(this.selectedAns);
+        }else{
+        this.selectedAns=null;}
       } else {
         console.error(`Question with question_id ${questionId} not found.`);
       }
     },
     submitAnswer(qid,answer){
+      console.log("questnum"+this.paper.question_num);
       if(!this.selectedQuestion)
         return;
       let ans=null;
@@ -128,7 +148,8 @@ export default{
       }else{
         console.error("输入答案有误");
       }
-      if(qid!==null&&qid>=0&&qid<this.paper.question_num){
+      console.log("qid"+qid);
+      if(qid !== null && qid >= 0 && qid <= this.checkResult.length+1){
         const existingAnswerIndex = this.answerSheet.findIndex(item => item.question_id === qid);
         if (existingAnswerIndex !== -1) {
         // If the question is already in the answerSheet, update the answer
@@ -139,11 +160,19 @@ export default{
           question_id: qid,
           answer: ans
         });
+        console.log("cur"+this.answerCurrent);
         this.answerCurrent++;
         this.checkResult[qid]=true;
+        this.handin=this.checkAnsNum();
+        console.log(this.answerSheet);
         this.format();
           console.log(qid+"选择是"+ans );
       }}
+    },
+    checkAnsNum(){
+      if(this.answerCurrent===this.paper.question_num){
+        return false;}
+      return true;
     },
     format() {
       if (this.paper.question_num) {
@@ -158,7 +187,8 @@ export default{
       }
     },
     submitExam() {
-      // Add your submission logic here
+      this.answerSheet.shift();
+      console.log(this.answerSheet);
       console.log("Exam submitted!");
     },
     initCheckResult() {
@@ -209,7 +239,7 @@ export default{
         // 生成10个题目信息
         for (let i = 1; i <= 10; i++) {
           examData.paper.questions.push({
-            question_id: i,
+            question_id: 100-i,
             description: `题目${i}`,
             answer: 'A',
             a: `选项A_${i}`,
@@ -247,7 +277,8 @@ export default{
     ElProgress,
     defineComponent,
     ElCard,
-    ElButton
+    ElButton,
+    ElPopover
 
   },
   mounted() {
@@ -287,7 +318,6 @@ export default{
     }
     return {
       msg: 'Countdown 倒计时 组件文档示例',
-      deadline,
       leftTime,
       changeTime,
       finishTime,

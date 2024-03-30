@@ -2,14 +2,14 @@
   <div class="card p-4" >
     <div class=" row">
       <div class="col-12">
-        <h3>考试名：{{name}}</h3>
+        <h3>考试id：{{this.exam_id}}</h3>
         <el-container>
           <el-aside class="asideLeft">
             <div class="aside_div">
               <div class="oneItem">
                 <div class="fl">
                   <div class="fs14">试题总数</div>
-                  <div><i class="fs28">{{paper.question_num}}</i><i class="fs12 co333">题</i></div>
+                  <div v-if="this.answerInfo"><i class="fs28">{{this.answerInfo.length}}</i><i class="fs12 co333">题</i></div>
                 </div>
               </div>
               <div class="itemInner">
@@ -19,12 +19,12 @@
                 <div class="box-list">
                   <div
                       class="box normal-box question_cbox"
-                      v-for="(question,index) in paper.questions"
+                      v-for="(answer,index) in this.answerInfo"
                       :key="index"
                   >
                     <div
-                        :class="{ 'checki': !checkResult[question.question_id], 'checked': checkResult[question.question_id] }"
-                        @click="selectQuestion(question.question_id, index)"
+                        :class="{ 'ansRight': checkResult(answer), 'ansFalse': !checkResult(answer) }"
+                        @click="selectQuestionMock(answer, index)"
                     >
                       {{index+1}}
                     </div>
@@ -43,20 +43,22 @@
             </el-card>
             <el-card style="border-radius: 10px;margin-top:10px">
               <div v-if="selectedQuestion">
-                <span>选项</span>
+                <span>你的选项</span>
                 <div>
                   <el-radio-group v-model="selectedAns">
-                    <el-radio :label="1" @click="submitAnswer(selectedQuestion.question_id,1)">{{selectedQuestion.a}}</el-radio>
-                    <el-radio :label="2" @click="submitAnswer(selectedQuestion.question_id,2)">{{selectedQuestion.b}}</el-radio>
-                    <el-radio :label="3" @click="submitAnswer(selectedQuestion.question_id,3)">{{selectedQuestion.c}}</el-radio>
-                    <el-radio :label="4" @click="submitAnswer(selectedQuestion.question_id,4)">{{selectedQuestion.d}}</el-radio>
+                    <el-radio disabled :label="1">{{selectedQuestion.a}}</el-radio>
+                    <el-radio disabled :label="2">{{selectedQuestion.b}}</el-radio>
+                    <el-radio disabled :label="3">{{selectedQuestion.c}}</el-radio>
+                    <el-radio disabled :label="4">{{selectedQuestion.d}}</el-radio>
                   </el-radio-group>
                 </div>
+                <span>正确答案：{{selectedQuestion.answer}}
+                </span>
+
               </div>
             </el-card>
           </el-main>
         </el-container>
-
 
       </div>
     </div>
@@ -74,107 +76,93 @@ export default{
   name:"TakeExam",
   data(){
     return{
-      exam_id:null,
       name:null,
-      start_time:null,
-      end_time:null,
-      duration:null,
-      level:null,
-      participated:null,
-      paper:{
-        paper_id:null,
-        name:null,
-        question_num:null,
-        questions:[]
+      answerInfo:null,
+      selectedQuestion: {
+        description:"请选择题目",
+        a:null,
+        b:null,
+        c:null,
+        d:null
       },
-      checkResult:[], // 左侧栏、右侧栏、答题结果栏
-      answerCurrent:0,
-      answerPro:0,
-      answerSheet:[],
-      selectedQuestion:null,
       selectedAns:null,
-      deadline:null,
+      exam_id:null
+
     }
   },
   methods:{
-    selectQuestion(questionId) {
-      const index = this.paper.questions.findIndex(question => question.question_id === questionId);
-      if (index !== -1) {
-        this.selectedQuestion = this.paper.questions[index];
-        this.selectedAns=null;
-      } else {
-        console.error(`Question with question_id ${questionId} not found.`);
-      }
-    },
-    submitAnswer(qid,answer){
-      if(!this.selectedQuestion)
-        return;
-      let ans=null;
-      if(answer===1){
-        ans='A';
-      }else if(answer===2){
-        ans='B';
-      }else if(answer===3){
-        ans='C';
-      }else if(answer===4){
-        ans='D';
-      }else{
-        console.error("输入答案有误");
-      }
-      if(qid!==null&&qid>=0&&qid<this.paper.question_num){
-        const existingAnswerIndex = this.answerSheet.findIndex(item => item.question_id === qid);
-        if (existingAnswerIndex !== -1) {
-          // If the question is already in the answerSheet, update the answer
-          this.answerSheet[existingAnswerIndex].answer = ans;
-          console.log(qid+"选择变为"+this.answerSheet[existingAnswerIndex].answer );
-        }else{
-          this.answerSheet.push({
-            question_id: qid,
-            answer: ans
-          });
-          this.answerCurrent++;
-          this.checkResult[qid]=true;
-          this.format();
-          console.log(qid+"选择是"+ans );
-        }}
-    },
-    format() {
-      if (this.paper.question_num) {
-        if(this.answerCurrent > this.paper.question_num){
-          this.answerCurrent = this.paper.question_num;
+    selectQuestion(answer) {
+      let qid=answer.answers.question_id;
+      axios.get(
+          '/questions',
+          {
+            params:{
+              question_id:qid
+            }
+          }
+      ).then(response=>{
+        this.selectedQuestion.description=response.data.description
+        this.selectedQuestion.a=response.data.a;
+        this.selectedQuestion.b=response.data.b;
+        this.selectedQuestion.c=response.data.c;
+        this.selectedQuestion.d=response.data.d;
+        this.selectedQuestion.answer=response.data.answer;
+        if(answer.option==='A'){
+          this.selectedAns=1;
+        }else if(answer.option==='B'){
+          this.selectedAns=2;
+        }else if(answer.option==='C'){
+          this.selectedAns=3;
+        }else if(answer.option==='D'){
+          this.selectedAns=4;
         }
-        this.answerPro = (this.answerCurrent / this.paper.question_num) * 100;
-        return this.answerCurrent + "/" + this.paper.question_num;
-      } else {
-        this.answerPro = 0;
-        return 0;
+      }).catch(error=>{
+        console.error('获取'+qid+'题目信息失败',error);
+      })
+
+    },
+    selectQuestionMock(answer){
+      let qid=answer.answers.question_id
+      if(qid===85){
+        this.selectedQuestion.description='85';
+        this.selectedQuestion.a='85a';
+        this.selectedQuestion.b='85b';
+        this.selectedQuestion.c='85c';
+        this.selectedQuestion.d='85d';
+        this.selectedQuestion.answer='D';
+      }else if(qid===86){
+        this.selectedQuestion.description='86';
+        this.selectedQuestion.a='856';
+        this.selectedQuestion.b='856';
+        this.selectedQuestion.c='856';
+        this.selectedQuestion.d='856d';
+        this.selectedQuestion.answer='A'
+      }
+      if(answer.option==='A'){
+        this.selectedAns=1;
+      }else if(answer.option==='B'){
+        this.selectedAns=2;
+      }else if(answer.option==='C'){
+        this.selectedAns=3;
+      }else if(answer.option==='D'){
+        this.selectedAns=4;
       }
     },
-    submitExam() {
-      // Add your submission logic here
-      console.log("Exam submitted!");
-    },
-    initCheckResult() {
-      // 初始化checkResult对象
-      this.paper.questions.forEach(question => {
-        this.checkResult[question.question_id]=false;
-      });
+    checkResult(answer){
+      if(!answer){
+        return;
+      }
+      if(answer.option===answer.answers.answer){
+        return true;
+      }else{
+        return false;
+      }
+
     },
     fetchExam(examId){
-      axios.get(`/exams/${examId}`).then(response=>{
+      axios.get(`/answer-sheets/${examId}`).then(response=>{
         const examData = response.data.data;
-        this.exam_id = examData.exam_id;
-        this.name = examData.name;
-        this.start_time = examData.start_time;
-        this.end_time = examData.end_time;
-        this.duration = examData.duration;
-        this.level = examData.level;
-        this.participated = examData.participated;
-        this.paper.paper_id = examData.paper.paper_id;
-        this.paper.name = examData.paper.name;
-        this.paper.question_num = examData.paper.question_num;
-        this.paper.questions = examData.paper.questions;
-
+        this.answerInfo=examData;
       }).catch(error=>{
         console.log('获取试卷失败2',error);
       })
@@ -183,46 +171,46 @@ export default{
     fetchExamMock() {
       return new Promise((resolve, reject) => {
         // 模拟考试数据
-        const examData = {
-          exam_id: 1,
-          name: '模拟考试',
-          start_time: '2024-03-27 09:00:00',
-          end_time: '2024-03-27 12:00:00',
-          duration: 180, // 3小时
-          level: 1,
-          participated: 1,
-          paper: {
-            paper_id: 1,
-            name: '模拟试卷',
-            question_num: 10,
-            questions: [],
+        const examData =  [
+          {
+            "answer_sheet_id": 34,
+            "user_id": 57,
+            "option": "D",
+            "exam_id": 62,
+            "answers":{
+              "id": 1,
+              "answer_sheet_id":34,
+              "question_id":85,
+              "answer":"D"
+            }
           },
-        };
-
-        // 生成10个题目信息
-        for (let i = 1; i <= 10; i++) {
-          examData.paper.questions.push({
-            question_id: i,
-            description: `题目${i}`,
-            answer: 'A',
-            a: `选项A_${i}`,
-            b: `选项B_${i}`,
-            c: `选项C_${i}`,
-            d: `选项D_${i}`,
-          });
-        }
-        this.exam_id = examData.exam_id;
-        this.name = examData.name;
-        this.start_time = examData.start_time;
-        this.end_time = examData.end_time;
-        this.deadline=new Date(this.end_time).getTime()/1000+' ';
-        this.duration = examData.duration;
-        this.level = examData.level;
-        this.participated = examData.participated;
-        this.paper.paper_id = examData.paper.paper_id;
-        this.paper.name = examData.paper.name;
-        this.paper.question_num = examData.paper.question_num;
-        this.paper.questions = examData.paper.questions;
+          {
+            "answer_sheet_id": 4,
+            "user_id": 57,
+            "option": "B",
+            "exam_id": 62,
+            "answers":{
+              "id": 1,
+              "answer_sheet_id":4,
+              "question_id":86,
+              "answer":"A"
+            }
+          },
+          {
+            "answer_sheet_id": 4,
+            "user_id": 57,
+            "option": "B",
+            "exam_id": 62,
+            "answers":{
+              "id": 1,
+              "answer_sheet_id":4,
+              "question_id":86,
+              "answer":"A"
+            }
+          }
+        ];
+        this.answerInfo=examData;
+        console.log(this.answerInfo);
         // 模拟异步请求
         setTimeout(() => {
           resolve(examData);
@@ -245,11 +233,14 @@ export default{
   },
   mounted() {
     const examId=this.$route.params.id;
-    console.log('examId',examId);
+    const name=this.$route.params.name;
+
+    console.log('name',name);
+    this.name=name;
     this.exam_id=examId;
+    console.log('examId IN PAPERINFO',this.exam_id);
     this.fetchExamMock()
         .then(()=>{
-          this.initCheckResult();
         }).catch(error=>{
       console.error('获取试卷失败',error);
     });
@@ -390,27 +381,27 @@ export default{
     margin-top: unset;
     margin-right: unset;
     display: inline-block;
-    .checki {
+    .ansRight {
       border: 1px solid #dcdfe6;
-      color: #dcdfe6;
+      color: #008025;
       width: 27px;
       height: 27px;
       text-align: center;
       display: inline-block;
       line-height: 27px;
-      background: #fff;
+      background: #b6ffba;
       border-radius: 50%;
       cursor: pointer;
     }
-    .checked {
+    .ansFalse {
       border: 1px solid #dcdfe6;
-      color: #4b7cff;
+      color: #a81818;
       width: 27px;
       height: 27px;
       text-align: center;
       display: inline-block;
       line-height: 27px;
-      background: #b6e3ff;
+      background: #ff7676;
       border-radius: 50%;
       cursor: pointer;
     }

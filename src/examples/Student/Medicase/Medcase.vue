@@ -148,7 +148,7 @@ export default{
     // 从路由参数中获取medcaseId，这里假设您使用的是vue-router
     const medcaseId = this.$route.params.medcaseId;
     // 调用fetchMedCase方法获取病例数据
-    this.fetchMedCaseMock(medcaseId);
+    this.fetchMedCase(medcaseId);
   },
   methods:{
     goToOperationPage() {
@@ -175,7 +175,7 @@ export default{
     },
 
     async fetchMedCase(medcaseId){
-      const response = await axios.get(`/medcases/${medcaseId}`);
+      const response = await axios.get(`/api/medcases/${medcaseId}`);
       const data = response.data;
       this.medCase.name = data.name;
       this.medCase.treatment_description = data.treatment_description;
