@@ -26,11 +26,20 @@
         <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username"></el-input>
         </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="form.password" type="password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email"></el-input>
+        </el-form-item>
         <el-form-item label="角色" prop="role">
           <el-input v-model="form.role"></el-input>
         </el-form-item>
         <el-form-item label="等级" prop="level">
           <el-input v-model="form.level"></el-input>
+        </el-form-item>
+        <el-form-item label="头像地址" prop="avatar">
+          <el-input v-model="form.avatar"></el-input>
         </el-form-item>
       </el-form>
       <!-- 按钮 -->
@@ -57,11 +66,20 @@
         <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username"></el-input>
         </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="form.password" type="password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email"></el-input>
+        </el-form-item>
         <el-form-item label="角色" prop="role">
           <el-input v-model="form.role"></el-input>
         </el-form-item>
         <el-form-item label="等级" prop="level">
           <el-input v-model="form.level"></el-input>
+        </el-form-item>
+        <el-form-item label="头像地址" prop="avatar">
+          <el-input v-model="form.avatar"></el-input>
         </el-form-item>
       </el-form>
       <!-- 按钮 -->
@@ -96,6 +114,8 @@
           >
             <el-table-column prop="id" label="ID"></el-table-column>
             <el-table-column prop="username" label="用户名"></el-table-column>
+            <el-table-column prop="password" label="密码"></el-table-column>
+            <el-table-column prop="email" label="邮箱"></el-table-column>
             <el-table-column
               prop="role"
               label="角色"
@@ -105,6 +125,7 @@
               <template #default="{ row }">{{ row.role }}</template>
             </el-table-column>
             <el-table-column prop="level" label="等级"></el-table-column>
+            <el-table-column prop="avatar" label="头像地址"></el-table-column>
           </el-table>
         </div>
       </div>
@@ -149,22 +170,27 @@ export default {
       form: {
         id: '', // 初始为空
         username: '',
+        password: '',
+        email: '',
         role: '学生',
-        level: '1'
+        level: '1',
+        avatar: ''
       },
       rules: {
         id: [{ required: true, message: '请输入ID', trigger: 'blur' }],
         username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+        password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+        email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
         role: [{ required: true, message: '请输入角色', trigger: 'blur' }],
         level: [{ required: true, message: '请输入等级', trigger: 'blur' }]
       },
       users: [
-        { id: 1, username: "User1", role: "老师", level: 23 },
-        { id: 2, username: "User2", role: "老师", level: 32 },
-        { id: 3, username: "User3", role: "学生", level: 3 },
-        { id: 4, username: "User4", role: "学生", level: 3 },
-        { id: 5, username: "User5", role: "管理员", level: 55 },
-        { id: 6, username: "User6", role: "管理员", level: 35 },
+        { id: 1, username: "User1", password: "password1", email: "user1@example.com", role: "老师", level: 23, avatar: "avatar1.jpg" },
+        { id: 2, username: "User2", password: "password2", email: "user2@example.com", role: "老师", level: 32, avatar: "avatar2.jpg" },
+        { id: 3, username: "User3", password: "password3", email: "user3@example.com", role: "学生", level: 3, avatar: "avatar3.jpg" },
+        { id: 4, username: "User4", password: "password4", email: "user4@example.com", role: "学生", level: 3, avatar: "avatar4.jpg" },
+        { id: 5, username: "User5", password: "password5", email: "user5@example.com", role: "管理员", level: 55, avatar: "avatar5.jpg" },
+        { id: 6, username: "User6", password: "password6", email: "user6@example.com", role: "管理员", level: 35, avatar: "avatar6.jpg" },
         // 其他用户数据...
       ],
       currentPage: 1, // 当前页码
@@ -193,7 +219,8 @@ export default {
     filteredUsers() {
       const filtered = this.users.filter(user =>
         user.username.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        user.role.toLowerCase().includes(this.searchText.toLowerCase())
+        user.role.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        user.email.toLowerCase().includes(this.searchText.toLowerCase())
       );
       return filtered;
     },
@@ -281,8 +308,11 @@ export default {
         // 将选中行的数据填充到表单中
         this.form.id = this.selectedRow.id;
         this.form.username = this.selectedRow.username;
+        this.form.password = this.selectedRow.password;
+        this.form.email = this.selectedRow.email;
         this.form.role = this.selectedRow.role;
         this.form.level = this.selectedRow.level;
+        this.form.avatar = this.selectedRow.avatar;
 
         // 设置修改弹窗可见
         this.modifyDialogVisible = true;
@@ -325,6 +355,7 @@ export default {
   margin-left: 10px;
   padding: 20px;
   padding-bottom: 20px;
+  overflow-y: auto;
 }
 
 .user-management-container {
