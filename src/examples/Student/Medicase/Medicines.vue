@@ -90,7 +90,7 @@ export default{
     this.total = total;
     console.log(medicinesArray);
     // 调用方法获取药品信息
-    this.fetchMedicinesInfoMock(medicinesArray);
+    this.fetchMedicinesInfo(medicinesArray);
 
   },
   methods:{
@@ -108,7 +108,14 @@ export default{
       this.total=this.$route.params.total;
       for(const medicine of medicines){
         try{
-          const response = await axios.get(`/medicines/${medicine.id}`);
+          const response = await axios.get(`/api/medicines/${medicine.id}`,
+              {
+                withCredentials : true,
+                headers:{
+                  'Session':sessionStorage.getItem('sessionId'),
+                  'Content-Type': 'application/json',},
+
+              });
           const {name,price}=response.data();
           this.medicinesInfo.push({
             id:medicine.id,

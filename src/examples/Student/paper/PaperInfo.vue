@@ -94,19 +94,26 @@ export default{
     selectQuestion(answer) {
       let qid=answer.answers.question_id;
       axios.get(
-          '/questions',
+          '/api/questions',
           {
             params:{
               question_id:qid
+            },
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+
             }
           }
       ).then(response=>{
-        this.selectedQuestion.description=response.data.description
-        this.selectedQuestion.a=response.data.a;
-        this.selectedQuestion.b=response.data.b;
-        this.selectedQuestion.c=response.data.c;
-        this.selectedQuestion.d=response.data.d;
-        this.selectedQuestion.answer=response.data.answer;
+        const resdata=response.data;
+        this.selectedQuestion.description=resdata.data.description
+        this.selectedQuestion.a=resdata.data.a;
+        this.selectedQuestion.b=resdata.data.b;
+        this.selectedQuestion.c=resdata.data.c;
+        this.selectedQuestion.d=resdata.data.d;
+        this.selectedQuestion.answer=resdata.data.answer;
         if(answer.option==='A'){
           this.selectedAns=1;
         }else if(answer.option==='B'){
@@ -159,8 +166,16 @@ export default{
       }
 
     },
-    fetchExam(examId){
-      axios.get(`/answer-sheets/${examId}`).then(response=>{
+    fetchExam(){
+      axios.get(`/api/answer-sheets/${this.exam_id}`,
+          {
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+
+            }
+          }).then(response=>{
         const examData = response.data.data;
         this.answerInfo=examData;
       }).catch(error=>{
@@ -239,11 +254,7 @@ export default{
     this.name=name;
     this.exam_id=examId;
     console.log('examId IN PAPERINFO',this.exam_id);
-    this.fetchExamMock()
-        .then(()=>{
-        }).catch(error=>{
-      console.error('获取试卷失败',error);
-    });
+    this.fetchExam();
 
   },
   setup() {

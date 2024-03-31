@@ -68,11 +68,38 @@ export default{
       const examId=row.exam_id;
       this.$router.push({name:'TakeExam',params:{id: examId}});
     },
+    fetchExams(){
+      axios.get('/api/exams',
+          {
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+
+            }
+          }).then(response=>{
+            const data=response.data.data;
+            this.total=data.total;
+            this.exams=data.records;
+            console.log(this.exams);
+            this.fetchPageExams();
+
+    })
+    },
     participate(row){
       const examId = row.exam_id;
 
       // 发起报名请求
-      axios.post(`/exams/enroll/${examId}`)
+      axios.post(`/api/exams/enroll/${examId}`,
+          {examId:examId
+          },
+          {
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+
+            }})
           .then(response => {
             console.log('报名成功');
           })
@@ -84,6 +111,17 @@ export default{
     handleSizeChange(val) {
       this.pageSize = val;
       this.fetchPageExams();
+    },
+    fetchPageExams()
+    {
+      this.pageExams = [];
+      for (let i = (this.pageNum - 1) * this.pageSize; i < this.total; i++) {
+        //把遍历的数据添加到pageTicket里面
+        this.pageExams.push(this.exams[i]);
+        //判断是否达到一页的要求
+        if (this.pageExams.length === this.pageSize) break;
+      }
+      console.log("pg"+this.pageExams);
     },
     // 分页 current 变化
     handleCurrentChange(pageNum) { // 处理页码改变事件
@@ -110,19 +148,7 @@ export default{
     },
   },
   created() {
-    this.pageExams.push({
-      exam_id: 'mock_id',
-      name: '模拟考试',
-      start_time: '2024-03-02 09:00:00',
-      end_time: '2024-03-21 11:00:00',
-      duration: '2小时',
-      level: '普通',
-      paper:{
-        paper_id:1,
-        name:'a'
-      },
-      participated: 1,
-    });
+    this.fetchExams();
 
     // 初始化页码和页大小
     this.pageNum = 1;
@@ -131,16 +157,7 @@ export default{
     // 加载数据
 
   },
-  fetchPageExams()
-  {
-    this.pageExams = [];
-    for (let i = (this.pageNum - 1) * this.pageSize; i < this.total; i++) {
-      //把遍历的数据添加到pageTicket里面
-      this.pageExams.push(this.exams[i]);
-      //判断是否达到一页的要求
-      if (this.pageExams.length === this.pageSize) break;
-    }
-  },
+
   setup() {
     const store = useStore();
 
