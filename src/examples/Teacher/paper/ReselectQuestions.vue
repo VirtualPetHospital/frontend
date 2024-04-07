@@ -1,15 +1,5 @@
 <template>
   <div>
-    <!-- 按钮容器 -->
-    <div class="buttons-container">
-      <button @click="openAddModal" class="btn btn-success" style="margin-left: 2%;">新增题目</button>
-      <div  class="input-group" style="margin-bottom: 10px;">
-      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
-      <button @click="searchProblems" class="btn btn-primary">搜索</button>
-      </div>
-      <button @click="deleteProblem" class="btn btn-danger" style="margin-right: 2%;">删除题目</button>
-    </div>
-    <!-- 表格容器 -->
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
@@ -21,6 +11,20 @@
         </colgroup>
         <thead>
           <tr>
+          <th colspan="5">
+            <div class="selected-problems">
+              <span>已选试题：{{ selectedCount }}/{{problemmax}}
+              <div class="progress">
+                <div class="progress-bar" :style="{ width: progressWidth }"></div>
+              </div>
+            </span>
+            </div>
+            <div class="button-container" style="height: 100%;">
+            <button @click="upProblems()" class="btn btn-lg btn-block btn-warning" style="height: 100%;">确定选题</button>
+            </div>
+              </th>
+            </tr>
+          <tr>
             <th scope="col" class="text-center rounded-top-left">选择</th>
             <th scope="col" class="text-center">题目ID</th>
             <th scope="col" class="text-center">分类</th>
@@ -30,12 +34,14 @@
         </thead>
         <tbody>
           <!-- 遍历每个考试项 -->
-            <tr v-for="(problem, index) in paginatedProblems" :key="index">
-          <td class="text-center"><input type="checkbox" v-model="problem.checked"></td>
-        <td class="text-center ">{{ problem.id }}</td>
-        <td class="text-center ">{{ problem.category }}</td>
-        <td class="text-center " style="word-break: break-word;">{{ problem.description }}</td>
-        <td class="text-center ">
+          <tr v-for="(problem, index) in paginatedProblems" :key="index">
+            <td class="text-center">
+              <input type="checkbox" v-model="problem.checked" @change="handleProblemSelection(problem)">
+            </td>
+            <td class="text-center ">{{ problem.id }}</td>
+            <td class="text-center ">{{ problem.category }}</td>
+            <td class="text-center " style="word-break: break-word;">{{ problem.description }}</td>
+          <td class="text-center ">
           <!-- 查看按钮 -->
           <button @click="openProblemDetails(problem)"  class="btn btn-primary">查看详情</button>
         </td>
@@ -43,6 +49,8 @@
         </tbody>
       </table>
     </div>
+
+    
     <!-- 分页控件 -->
     <nav aria-label="Page navigation example">
       <ul class="pagination justify-content-center">
@@ -58,38 +66,8 @@
       </ul>
     </nav>
 
-<!-- 弹出窗口 -->
-<transition name="modal">
-  <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
-    <div class="modal-wrapper" @click.stop>
-      <div class="modal-container" style="width: 60%; height: 60%; overflow-y: auto; position: fixed; top: 50%; left: 40%; transform: translate(-50%, -50%);">
-        <!-- 添加滑动块 -->
-        <h3>{{ editMode ? '编辑用户信息' : '新增题目' }}</h3>
-        <form @submit.prevent="editMode ? saveProblem() : saveNewProblem()">
-          <label>分类：</label>
-          <input type="text" class="form-control" :value="editMode ? editingProblem.category : newProblem.category" @input="editMode ? editingProblem.category = $event.target.value : newProblem.category = $event.target.value"><br>
-          <label>题目描述：</label>
-          <textarea class="form-control auto-height"  :value="editMode ? editingProblem.description : newProblem.description" @input="editMode ? editingProblem.description = $event.target.value : newProblem.description = $event.target.value"></textarea><br>
-          <label>A：</label>
-          <input type="text" class="form-control" :value="editMode ? editingProblem.choiceA : newProblem.choiceA" @input="editMode ? editingProblem.choiceA = $event.target.value : newProblem.choiceA = $event.target.value"><br>
-          <label>B：</label>
-          <input type="text" class="form-control" :value="editMode ? editingProblem.choiceB : newProblem.choiceB" @input="editMode ? editingProblem.choiceB = $event.target.value : newProblem.choiceB = $event.target.value"><br>
-          <label>C：</label>
-          <input type="text" class="form-control" :value="editMode ? editingProblem.choiceC : newProblem.choiceC" @input="editMode ? editingProblem.choiceC = $event.target.value : newProblem.choiceC = $event.target.value"><br>
-          <label>D：</label>
-          <input type="text" class="form-control" :value="editMode ? editingProblem.choiceD : newProblem.choiceD" @input="editMode ? editingProblem.choiceD = $event.target.value : newProblem.choiceD = $event.target.value"><br>
-          <label>答案：</label>
-          <input type="text" class="form-control" :value="editMode ? editingProblem.answer : newProblem.answer" @input="editMode ? editingProblem.answer = $event.target.value : newProblem.answer = $event.target.value"><br>
-          <div class="button-container">
-            <button type="submit" class="btn btn-lg btn-block btn-info">{{'添加'}}</button>
-            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</transition>
-<transition name="modal">
+
+ <transition name="modal">
     <div class="modal-mask" v-if="showProblemDetails" @click="closeProblemDetails">
       <div class="modal-wrapper" @click.stop>
         <div class="modal-container" style="width: 60%; height: 60%; overflow-y: auto; position: fixed; top: 50%; left: 40%; transform: translate(-50%, -50%);">
@@ -112,24 +90,10 @@
             <label>答案：</label>
             <input type="text" class="form-control" v-model="selectedProblem.answer" :disabled="!editMode"><br>
             <div class="button-container">
-              <button type="button" class="btn btn-lg btn-block btn-info" @click="editMode ? saveProblemDetails() : toggleEditMode()">{{ editMode ? '保存' : '修改' }}</button>
+              <!-- <button type="button" class="btn btn-lg btn-block btn-primary" @click="editMode ? saveProblemDetails() : toggleEditMode()">{{ editMode ? '保存' : '修改' }}</button> -->
               <button type="button" class="btn btn-lg btn-block btn-warning" @click="editMode ? cancelEdit() : closeProblemDetails()">{{ editMode ? '取消修改' : '关闭' }}</button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
-  </transition>
-
-<transition name="modal">
-    <div class="modal-mask" v-if="showDeleteWarning" @click="closeDeleteWarning">
-      <div class="modal-wrapper" @click.stop>
-        <div class="modal-container">
-          <h3>提示</h3>
-          <p>请至少选择一个要删除的题目</p>
-          <div class="button-container">
-            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning">关闭</button>
-          </div>
         </div>
       </div>
     </div>
@@ -146,7 +110,7 @@ import { ref, Vue } from 'vue';
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router"; // 导入Vue
 import axios from 'axios';
-// const API_URL = `/api/questions`
+const API_URL = `/api/problem`
 export default {
   data() {
     return {
@@ -155,6 +119,7 @@ export default {
         // { id: 2, category: '传染病', description:'狂猫病是什么病呀？',choiceA:"小病",choiceB:"中病",choiceC:"传染病",choiceD:"大病",answer:"C",checked: false},
         // { id: 3, category: '传染病', description:'狂鸟病是什么病呀？',choiceA:"小病",choiceB:"中病",choiceC:"传染病",choiceD:"大病",answer:"C",checked: false },
       ],
+      allproblems:[],
       editing: null,
       showEditModal: false, // 控制编辑窗口显示与隐藏
       showDeleteWarning: false, // 控制删除提示窗口的显示与隐藏
@@ -162,11 +127,33 @@ export default {
       newProblem: { id: '', category: '', description: '',choiceA:'',choiceB:'',choiceC:'',choiceD:'',answer:''},// 新增题目的初始信息
       showProblemDetails: false,
       selectedProblem: { id: '', category: '', description: '', choiceA: '', choiceB: '', choiceC: '', choiceD: '', answer: '' },
+      selectedCount: 0, // 已选试题数量
+      progressWidth: '0%', // 动态进度条宽度
+      problemmax:0, 
+      tempname1:'',
+      // temphours1:'',
+      // tempmins1:'',
+      flag1:true,
       pageSize:7,
       currentPage:1,
       totalProblems:0,
-      searchKeyword: '', // 搜索关键词
+      selectedProblemsMap: new Map(),
     };
+  },
+  created() {
+  this.tempname1=this.$route.params.tempname;
+  this.problemmax = this.$route.params.tempproblemcount;
+  this.tempid1=this.$route.params.tempid;
+  // this.temphours1=this.$route.params.temphours;
+  // this.tempmins1=this.$route.params.tempmins;
+  console.log(this.tempname1);
+  },
+  watch: {
+    // 监听已选试题数量的变化
+    selectedCount(newValue) {
+      // 更新动态进度条的宽度
+      this.progressWidth = (newValue / this.problemmax) * 100 + '%';
+    },
   },
   computed: {
     totalPages() {
@@ -187,24 +174,9 @@ export default {
    mounted() {
     // 组件加载完成后立即获取题目列表数据
     this.fetchProblems();
+    this.fetchAllProblems();
   },
   methods: {
-    openEditModal(problem) {
-      this.editMode = true; // 进入编辑模式
-      this.editingProblem
-      this.editingProblem = { ...problem };
-      this.showEditModal = true; // 打开编辑窗口
-    },
-    openAddModal() {
-      this.editMode = false; // 进入新增模式
-      this.showEditModal = true; // 打开新增用户窗口
-    },
-    closeEditModal() {
-      this.showEditModal = false; // 关闭编辑窗口
-      this.editMode = false; // 重置编辑模式
-      this.editingProblem = null; // 清空编辑用户信息
-      this.newProblem = { id: '', category: '', description: '',choiceA:'',choiceB:'',choiceC:'',choiceD:'',answer:''} ; // 清空新增用户信息
-    }, 
     openProblemDetails(problem) {
       this.selectedProblem = { ...problem };
       this.showProblemDetails = true;
@@ -212,112 +184,77 @@ export default {
     closeProblemDetails() {
       this.showProblemDetails = false;
       this.selectedProblem = { id: '', category: '', description: '', choiceA: '', choiceB: '', choiceC: '', choiceD: '', answer: '' };
-      this.fetchProblems();
     },
-    saveNewProblem() {
-  // 发送 POST 请求到后端保存新题目信息
-  axios.post('/api/questions', {
-    description: this.newProblem.description,
-    answer: this.newProblem.answer,
-    a: this.newProblem.choiceA,
-    b: this.newProblem.choiceB,
-    c: this.newProblem.choiceC,
-    d: this.newProblem.choiceD,
-    category_id: this.newProblem.category,
-  }, {
-    withCredentials: true,
-    headers: {
-      'Session': sessionStorage.getItem('sessionId'),
-      'Content-Type': 'application/json',
-    }
-  })
-  .then(response => {
-    if (response.data) {
-      // 如果保存成功，更新本地数据并关闭编辑窗口
-      const newQuestion = {
-        id: response.data.data.question_id,
-        description: this.newProblem.description,
-        answer: this.newProblem.answer,
-        choiceA: this.newProblem.choiceA,
-        choiceB: this.newProblem.choiceB,
-        choiceC: this.newProblem.choiceC,
-        choiceD: this.newProblem.choiceD,
-        category: this.newProblem.category,
-        checked: false,
-      };
-      this.problems.push(newQuestion);
-      console.log('新增题目信息:', newQuestion);
-      this.totalProblems += 1;
-      // 计算新题目所在页码
-      const totalPages = Math.ceil(this.totalProblems / this.pageSize);
-      const lastPage = totalPages === 0 ? 1 : totalPages;
-      
-      // 如果新增题目所在页码不是当前页码，则跳转到最后一页
-      if (lastPage !== this.currentPage) {
-        this.currentPage = lastPage;
-        this.fetchProblems();
-      } else {
-        // 否则，滚动到最后一页
-        window.scrollTo(0, document.body.scrollHeight);
-      }
-      this.closeEditModal();
-    } else {
-      console.error('Error saving new problem:', response.data.msg);
-    }
-  })
-  .catch(error => {
-    console.error('Error saving new problem:', error);
-  });
-},
-deleteProblem() {
-  const selectedProblems = this.problems.filter(problem => problem.checked);
-  if (selectedProblems.length > 0) {
-    const promises = selectedProblems.map(problem => {
-      // 发送 DELETE 请求到后端删除试题
-      return axios.delete(`/api/questions/${problem.id}`, {
-        withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json',
+    deleteProblem() {
+      const selectedProblems = this.problems.filter(problem => problem.checked);
+      if (selectedProblems.length > 0) {
+        // 删除选中的题目信息
+        selectedProblems.forEach(problem => {
+          const index = this.problems.findIndex(u => u.id === problem.id);
+          if (index !== -1) 
+          {
+            this.problems.splice(index, 1);
+            console.log('已删除题目:', problem);
           }
-      }).then(response => {
-        // 删除成功后从前端数据中移除已删除的题目
-        const index = this.problems.findIndex(u => u.id === problem.id);
-        if (index !== -1) {
-          this.problems.splice(index, 1);
-          console.log('已删除题目:', problem);
-        }
-      }).catch(error => {
-        console.error('Error deleting problem:', error);
-      });
-    });
-
-    // 使用 Promise.all 等待所有删除操作完成
-    Promise.all(promises).then(() => {
-      console.log('所有选中的题目已删除');
-    });
-  } else {
-    console.log('请至少选择一个要删除的题目');
-    this.showDeleteWarning = true;
-  }
-},
-    closeDeleteWarning() {
-      this.showDeleteWarning = false; // 关闭删除提示窗口
+        });
+      } else {
+        console.log('请至少选择一个要删除的题目');
+        this.showDeleteWarning = true;
+      }
     },
-    toggleEditMode() {
-      this.editMode = !this.editMode; // 切换编辑模式
-    },
-    async saveProblemDetails() {
-    const index = this.selectedProblem.id;
-    try {
-      const response = await axios.put(`/api/questions/${index}`,  {
-        description: this.selectedProblem.description,
-        answer: this.selectedProblem.answer,
-        a: this.selectedProblem.choiceA,
-        b: this.selectedProblem.choiceB,
-        c: this.selectedProblem.choiceC,
-        d: this.selectedProblem.choiceD,
-        category_id: this.selectedProblem.category,
+    handleProblemSelection(problem) {
+      // this.selectedCount = this.problems.filter(p => p.checked).length;
+      this.selectedCount += problem.checked ? 1 : -1;
+      // 如果已选试题数量达到上限，则取消当前选中的复选框并弹出提示
+      if (this.selectedCount > this.problemmax && problem.checked) {
+        problem.checked = false;
+        alert('已达到选题上限！');
+        this.selectedCount--;
+        return ;
+      }
+      this.selectedProblemsMap.set(problem.id, problem.checked);
+    // 更新动态进度条的宽度
+    this.progressWidth = (this.selectedCount / this.problemmax) * 100 + '%';
+  },
+    // closeDeleteWarning() {
+    //   this.showDeleteWarning = false; // 关闭删除提示窗口
+    // },
+  async upProblems() {
+    if (this.selectedCount < this.problemmax) {
+      // 选题数量未达到要求，弹出提示继续选题
+      alert('选题数量未达到要求，请继续选题！');
+    } else if (this.selectedCount == this.problemmax) {
+      // 选题成功，弹出提示
+      alert('选题成功！');
+      // 其他处理逻辑
+      const tempproblems = [];
+      this.allproblems.forEach(problem => {
+          if (this.selectedProblemsMap.get(problem.id)) {
+            tempproblems.push(problem.id);
+          }
+        });
+      console.log(tempproblems);
+      const index = this.tempid1;
+      try {
+        // 依次发送请求获取每个题目的具体信息
+        const problemsPromises = tempproblems.map(async (question_id) => {
+          const response = await axios.get(`/api/questions/${question_id}`, {
+            withCredentials: true,
+              headers: {
+                'Session': sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+              }
+          });
+          return response.data.data; // 返回题目信息对象
+        });
+        // 等待所有题目信息请求完成
+        const problems = await Promise.all(problemsPromises);
+        console.log(problems);
+        // 构建完整的试卷对象
+        const response = await axios.put(`/api/papers/${index}`,  {
+        name: this.tempname1,
+        question_num: this.problemmax,
+        questions: problems,
       }, {
         withCredentials: true,
           headers: {
@@ -325,26 +262,13 @@ deleteProblem() {
             'Content-Type': 'application/json',
           }
       });
-      const responseData = response.data;
-      // 处理响应数据
-      if (responseData.code === 200) {
-        // 成功更新题目信息
-        console.log('题目信息更新成功:', responseData.data);
-        // 你可能还需要更新本地的题目列表数据或其他相关操作
-      } else {
-        // 更新失败，处理错误信息
-        console.error('题目信息更新失败:', responseData.msg);
+      this.$router.back();
+      } catch (error) {
+        console.error('更新试卷失败：', error);
       }
-    } catch (error) {
-      console.error('题目信息更新失败:', error);
-    }
-    this.editMode = false; // 保存后退出编辑模式
+      }
   },
-    cancelEdit() {
-      this.editMode = false; // 退出编辑模式
-      // 其他取消修改的逻辑
-    },
-    async fetchProblems() {
+  async fetchProblems() {
       try {
         const response = await axios.get('/api/questions', {
           params: {
@@ -360,6 +284,7 @@ deleteProblem() {
           }
         });
         if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          
           this.problems = response.data.data.records.map(record => ({
             id: record.question_id,
             description: record.description,
@@ -369,17 +294,52 @@ deleteProblem() {
             choiceC: record.c,
             choiceD: record.d,
             category: record.category_id,
-            checked: false,
+            // checked: false,
+            checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
          this.$forceUpdate();
           this.totalProblems=response.data.data.total;
           this.paginatedProblems = this.problems;
           console.log(this.problems);
+          console.log(this.totalProblems);
         }
       } catch (error) {
         console.error('Error fetching questions:', error);
       }
     },
+    async fetchAllProblems() {
+    try {
+      const response = await axios.get('/api/questions', {
+        params: {
+          page_size: 200, // 获取所有题目数据
+          page_num: 1, // 获取第一页数据
+          category_keyword: '',
+          description_keyword: '',
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.allproblems = response.data.data.records.map(record => ({
+          id: record.question_id,
+          description: record.description,
+          answer: record.answer,
+          choiceA: record.a,
+          choiceB: record.b,
+          choiceC: record.c,
+          choiceD: record.d,
+          category: record.category_id,
+          checked: this.selectedProblemsMap.get(record.question_id) || false,
+        }));
+        console.log(this.allproblems);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
@@ -398,57 +358,20 @@ deleteProblem() {
         this.fetchProblems(); // 调用 fetchProblems 获取新页数据
       }
     },
-    async searchProblems() {
-      try {
-        const response = await axios.get('/api/questions', {
-          params: {
-            page_size: this.pageSize,
-            page_num: this.currentPage,
-            category_keyword: '',
-            description_keyword: this.searchKeyword, // 使用搜索关键词
-          },
-          withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json',
-          }
-        });
-        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
-          this.problems = response.data.data.records.map(record => ({
-            id: record.question_id,
-            description: record.description,
-            answer: record.answer,
-            choiceA: record.a,
-            choiceB: record.b,
-            choiceC: record.c,
-            choiceD: record.d,
-            category: record.category_id,
-            checked: false,
-          }));
-          this.totalProblems = response.data.data.total;
-          this.paginatedProblems = this.problems;
-          console.log(this.problems);
-        }
-      } catch (error) {
-        console.error('Error fetching questions:', error);
-      }
-    },
   },
   components: {
     ArgonBadge,
     ArgonButton,
     Modal
-  },
+  }
 };
 </script>
-
 <style scoped>
 .problem-management-card {
   width: 100%;
   max-width: 600px;
   margin: auto;
 }
-
 .role-play-title {
   font-size: 36px;
   font-weight: bold;
@@ -570,17 +493,23 @@ margin-bottom: 10px;
   resize: none; /* 禁止用户调整文本框的大小 */
   overflow-y: auto; /* 当文本内容超出文本框高度时，显示滚动条 */
 }
-.small-input {
-  height: 40px; /* 设置输入框高度为 30px */
-  max-width: 200px; /* 设置输入框的最大宽度为 200px */
-  width: 50%; /* 设置输入框宽度为父元素宽度的 50% */
+.selected-problems {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.btn-success,
-.btn-primary,
-.btn-danger {
-  height: 40px; /* 设置按钮高度为 40px */
-  width: auto; /* 让按钮宽度自适应内容 */
-  padding: 0 15px; 
-  white-space: nowrap; /* 防止按钮文字换行 */
+
+.progress {
+  width: 200px;
+  height: 20px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #007bff;
+  transition: width 0.5s ease; /* 进度条动画效果 */
 }
 </style>
