@@ -19,10 +19,6 @@
     >
       <!-- 表单 -->
       <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <!-- ID字段设置为不可编辑 -->
-        <el-form-item label="ID">
-          <el-input v-model="form.id" :disabled="true"></el-input>
-        </el-form-item>
         <el-form-item label="药品名" prop="name">
           <el-input v-model="form.name"></el-input>
         </el-form-item>
@@ -47,10 +43,6 @@
     >
       <!-- 表单 -->
       <el-form :model="form" :rules="rules" ref="modifyForm" label-width="100px">
-        <!-- ID字段设置为不可编辑 -->
-        <el-form-item label="ID">
-          <el-input v-model="form.id" :disabled="true"></el-input>
-        </el-form-item>
         <el-form-item label="药品名" prop="name">
           <el-input v-model="form.name"></el-input>
         </el-form-item>
@@ -79,7 +71,7 @@
       <div class="col-12">
         <div class="user-management-container">
           <el-table
-            :data="filteredMedicines"
+            :data="currentPageData"
             stripe
             style="width: 100%;"
             highlight-current-row
@@ -87,7 +79,7 @@
             :filters="filters"
             :filter-method="handleFilter"
           >
-            <el-table-column prop="id" label="ID"></el-table-column>
+            <el-table-column prop="medicine_id" label="ID"></el-table-column>
             <el-table-column prop="name" label="药品名"></el-table-column>
             <el-table-column prop="price" label="价格" align="right"></el-table-column>
           </el-table>
@@ -114,6 +106,7 @@
 
 <script>
 import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+import axios from 'axios';
 
 export default {
   components: {
@@ -132,30 +125,17 @@ export default {
       dialogVisible: false,
       modifyDialogVisible: false, // 控制修改弹窗的显示状态
       form: {
-        id: '',
         name: '',
         price: 0, // 设置为数字类型的0
-        upperBound: 0, // 设置为数字类型的0
-        lowerBound: 0 // 设置为数字类型的0
-      },
-      errors: { // 用于存储验证错误信息
-        upperBound: '', // 上界验证错误信息
-        lowerBound: '', // 下界验证错误信息
       },
       rules: {
-        id: [{ required: true, message: '请输入ID', trigger: 'blur' }],
         name: [{ required: true, message: '请输入药品名', trigger: 'blur' }],
         price: [
           { required: true, message: '请输入价格', trigger: 'blur' },
-          { validator: this.validatePrice, trigger: 'blur' }
+          { type: 'number', message: '价格必须为数字', trigger: 'blur' }
         ],
       },
-      medicines: [
-        { id: 1, name: "Medicine1", price: 100 },
-        { id: 2, name: "Medicine2", price: 200 },
-        { id: 3, name: "Medicine3", price: 150 },
-        // 其他药品数据...
-      ],
+      medicines: [],
       currentPage: 1,
       pageSize: 10,
       selectedRow: null,
@@ -170,17 +150,6 @@ export default {
       const endIndex = startIndex + this.pageSize;
       return this.medicines.slice(startIndex, endIndex);
     },
-    filteredMedicines() {
-      // 如果搜索文本为空，则返回原始数据
-      if (this.searchText.trim() === '') {
-        return this.medicines;
-      }
-      // 根据搜索文本过滤药品
-      const filtered = this.medicines.filter(medicine =>
-        medicine.name.toLowerCase().includes(this.searchText.toLowerCase())
-      );
-      return filtered;
-    },
   },
   methods: {
     handleSearch() {
@@ -191,48 +160,42 @@ export default {
       // 处理清除搜索文本
       this.searchText = '';
     },
-    // 自定义验证函数，验证价格范围是否在 0 到 99999.99 之间
-    validatePrice(rule, value, callback) {
-      if (value < 0 || value > 99999.99) {
-        callback(new Error('价格范围必须在0.00到99999.99之间'));
-      } else {
-        callback();
-      }
-    },
-    // 自定义验证函数，验证上界和下界是否在 0 到 99999.99 之间
-    validateBound(rule, value, callback) {
-      if (value < 0 || value > 99999.99) {
-        callback(new Error('范围必须在0.00到99999.99之间'));
-      } else {
-        callback();
-      }
-    },
+
     // 处理新增按钮点击事件
     handleAdd() {
       // 打开新增弹窗
       this.dialogVisible = true;
-      // 自动生成新的 ID
-      this.form.id = this.medicines.length + 1;
     },
     // 处理弹窗确定按钮点击事件
     handleConfirm() {
       // 表单验证
       this.$refs.form.validate((valid) => {
         if (valid) {
-          if (this.modifyDialogVisible) {
-            // 执行修改操作
-            const index = this.medicines.findIndex(medicine => medicine.id === this.selectedRow.id);
-            if (index !== -1) {
-              this.medicines[index] = { ...this.form };
-              this.modifyDialogVisible = false;
-              this.$refs.form.resetFields();
-            }
-          } else {
-            // 执行新增操作
-            this.medicines.push({ ...this.form });
-            this.dialogVisible = false;
-            this.$refs.form.resetFields();
+          axios.post(
+            '/api/medicines',
+            {
+              name: this.form.name,
+              price: Number(this.form.price)
+            },
+            {
+              withCredentials : true,
+              headers:{
+                'Session':sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+              }
           }
+          ).then(response => {
+            // 处理成功响应，例如重新加载药品列表
+            this.fetchMedicines();
+            // 关闭弹窗
+            this.dialogVisible = false;
+            // 清空表单
+            this.$refs.form.resetFields();
+          })
+          .catch(error => {
+            // 处理错误
+            console.error('Error adding medicine:', error);
+          });
         } else {
           return false;
         }
@@ -241,13 +204,27 @@ export default {
     // 处理删除按钮点击事件
     handleDelete() {
       if (this.selectedRow) {
-        const index = this.medicines.findIndex(medicine => medicine === this.selectedRow);
-        if (index !== -1) {
-          this.medicines.splice(index, 1);
+        axios.delete(
+          `/api/medicines/${this.selectedRow.medicine_id}`, // 将 medicine_id 包含在 URL 中
+          {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+            }
+          }
+        ).then(response => {
+          // 处理成功响应，例如重新加载药品列表
+          this.fetchMedicines();
+          // 清空选中行
           this.selectedRow = null;
-        }
+        }).catch(error => {
+          // 处理错误
+          console.error('Error deleting medicine:', error);
+        });
       }
     },
+
     // 处理每页显示条数改变事件
     handleSizeChange(val) {
       this.pageSize = val;
@@ -281,11 +258,8 @@ export default {
     // 打开修改弹窗
     openModifyDialog() {
       if (this.selectedRow) {
-        this.form.id = this.selectedRow.id;
         this.form.name = this.selectedRow.name;
         this.form.price = this.selectedRow.price;
-        this.form.upperBound = this.selectedRow.upperBound;
-        this.form.lowerBound = this.selectedRow.lowerBound;
 
         // 设置修改弹窗可见
         this.modifyDialogVisible = true;
@@ -302,24 +276,70 @@ export default {
       // 表单验证
       this.$refs.modifyForm.validate((valid) => {
         if (valid) {
-          // 执行修改操作
-          const index = this.medicines.findIndex(medicine => medicine.id === this.selectedRow.id);
-          if (index !== -1) {
-            this.medicines[index] = { ...this.form };
+          const modifiedMedicine = {
+            name: this.form.name,
+            price: this.form.price
+          };
+
+          axios.put(
+            `/api/medicines/${this.selectedRow.medicine_id}`, // 将 medicine_id 包含在 URL 中
+            modifiedMedicine,
+            {
+              withCredentials: true,
+              headers: {
+                'Session': sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+              }
+            }
+          ).then(response => {
+            // 处理成功响应，例如重新加载药品列表
+            this.fetchMedicines();
+            // 关闭弹窗
             this.modifyDialogVisible = false;
+            // 清空表单
             this.$refs.modifyForm.resetFields();
-          }
-          // 清空错误信息
-          this.errors.upperBound = '';
-          this.errors.lowerBound = '';
+          }).catch(error => {
+            // 处理错误
+            console.error('Error modifying medicine:', error);
+          });
         } else {
           return false;
         }
       });
     },
+
+    async fetchMedicines() {
+      try {
+        const response = await axios.get('/api/medicines', {
+          params: {
+            page_size: 20,
+            page_num: this.currentPage,
+            name_keyword: this.searchText.trim()
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.medicines = response.data.data.records;
+        } else {
+          console.error('Error fetching medicines: Invalid response format');
+        }
+      } catch (error) {
+        console.error('Error fetching medicines:', error);
+      }
+    },
   },
+  mounted() {
+    // 组件加载完成后立即获取药品列表数据
+    this.fetchMedicines();
+  }
 };
 </script>
+
+
 
 <style scoped>
 .container.sectionHeight {

@@ -37,7 +37,10 @@ import InspectionManagement from "../examples/Admin/inspectionManagement/Inspect
 import MedicineManagement from "../examples/Admin/medicineManagement/MedicineManagement.vue"
 import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue"
 import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue"
-
+import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue"
+import TTT from "../examples/Admin/testMe/testtest.vue"
+import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
+import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
 const routes = [
   {
     path: "/",
@@ -252,6 +255,26 @@ const routes = [
     path:"/DiseaseManagement",
     name:"疾病管理-管理员",
     component:DiseaseManagement,
+  },
+  {
+    path:"/CategoryManagement",
+    name:"病种管理-管理员",
+    component:CategoryManagement,
+  },
+  {
+    path:"/TTT",
+    name:"TTT-管理员",
+    component:TTT,
+  },
+  {
+    path:"/OperationManagement",
+    name:"手术管理-管理员",
+    component:OperationManagement,
+  },
+  {
+    path:"/:id/:name",
+    name:"科室设施详情-管理员",
+    component:FacilityDetails,
   },
 
 ];

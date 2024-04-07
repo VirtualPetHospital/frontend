@@ -26,9 +26,9 @@
         <el-form-item label="检测项目名" prop="name">
           <el-input v-model="form.name"></el-input>
         </el-form-item>
-        <el-form-item label="价格" prop="price">
+        <!-- <el-form-item label="价格" prop="price">
           <el-input v-model.number="form.price" type="number"></el-input>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="上界" prop="upperBound">
           <el-input v-model.number="form.upperBound" type="number"></el-input>
         </el-form-item>
@@ -60,9 +60,9 @@
         <el-form-item label="检测项目名" prop="name">
           <el-input v-model="form.name"></el-input>
         </el-form-item>
-        <el-form-item label="价格" prop="price">
+        <!-- <el-form-item label="价格" prop="price">
           <el-input v-model.number="form.price" type="number"></el-input>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="上界" prop="upperBound">
           <el-input v-model.number="form.upperBound" type="number"></el-input>
           <!-- 显示上下界验证错误信息 -->
@@ -103,12 +103,12 @@
             :filters="filters"
             :filter-method="handleFilter"
           >
-            <el-table-column prop="id" label="ID"></el-table-column>
+            <el-table-column prop="inspection_id" label="ID"></el-table-column>
             <el-table-column prop="name" label="检测项目名"></el-table-column>
-            <el-table-column prop="price" label="价格" align="right"></el-table-column>
-            <el-table-column prop="upperBound" label="上界" align="right"></el-table-column>
-            <el-table-column prop="lowerBound" label="下界" align="right"></el-table-column>
+            <el-table-column prop="low" label="下界" align="right"></el-table-column>
+            <el-table-column prop="high" label="上界" align="right"></el-table-column>
           </el-table>
+
         </div>
       </div>
     </div>
@@ -120,11 +120,12 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page.sync="currentPage"
-          :page-sizes="[5, 10, 20, 50]"
+          :page-sizes="[10, 20, 50]"
           :page-size="pageSize"
-          :total="inspections.length"
-          layout="sizes, total, prev, pager, next, jumper"
+          :total="total"
+          layout="prev, pager, next"
         ></el-pagination>
+
       </div>
     </div>
   </div>
@@ -132,6 +133,7 @@
 
 <script>
 import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+import axios from "axios";
 
 export default {
   components: {
@@ -163,10 +165,10 @@ export default {
       rules: {
         id: [{ required: true, message: '请输入ID', trigger: 'blur' }],
         name: [{ required: true, message: '请输入检测项目名', trigger: 'blur' }],
-        price: [
-          { required: true, message: '请输入价格', trigger: 'blur' },
-          { validator: this.validatePrice, trigger: 'blur' }
-        ],
+        // price: [
+        //   { required: true, message: '请输入价格', trigger: 'blur' },
+        //   { validator: this.validatePrice, trigger: 'blur' }
+        // ],
         upperBound: [
           { required: true, message: '请输入上界', trigger: 'blur' },
           { validator: this.validateBound, trigger: 'blur' }
@@ -176,14 +178,10 @@ export default {
           { validator: this.validateBound, trigger: 'blur' }
         ]
       },
-      inspections: [
-      { id: 1, name: "Inspection1", price: 100, upperBound: 30, lowerBound: 10 },
-        { id: 2, name: "Inspection2", price: 200, upperBound: 50, lowerBound: 20 },
-        { id: 3, name: "Inspection3", price: 150, upperBound: 40, lowerBound: 15 },
-        // 其他检测项目数据...
-      ],
+      inspections: [],
       currentPage: 1,
       pageSize: 10,
+      total: 0, // 新增 total 属性来保存数据总数
       selectedRow: null,
       filters: {}
     };
@@ -191,11 +189,6 @@ export default {
 
   computed:  {
     // 计算当前页显示的数据
-    currentPageData() {
-      const startIndex = (this.currentPage - 1) * this.pageSize;
-      const endIndex = startIndex + this.pageSize;
-      return this.inspections.slice(startIndex, endIndex);
-    },
     filteredInspections() {
       // 如果搜索文本为空，则返回原始数据
       if (this.searchText.trim() === '') {
@@ -209,9 +202,9 @@ export default {
     },
   },
   methods: {
+    // 处理搜索功能
     handleSearch() {
-      // 处理搜索功能
-      // 触发计算属性重新计算过滤后的检测项目
+      this.fetchInspections(); // 当搜索条件改变时重新查询数据
     },
     handleClearSearch() {
       // 处理清除搜索文本
@@ -233,54 +226,77 @@ export default {
         callback();
       }
     },
-    // 处理新增按钮点击事件
-    handleAdd() {
-      // 打开新增弹窗
-      this.dialogVisible = true;
-      // 自动生成新的 ID
-      this.form.id = this.inspections.length + 1;
-    },
     // 处理弹窗确定按钮点击事件
     handleConfirm() {
       // 表单验证
       this.$refs.form.validate((valid) => {
         if (valid) {
-          if (this.modifyDialogVisible) {
-            // 执行修改操作
-            const index = this.inspections.findIndex(inspection => inspection.id === this.selectedRow.id);
-            if (index !== -1) {
-              this.inspections[index] = { ...this.form };
-              this.modifyDialogVisible = false;
-              this.$refs.form.resetFields();
+          // 构建新增项目的数据对象
+          const newData = {
+            name: this.form.name,
+            low: this.form.lowerBound,
+            high: this.form.upperBound
+          };
+
+          // 发送 POST 请求到后端接口
+          axios.post('api/inspections', newData, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json'
             }
-          } else {
-            // 执行新增操作
-            this.inspections.push({ ...this.form });
-            this.dialogVisible = false;
-            this.$refs.form.resetFields();
-          }
+          })
+          .then(response => {
+            // 处理成功响应
+            // 重新查询检查项目列表
+            this.fetchInspections(); 
+            this.dialogVisible = false; // 关闭新增弹窗
+            this.$refs.form.resetFields(); // 清空表单
+          })
+          .catch(error => {
+            // 处理错误响应
+            console.error('Error adding inspection:', error);
+          });
         } else {
           return false;
         }
       });
     },
+
     // 处理删除按钮点击事件
     handleDelete() {
       if (this.selectedRow) {
-        const index = this.inspections.findIndex(inspection => inspection === this.selectedRow);
-        if (index !== -1) {
-          this.inspections.splice(index, 1);
-          this.selectedRow = null;
-        }
+        const inspectionId = this.selectedRow.inspection_id;
+        // 发送 DELETE 请求到后端接口
+        axios.delete(`api/inspections/${inspectionId}`, {
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          // 处理成功响应
+          this.fetchInspections(); // 重新查询检查项目列表
+        })
+        .catch(error => {
+          // 处理错误响应
+          console.error('Error deleting inspection:', error);
+        });
+      } else {
+        console.log('没有选择要删除的行');
       }
     },
+
     // 处理每页显示条数改变事件
     handleSizeChange(val) {
       this.pageSize = val;
+      this.fetchInspections(); // 当 pageSize 改变时重新查询数据
     },
     // 处理页码改变事件
     handleCurrentChange(val) {
       this.currentPage = val;
+      this.fetchInspections(); // 当 currentPage 改变时重新查询数据
     },
     // 弹窗关闭前的回调
     handleCloseDialog(done) {
@@ -307,11 +323,12 @@ export default {
     // 打开修改弹窗
     openModifyDialog() {
       if (this.selectedRow) {
-        this.form.id = this.selectedRow.id;
+        // 将表单的值设置为选中行的值
+        this.form.id = this.selectedRow.inspection_id;
         this.form.name = this.selectedRow.name;
-        this.form.price = this.selectedRow.price;
-        this.form.upperBound = this.selectedRow.upperBound;
-        this.form.lowerBound = this.selectedRow.lowerBound;
+        // 设置上下界为选中行的值
+        this.form.upperBound = this.selectedRow.high;
+        this.form.lowerBound = this.selectedRow.low;
 
         // 设置修改弹窗可见
         this.modifyDialogVisible = true;
@@ -324,6 +341,7 @@ export default {
         // });
       }
     },
+
     handleModifyConfirm() {
       // 表单验证
       this.$refs.modifyForm.validate((valid) => {
@@ -336,12 +354,33 @@ export default {
             return;
           }
           // 执行修改操作
-          const index = this.inspections.findIndex(inspection => inspection.id === this.selectedRow.id);
-          if (index !== -1) {
-            this.inspections[index] = { ...this.form };
-            this.modifyDialogVisible = false;
-            this.$refs.modifyForm.resetFields();
-          }
+          const modifiedData = {
+            inspection_id: this.selectedRow.inspection_id,
+            name: this.form.name,
+            low: this.form.lowerBound,
+            high: this.form.upperBound
+          };
+
+          // 发送 PUT 请求到后端接口
+          axios.put(`api/inspections/${this.selectedRow.inspection_id}`, modifiedData, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => {
+            // 处理成功响应
+            // 重新查询检查项目列表
+            this.fetchInspections(); 
+            this.modifyDialogVisible = false; // 关闭修改弹窗
+            this.$refs.modifyForm.resetFields(); // 清空表单
+          })
+          .catch(error => {
+            // 处理错误响应
+            console.error('Error modifying inspection:', error);
+          });
+
           // 清空错误信息
           this.errors.upperBound = '';
           this.errors.lowerBound = '';
@@ -350,9 +389,44 @@ export default {
         }
       });
     },
+
+    // 查询检查项目列表
+    async fetchInspections() {
+      try {
+        const response = await axios.get('api/inspections', {
+          params: {
+            page_size: this.pageSize,
+            page_num: this.currentPage,
+            name_keyword: this.searchText
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const responseData = response.data;
+
+        if (responseData && responseData.data && responseData.data.records && Array.isArray(responseData.data.records)) {
+          this.inspections = responseData.data.records;
+          this.total = responseData.data.total; // 更新实际数据总数
+        } else {
+          console.error('Invalid data format:', responseData);
+        }
+      } catch (error) {
+        console.error('Error fetching inspections:', error);
+      }
+    },
+  },
+  mounted() {
+    this.fetchInspections(); // 组件挂载时执行一次查询
   },
 };
 </script>
+
+
+
 
 <style scoped>
 .container.sectionHeight {
