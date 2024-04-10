@@ -1,4 +1,4 @@
-import {createApp} from "vue";
+import {createApp, Vue} from "vue";
 import App from "./App.vue";
 import store from "./store";
 import router from "./router";
@@ -12,13 +12,16 @@ import 'vue-video-player/src/custom-theme.css'
 import * as ElIconModules from '@element-plus/icons'
 import axios from "axios";
 import app from "@/App.vue";
+import echarts from 'echarts'
 import 'element-plus/theme-chalk/index.css';
+
 
 const appInstance = createApp(App);
 appInstance.use(store);
 appInstance.use(router);
 appInstance.use(ArgonDashboard);
 appInstance.config.globalProperties.$axios = axios;
+appInstance.config.globalProperties.$echarts = echarts;
 appInstance.use(VueVideoPlayer);
 appInstance.mount("#app");
 const debounce = (fn, delay) => {

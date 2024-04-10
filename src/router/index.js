@@ -12,6 +12,7 @@ import yizhu from "../examples/Student/cosplay/yizhu.vue";
 import yishi from "../examples/Student/cosplay/yishi.vue";
 import HospitalGuide from "../examples/Student/HospitalGuide.vue";
 import Myexam from "../examples/Student/exams/Myexam.vue"
+import SearchMedcase from  "../examples/Student/Search/SearchMedcase.vue"
 import DashboardTeacher from "@/examples/Teacher/DashboardTeacher.vue";
 import DashboardAdmin from "@/examples/Admin/DashboardAdmin.vue";
 import DashboardStudent from "@/examples/Student/DashboardStudent.vue";
@@ -105,7 +106,7 @@ const routes = [
     component: Profile,
   },
   {
-    path: '/:diseaseName/medcases',
+    path: '/?diseaseName/medcases',
     name: 'Disease',
     component: Disease,
   },
@@ -144,6 +145,12 @@ const routes = [
     name:"WatchPaper",
     component:PaperInfo,
   },
+  {
+    path:"/searchMedcase",
+    name:"SearchMedcase",
+    component:SearchMedcase,
+  },
+
   {
     path:"/takeexam/:id",
     name:"TakeExam",

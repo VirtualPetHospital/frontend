@@ -189,17 +189,52 @@ export default{
     submitExam() {
       this.answerSheet.shift();
       console.log(this.answerSheet);
-      console.log("Exam submitted!");
+      axios.post(
+          '/api/answer-sheets',
+          {
+            exam_id:this.exam_id,
+            answers:this.answerSheet
+          },
+          {
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+
+            }}
+      ).then(response=>{
+        const data=response.data.data;
+        const code=data.code;
+        if(code===200){
+          console.log("提交成功");
+        }
+      })
+
     },
     initCheckResult() {
+      let max=0;
       // 初始化checkResult对象
-      this.paper.questions.forEach(question => {
-       this.checkResult[question.question_id]=false;
-      });
+      for(let i=0;i<this.paper.questions.length;i++){
+        if(max <=this.paper.questions[i].question_id){
+          max=this.paper.questions[i].question_id;
+        }
+      }
+      for(let i=0;i<max+1;i++){
+        this.checkResult[i]=false;
+      }
+      console.log("checkrelen",this.checkResult.length);
     },
     fetchExam(examId){
-      axios.get(`/exams/${examId}`).then(response=>{
+      axios.get(`/api/exams/${examId}`,
+          {
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+
+            }}).then(response=>{
         const examData = response.data.data;
+        console.log("examdata "+examData);
         this.exam_id = examData.exam_id;
         this.name = examData.name;
         this.start_time = examData.start_time;
@@ -211,6 +246,7 @@ export default{
         this.paper.name = examData.paper.name;
         this.paper.question_num = examData.paper.question_num;
         this.paper.questions = examData.paper.questions;
+        this.initCheckResult();
 
       }).catch(error=>{
         console.log('获取试卷失败2',error);
@@ -285,12 +321,7 @@ export default{
     const examId=this.$route.params.id;
     console.log('examId',examId);
     this.exam_id=examId;
-    this.fetchExamMock()
-        .then(()=>{
-          this.initCheckResult();
-        }).catch(error=>{
-          console.error('获取试卷失败',error);
-    });
+    this.fetchExam(this.exam_id);
 
   },
   setup() {

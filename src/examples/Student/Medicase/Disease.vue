@@ -35,7 +35,20 @@
         </el-card>
 
         <el-card class="custom-elcard">
-          <h4>病例列表</h4>
+          <div class="row">
+            <h4>病例列表</h4>
+            <el-input
+                v-model="ruleForm.searchText"
+                placeholder="请输入搜索内容"
+                style="width: 270px; cursor: pointer"
+                @keyup.enter.native="searchEnterFun"
+                autocomplete="off"
+                @input="change()"
+            >
+            </el-input>
+            <el-button class="custom-button" style="width: 60px" @click="handleSearch">搜索</el-button>
+          </div>
+
           <el-table :data="pageMedCases" stripe style="margin-top: 20px">
             <el-table-column prop="medcase_id" label="病例ID" width="100"></el-table-column>
             <el-table-column prop="name" label="病例名称"></el-table-column>
@@ -63,13 +76,16 @@
 <script>
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router";
-import {ElCard, ElImage, ElPagination, ElTable, ElTableColumn} from "element-plus";
+import {ElCard, ElImage, ElPagination, ElTable, ElTableColumn, ElInput, ElButton} from "element-plus";
 import {videoPlayer} from "vue-video-player";
 import axios from "axios";
 export default{
   name:"Disease",
   data(){
     return{
+      ruleForm:{
+        searchText:'',
+      },
       diseaseName:'',
       description:'',
       disease_id:'',
@@ -113,13 +129,17 @@ export default{
     ElTableColumn,
     // eslint-disable-next-line no-undef
     ElCard,
-    ElImage
+    ElInput,
+    ElButton,
+    ElImage,
+
   },
   created() {
-    this.diseaseName=this.$route.params.diseaseName;
-    this.disease_id=this.$route.params.disease_id;
-    this.fetchDiseaseDetailsMock(this.disease_id);
-    this.fetchMedCasesMock(this.diseaseName);
+    this.diseaseName=this.$route.query.diseaseName;
+    this.disease_id=this.$route.query.diseaseId;
+    console.log("cre id"+this.disease_id+' '+this.diseaseName);
+    this.fetchDiseaseDetails(this.disease_id);
+    this.fetchMedCases(this.diseaseName);
   },
   setup() {
     const store = useStore();
@@ -137,21 +157,71 @@ export default{
     jumpToMedcase(medcaseId){
       this.$router.push({name:'Medcase',params:{medcaseId:medcaseId}});
     },
+    handleSearch(){
+      console.log(this.ruleForm.searchText);
+      if(this.ruleForm.searchText===''){
+        alert("搜索内容不能为空")
+      }else{
+        this.$router.push({
+          name:'SearchMedcase',
+          query:{
+            searchText:this.ruleForm.searchText
+          }
+        });
+      }
+    },
 
     /**
      疾病信息
      **/
     async fetchDiseaseDetails(){
+      console.log('this.diseaseid '+this.disease_id);
       try{
-      const response = await axios.get(`diseases/${this.disease_id}`);
-      const { data } = response;
+      const response = await axios.get(
+          `/api/diseases/${this.disease_id}`,
+        {
+          withCredentials : true,
+              headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',},
+        }
+      );
+      console.log(response.data.data);
+      const data = response.data.data;
       this.description = data.description;
+      axios.get('/api/files/download',
+          {
+            params:{
+              file_name:"medcase_video_2024-03-31-16-16-02.mp4"
+            },
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',},
+          }
+      ).then(response=>{
+          const vn="";
+          console.log("vn",vn);
+          if(vn){
+            this.playerOptions.sources[0].src=vn;
+          }
+      });
       this.video = data.video;
       this.photo=data.photo;
-      this.playerOptions.sources[0].src=this.video;}
+      }
       catch(error){
         console.error('获取疾病信息失败',error);
       }
+    },
+    searchEnterFun (e){
+
+      var keyCode = window.event? e.keyCode:e.which;
+      console.log("回车搜索", keyCode, e);
+      if (keyCode == 13) {this.handleSearch();
+      }
+    },
+    change(){
+      this.$forceUpdate();
     },
     async fetchDiseaseDetailsMock(disease_id) {
       try {
@@ -186,6 +256,7 @@ export default{
         //判断是否达到一页的要求
         if (this.pageMedCases.length === this.pageSize) break;
       }
+      console.log(this.pageMedCases);
     },
     async fetchMedCases() {
       try {
@@ -195,29 +266,37 @@ export default{
           page_num: this.pageNum,
           info_keyword: this.infoKeyword,
           name_keyword: this.nameKeyword,
-          disease_name: this.$route.params.diseaseName // 使用疾病名参数
+          disease_name: this.$route.query.diseaseName // 使用疾病名参数
         };
         let that = this;
 
-        // 将参数拼接到 URL 查询字符串中
-        const queryString = new URLSearchParams(params).toString();
+        axios.get(
+            '/api/medcases',
+            {
+              withCredentials: true,
+              headers: {
+                'Session': sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+              },
+              data:params
+            }
+        ).then(response => {
+          const data = response.data.data;
+          console.log(data); // 可以在控制台中打印响应数据
+          //筛
+          // 模拟异步请求延迟
+          that.medCases = data.records;
+          that.total = that.medCases.length;// 成功时返回医疗案例数据
+          console.log("fi"+that.medCases);
+          that.getPageMedCases();
+        }).catch(error => {
+          console.error('获取病例失败', error);
+        });
 
-        // 调用后端API，使用构建好的参数
-        const response = await fetch(`/medcases?${queryString}`);
-
-        // 处理响应
-        const data = await response.json();
-        console.log(data); // 可以在控制台中打印响应数据
-        //筛
-        const filteredMedCases = data.filter(caseData => caseData.disease_name === this.$route.params.diseaseName);
-        // 模拟异步请求延迟
-        that.medCases=filteredMedCases;
-        that.total=filteredMedCases.length;// 成功时返回医疗案例数据
-        that.getPageMedCases();
-
-      } catch (error) {
-        console.error('Error fetching med cases:', error);
+      }catch(error){
+        console.log(error);
       }
+
     },
     fetchMedCasesMock(diseaseName) {
       return new Promise((resolve, reject) => {
@@ -247,6 +326,7 @@ export default{
         // 模拟异步请求延迟
         that.medCases=filteredMedCases;
         that.total=filteredMedCases.length;// 成功时返回医疗案例数据
+        console.log("fol"+filteredMedCases);
         that.getPageMedCases();
       });
     },

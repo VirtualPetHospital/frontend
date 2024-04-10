@@ -48,27 +48,32 @@ export default{
     }
   },
   created() {
-    this.fetchLearnHistoryMock();
+    this.fetchLearnHistory();
   },
   methods:{
-    async fetchLearnHistory(user_id, pageNum, pageSize) {
+    async fetchLearnHistory() {
         try {
-          const response = await axios.get("/users/medcases", {
+          const response = await axios.get("/api/users/medcases", {
             params: {
-              user_id: user_id,
-              page: pageNum,
-              size: pageSize,
+              user_id: sessionStorage.getItem('user_id'),
+              page: this.pageNum,
+              size: this.pageSize,
             },
-          });
-          const { code, data, msg } = response.data;
-          if (code === 200) {
-            const { total, records } = data;
-            this.total = total; // 更新总记录数
-            this.records = records; // 更新记录数据
-            this.fetchPageLearnHistory(); // 更新当前页数据
-          } else {
-            throw new Error(msg);
+
+            withCredentials : true,
+                headers:{
+            'Session':sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+
           }
+          });
+          const data=response.data.data;
+
+
+            this.total = data.total; // 更新总记录数
+            this.records = data.records; // 更新记录数据
+            this.fetchPageLearnHistory(); // 更新当前页数据
+
         } catch (error) {
           console.error("Error fetching learn history:", error);
           throw error;
