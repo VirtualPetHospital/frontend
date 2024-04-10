@@ -1,10 +1,9 @@
 <template>
   <div class="container sectionHeight">
-
     <!-- 搜索栏 -->
     <el-input
       v-model="searchText"
-      placeholder="输入用户名或身份进行搜索"
+      placeholder="输入用户名进行搜索"
       clearable
       @clear="handleClearSearch"
       @input="handleSearch"
@@ -12,63 +11,75 @@
 
     <!-- 新增弹窗 -->
     <el-dialog
-      title="新增表格元素"
+      title="新增用户"
       v-model="dialogVisible"
-      width="10%"
+      width="30%"
       :before-close="handleCloseDialog"
+      scrollable
     >
       <!-- 表单 -->
       <el-form :model="form" :rules="rules" ref="form" label-width="100px">
         <!-- ID字段设置为不可编辑 -->
-        <el-form-item label="ID">
-          <el-input v-model="form.id" :disabled="true"></el-input>
+        <el-form-item label="用户ID">
+          <el-input v-model="form.user_id" :disabled="true"></el-input>
         </el-form-item>
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username"></el-input>
+        <el-form-item label="角色" prop="type">
+          <el-input v-model="form.type"></el-input>
         </el-form-item>
-        <el-form-item label="角色" prop="role">
-          <el-input v-model="form.role"></el-input>
+        <el-form-item label="用户名" prop="nickname">
+          <el-input v-model="form.nickname"></el-input>
         </el-form-item>
         <el-form-item label="等级" prop="level">
-          <el-input v-model="form.level"></el-input>
+          <el-input v-model.number="form.level" type="number"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email"></el-input>
+        </el-form-item>
+        <el-form-item label="头像地址" prop="avatar_url">
+          <el-input v-model="form.avatar_url"></el-input>
         </el-form-item>
       </el-form>
       <!-- 按钮 -->
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleConfirm">确定</el-button>
-        
       </div>
     </el-dialog>
 
     <!-- 修改弹窗 -->
     <el-dialog
-      title="修改表格元素"
+      title="修改用户"
       v-model="modifyDialogVisible"
-      width="10%"
+      width="30%"
       :before-close="handleCloseModifyDialog"
+      scrollable
     >
       <!-- 表单 -->
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+      <el-form :model="form" :rules="rules" ref="modifyForm" label-width="100px">
         <!-- ID字段设置为不可编辑 -->
-        <el-form-item label="ID">
-          <el-input v-model="form.id" :disabled="true"></el-input>
+        <el-form-item label="用户ID">
+          <el-input v-model="form.user_id" :disabled="true"></el-input>
         </el-form-item>
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username"></el-input>
+        <el-form-item label="角色" prop="type">
+          <el-input v-model="form.type"></el-input>
         </el-form-item>
-        <el-form-item label="角色" prop="role">
-          <el-input v-model="form.role"></el-input>
+        <el-form-item label="用户名" prop="nickname">
+          <el-input v-model="form.nickname"></el-input>
         </el-form-item>
         <el-form-item label="等级" prop="level">
-          <el-input v-model="form.level"></el-input>
+          <el-input v-model.number="form.level" type="number"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email"></el-input>
+        </el-form-item>
+        <el-form-item label="头像地址" prop="avatar_url">
+          <el-input v-model="form.avatar_url"></el-input>
         </el-form-item>
       </el-form>
       <!-- 按钮 -->
       <div slot="footer" class="dialog-footer">
         <el-button @click="modifyDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleModifyConfirm">确定</el-button>
-        
       </div>
     </el-dialog>
 
@@ -94,17 +105,12 @@
             :filters="filters"
             :filter-method="handleFilter"
           >
-            <el-table-column prop="id" label="ID"></el-table-column>
-            <el-table-column prop="username" label="用户名"></el-table-column>
-            <el-table-column
-              prop="role"
-              label="角色"
-              :filters="roleFilters"
-              :filter-method="handleRoleFilter"
-            >
-              <template #default="{ row }">{{ row.role }}</template>
-            </el-table-column>
-            <el-table-column prop="level" label="等级"></el-table-column>
+            <el-table-column prop="user_id" label="用户ID"></el-table-column>
+            <el-table-column prop="type" label="角色"></el-table-column>
+            <el-table-column prop="nickname" label="用户名"></el-table-column>
+            <el-table-column prop="level" label="等级" align="right"></el-table-column>
+            <el-table-column prop="email" label="邮箱"></el-table-column>
+            <el-table-column prop="avatar_url" label="头像地址"></el-table-column>
           </el-table>
         </div>
       </div>
@@ -120,7 +126,7 @@
           :page-sizes="[5, 10, 20, 50]"
           :page-size="pageSize"
           :total="users.length"
-          layout="sizes, total, prev, pager, next,jumper"
+          layout="sizes, total, prev, pager, next, jumper"
         ></el-pagination>
       </div>
     </div>
@@ -129,6 +135,7 @@
 
 <script>
 import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+import axios from 'axios';
 
 export default {
   components: {
@@ -144,56 +151,46 @@ export default {
   data() {
     return {
       searchText: '',
-      dialogVisible: false, // 控制新增弹窗的显示状态
+      dialogVisible: false,
       modifyDialogVisible: false, // 控制修改弹窗的显示状态
       form: {
-        id: '', // 初始为空
-        username: '',
-        role: '学生',
-        level: '1'
+        user_id: '',
+        type: '',
+        nickname: '',
+        level: 0,
+        email: '',
+        avatar_url: null,
       },
       rules: {
-        id: [{ required: true, message: '请输入ID', trigger: 'blur' }],
-        username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-        role: [{ required: true, message: '请输入角色', trigger: 'blur' }],
-        level: [{ required: true, message: '请输入等级', trigger: 'blur' }]
+        user_id: [{ required: true, message: '请输入用户ID', trigger: 'blur' }],
+        type: [{ required: true, message: '请输入角色', trigger: 'blur' }],
+        nickname: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+        level: [{ required: true, message: '请输入等级', trigger: 'blur' }],
+        email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
       },
-      users: [
-        { id: 1, username: "User1", role: "老师", level: 23 },
-        { id: 2, username: "User2", role: "老师", level: 32 },
-        { id: 3, username: "User3", role: "学生", level: 3 },
-        { id: 4, username: "User4", role: "学生", level: 3 },
-        { id: 5, username: "User5", role: "管理员", level: 55 },
-        { id: 6, username: "User6", role: "管理员", level: 35 },
-        // 其他用户数据...
-      ],
-      currentPage: 1, // 当前页码
-      pageSize: 10, // 每页显示条数
-      selectedRow: null, // 存储选中的行数据
-      // 角色筛选器选项
-      roleFilters: [
-        { text: '学生', value: '学生' },
-        { text: '老师', value: '老师' },
-        { text: '管理员', value: '管理员' }
-      ],
-      // 当前的筛选器
-      filters: {
-        role: [] // 初始为空，表示未选择任何角色
-      }
+      users: [],
+      currentPage: 1,
+      pageSize: 10,
+      selectedRow: null,
+      filters: {}
     };
   },
-  computed: {
+
+  computed:  {
     // 计算当前页显示的数据
     currentPageData() {
       const startIndex = (this.currentPage - 1) * this.pageSize;
       const endIndex = startIndex + this.pageSize;
       return this.users.slice(startIndex, endIndex);
     },
-    // 根据搜索文本过滤用户
     filteredUsers() {
+      // 如果搜索文本为空，则返回原始数据
+      if (this.searchText.trim() === '') {
+        return this.users;
+      }
+      // 根据搜索文本过滤用户
       const filtered = this.users.filter(user =>
-        user.username.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        user.role.toLowerCase().includes(this.searchText.toLowerCase())
+        user.nickname.toLowerCase().includes(this.searchText.toLowerCase())
       );
       return filtered;
     },
@@ -207,24 +204,54 @@ export default {
       // 处理清除搜索文本
       this.searchText = '';
     },
+
     // 处理新增按钮点击事件
     handleAdd() {
       // 打开新增弹窗
       this.dialogVisible = true;
       // 自动生成新的 ID
-      this.form.id = this.users.length + 1;
+      // this.form.user_id = this.users.length + 1;
     },
-    // 处理新增弹窗确定按钮点击事件
+    // 处理弹窗确定按钮点击事件
     handleConfirm() {
       // 表单验证
       this.$refs.form.validate((valid) => {
         if (valid) {
-          // 添加新数据到表格
-          this.users.push({ ...this.form });
-          // 关闭新增弹窗
-          this.dialogVisible = false;
-          // 清空表单数据
-          this.$refs.form.resetFields();
+          // 判断是否是修改用户
+          if (this.modifyDialogVisible) {
+            // 省略修改用户的逻辑
+          } else {
+            // 新增用户的逻辑
+            axios.post(
+              '/api/users',
+              {
+                user_id: this.form.user_id,
+                type: this.form.type,
+                nickname: this.form.nickname,
+                level: this.form.level,
+                email: this.form.email,
+                avatar_url: this.form.avatar_url,
+              },
+              {
+                withCredentials : true,
+                headers:{
+                  'Session':sessionStorage.getItem('sessionId'),
+                  'Content-Type': 'application/json',
+                }
+            }
+            ).then(response => {
+              // 处理成功响应，例如重新加载用户列表
+              this.fetchUsers();
+              // 关闭弹窗
+              this.dialogVisible = false;
+              // 清空表单
+              this.$refs.form.resetFields();
+            })
+            .catch(error => {
+              // 处理错误
+              console.error('Error adding user:', error);
+            });
+          }
         } else {
           return false;
         }
@@ -233,26 +260,42 @@ export default {
     // 处理删除按钮点击事件
     handleDelete() {
       if (this.selectedRow) {
-        const index = this.users.findIndex(user => user === this.selectedRow);
-        if (index !== -1) {
-          this.users.splice(index, 1);
+        axios.delete(
+          `/api/users/${this.selectedRow.user_id}`, // 将 user_id 包含在 URL 中
+          {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+            }
+          }
+        ).then(response => {
+          // 处理成功响应，例如重新加载用户列表
+          this.fetchUsers();
+          // 清空选中行
           this.selectedRow = null;
-        }
+        }).catch(error => {
+          // 处理错误
+          console.error('Error deleting user:', error);
+        });
       }
     },
+
     // 处理每页显示条数改变事件
     handleSizeChange(val) {
       this.pageSize = val;
+      this.fetchUsers(); // 更新每页显示条数后重新获取用户列表数据
     },
     // 处理页码改变事件
     handleCurrentChange(val) {
       this.currentPage = val;
+      this.fetchUsers(); // 更新页码后重新获取用户列表数据
     },
-    // 处理新增弹窗关闭前的回调
+    // 弹窗关闭前的回调
     handleCloseDialog(done) {
       this.dialogVisible = false;
     },
-    // 处理修改弹窗关闭前的回调
+    // 修改弹窗关闭前的回调
     handleCloseModifyDialog(done) {
       this.modifyDialogVisible = false;
     },
@@ -266,28 +309,24 @@ export default {
         this.selectedRow = row;
       }
     },
-    // 处理角色筛选器变化
-    handleRoleFilter(value, row) {
-      return this.filters.role.length === 0 || this.filters.role.includes(row.role);
-    },
     // 处理表格筛选
     handleFilter(filters) {
       this.filters = filters;
     },
-    // 处理修改按钮点击事件
+    // 打开修改弹窗
     openModifyDialog() {
-      // 检查是否有选中的行
       if (this.selectedRow) {
-        // 将选中行的数据填充到表单中
-        this.form.id = this.selectedRow.id;
-        this.form.username = this.selectedRow.username;
-        this.form.role = this.selectedRow.role;
+        this.form.user_id = this.selectedRow.user_id;
+        this.form.type = this.selectedRow.type;
+        this.form.nickname = this.selectedRow.nickname;
         this.form.level = this.selectedRow.level;
+        this.form.email = this.selectedRow.email;
+        this.form.avatar_url = this.selectedRow.avatar_url;
 
         // 设置修改弹窗可见
         this.modifyDialogVisible = true;
       } else {
-        console.log('没有选择')
+        console.log('没有选择');
         // 如果没有选中行，提示用户选择行
         // this.$message({
         //   type: 'warning',
@@ -295,26 +334,81 @@ export default {
         // });
       }
     },
-    // 处理修改弹窗确定按钮点击事件
     handleModifyConfirm() {
       // 表单验证
-      this.$refs.form.validate((valid) => {
+      this.$refs.modifyForm.validate((valid) => {
         if (valid) {
-          // 更新用户数据
-          const index = this.users.findIndex(user => user.id === this.form.id);
+          // 执行修改操作
+          const index = this.users.findIndex(user => user.user_id === this.selectedRow.user_id);
           if (index !== -1) {
-            this.users[index] = { ...this.form };
+            const modifiedUser = {
+              type: this.form.type,
+              nickname: this.form.nickname,
+              level: this.form.level,
+              email: this.form.email,
+              avatar_url: this.form.avatar_url,
+            };
+
+            axios.put(
+              `/api/users/${this.selectedRow.user_id}`, // 将 user_id 包含在 URL 中
+              modifiedUser,
+              {
+                withCredentials: true,
+                headers: {
+                  'Session': sessionStorage.getItem('sessionId'),
+                  'Content-Type': 'application/json',
+                }
+              }
+            ).then(response => {
+              // 处理成功响应，例如重新加载用户列表
+              this.fetchUsers();
+              // 关闭弹窗
+              this.modifyDialogVisible = false;
+              // 清空表单
+              this.$refs.modifyForm.resetFields();
+            }).catch(error => {
+              // 处理错误
+              console.error('Error modifying user:', error);
+            });
           }
-          // 关闭修改弹窗
-          this.modifyDialogVisible = false;
-          // 清空表单数据
-          this.$refs.form.resetFields();
         } else {
           return false;
         }
       });
     },
+
+    async fetchUsers() {
+      try {
+        const response = await axios.get('/api/users/list', {
+          params: {
+            page_size: this.pageSize,
+            page_num: this.currentPage,
+            name_keyword: this.searchText.trim()
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.users = response.data.data.records;
+          this.total = response.data.data.total; // 更新总数
+        } else {
+          console.error('Error fetching users: Invalid response format');
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    },
+
+
+
   },
+  mounted() {
+    // 组件加载完成后立即获取用户列表数据
+    this.fetchUsers();
+  }
 };
 </script>
 
@@ -325,9 +419,14 @@ export default {
   margin-left: 10px;
   padding: 20px;
   padding-bottom: 20px;
+  overflow-y: auto; /* 添加此样式以使内容超出时自动显示垂直滚动条 */
 }
 
 .user-management-container {
   width: 100%;
+}
+.error-message {
+  color: red;
+  font-size: 12px;
 }
 </style>

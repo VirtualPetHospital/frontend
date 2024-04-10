@@ -1,31 +1,234 @@
 <template>
+
+  <div class="tanchuang" v-show="dialogVisible" @click="handleCloseDialog">
+    <div class="dialog-content" @click.stop>
+      <!-- 新增弹窗 -->
+      <el-dialog
+        title="新增表格元素"
+        v-model="dialogVisible"
+        width="30%"
+        :before-close="handleCloseDialog" 
+      >
+        <!-- 表单 -->
+        <el-form :model="form" :rules="rules" ref="form" label-width="120px">
+          <!-- 省略其他表单项 -->
+          <el-form-item label="名称" prop="name">
+            <el-input v-model="form.name" placeholder="请输入疾病名"></el-input>
+          </el-form-item>
+          <el-form-item label="描述" prop="description">
+            <el-input v-model="form.description" placeholder="请输入疾病描述"></el-input>
+          </el-form-item>
+          <el-form-item label="病种名" prop="category_id">
+            <el-select v-model="form.category_id" placeholder="请选择病种名" @change="handleDiseaseTypeChange">
+              <el-option
+                v-for="item in diseaseOptions"
+                :key="item.category_id"
+                :label="item.name"
+                :value="item.category_id">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="图片" prop="photo">
+            <el-upload
+              class="upload-demo"
+              action="api/files/upload"
+              :on-preview="handlePreview"
+              :on-remove="handleRemove" 
+              :file-list="form.photo"
+              :data="{ file: this.form.photo, location: 'disease' }"
+              :before-upload="beforeUpload"
+              list-type="picture-card">
+              <i class="el-icon-plus"></i>
+            </el-upload>
+
+
+          </el-form-item>
+          <el-form-item label="视频" prop="video">
+            <el-upload
+              class="upload-demo"
+              action="api/files/upload"
+              :on-preview="handlePreview"
+              :on-remove="handleRemove"
+              :file-list="form.video"
+              list-type="picture-card">
+              <i class="el-icon-video-camera"></i>
+            </el-upload>
+          </el-form-item>
+        </el-form>
+        <!-- 按钮 -->
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleConfirm">确定</el-button>
+        </div>
+      </el-dialog>
+    </div>
+  </div>
+
+  <div class="tanchuang" v-show="modifyDialogVisible" @click="handleCloseModifyDialog">
+    <div class="dialog-content" @click.stop>
+      <!-- 修改弹窗 -->
+      <el-dialog
+        title="修改表格元素"
+        v-model="modifyDialogVisible"
+        width="30%"
+        :before-close="handleCloseModifyDialog"
+      >
+        <!-- 表单 -->
+        <el-form :model="form" :rules="rules" ref="form" label-width="120px">
+          <!-- 省略其他表单项 -->
+          <el-form-item label="名称" prop="name">
+            <el-input v-model="form.name" placeholder="请输入疾病名"></el-input>
+          </el-form-item>
+          <el-form-item label="描述" prop="description">
+            <el-input v-model="form.description" placeholder="请输入疾病描述"></el-input>
+          </el-form-item>
+          <el-form-item label="病种名" prop="category_id">
+            <el-select v-model="form.category_id" placeholder="请选择病种名" @change="handleDiseaseTypeChange">
+              <el-option
+                v-for="item in diseaseOptions"
+                :key="item.category_id"
+                :label="item.name"
+                :value="item.category_id">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="图片" prop="photo">
+            <el-upload
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="handleRemove"
+              :file-list="form.photo"
+              list-type="picture-card">
+              <i class="el-icon-plus"></i>
+            </el-upload>
+          </el-form-item>
+          <el-form-item label="视频" prop="video">
+            <el-upload
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="handleRemove"
+              :file-list="form.video"
+              list-type="picture-card">
+              <i class="el-icon-video-camera"></i>
+            </el-upload>
+          </el-form-item>
+        </el-form>
+        <!-- 按钮 -->
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="modifyDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleModifyConfirm">确定</el-button>
+        </div>
+      </el-dialog>
+
+    </div>
+  </div>
+  
     <div class="py-4 container sectionHeight">
+      
       <div class="row">
         <div class="col-12">
           <div class="user-management-container">
             <div class="role-play-title">疾病管理</div>
-            <DiseaseManagementCard />
+            <div class="container sectionHeight">
+              <!-- 搜索栏 -->
+              <el-input
+                v-model="searchText"
+                placeholder="输入疾病名进行搜索"
+                clearable
+                @clear="handleClearSearch"
+                @input="handleSearch"
+              ></el-input>
+              <!-- 按钮区域 -->
+              <div class="row mb-4">
+                <div class="col-6">
+                   <!-- 添加选择器组件 -->
+                   <el-select v-model="selectedDiseaseType" placeholder="选择病种" @change="handleFilterChange">
+                    <el-option
+                      v-for="item in diseaseOptions"
+                      :key="item.category_id"
+                      :label="`${item.name}`"
+                      :value="item.category_id"
+                    ></el-option>
+                  </el-select>
+                  <el-button type="primary" @click="handleAdd">新增</el-button>
+                  <el-button type="danger" @click="handleDelete">删除</el-button>
+                  <el-button type="success" @click="openModifyDialog">修改</el-button>
+                </div>
+              </div>
+              <!-- 表格 -->
+              <div class="row">
+                <div class="col-12">
+                  <div class="user-management-container">
+                    <el-table
+                      :data="currentPageData"
+                      stripe
+                      style="width: 100%;"
+                      highlight-current-row
+                      @row-click="handleRowClick"
+                      :filters="filters"
+                      :filter-method="handleFilter"
+                    >
+                      <el-table-column prop="disease_id" label="疾病ID"></el-table-column>
+                      <el-table-column prop="name" label="名称"></el-table-column>
+                      <el-table-column prop="description" label="描述"></el-table-column>
+                      <el-table-column prop="category_id" label="病种ID" :filters="diseaseTypeFilters" :filter-method="handleDiseaseTypeFilter">
+                        
+                      </el-table-column>
+                      <el-table-column prop="photo" label="图片"></el-table-column>
+                      <el-table-column prop="video" label="视频"></el-table-column>
+                    </el-table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 分页组件 -->
+              <div class="row">
+                <div class="col-12">
+                  <el-pagination
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page.sync="currentPage"
+                    :page-sizes="[5, 10, 20, 50]"
+                    :page-size="pageSize"
+                    :total="cases.length"
+                    layout="sizes, total, prev, pager, next,jumper"
+                  ></el-pagination>
+                </div>
+              </div>
+              </div>
           </div>
-          
         </div>
       </div>
     </div>
   </template>
   
   <script>
-  import DiseaseManagementCard from "../../../views/components/DiseaseManagementCard.vue";
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
-  
+  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload } from "element-plus";
+  import axios from 'axios';
+
   export default {
-    name: "Cosplay",
+    name: "DiseaseManagement",
     components: {
-        DiseaseManagementCard,
-    },
+      ElButton,
+      ElDialog,
+      ElForm,
+      ElFormItem,
+      ElInput,
+      ElPagination,
+      ElTable,
+      ElTableColumn,
+      ElSelect,
+      ElOption,
+      ElUpload
+  },
     setup() {
       const store = useStore();
   
-      // 在组件被挂载后，设置 showSidenavAdmin 为 true
+      // 在组件被挂载后，设置 showSidenavStudent 为 true
       store.commit("setShowSidenavAdmin", true);
       onBeforeRouteLeave((to, from, next) => {
         // 在离开此页前关闭sidenavadmin
@@ -34,7 +237,388 @@
       });
       return {};
     },
-  };
+    data() {
+    return {
+      searchText: '',
+      selectedDiseaseType: '', // 保存选择的病种
+      dialogVisible: false, // 控制新增弹窗的显示状态
+      modifyDialogVisible: false, // 控制修改弹窗的显示状态
+      diseaseOptions: [], // 用于存储从后端获取的病种名数据
+      form: {
+        id: '',
+        diseaseType: '',
+        diseaseName: '',
+        diseaseDescription: '',
+        diseaseImage: [],
+        diseaseVideo: [],
+        category_id: '' // 新增表单中的病种id
+      },
+      rules: {
+        id: [{ required: true, message: '请输入疾病ID', trigger: 'blur' }],
+        //diseaseType: [{ required: true, message: '请选择病种名', trigger: 'blur' }],
+        name: [{ required: true, message: '请输入疾病名', trigger: 'blur' }],
+        description: [{ required: true, message: '请输入疾病描述', trigger: 'blur' }],
+        category_id: [{ required: true, message: '请选择病种名', trigger: 'change' }],
+        
+      },
+      diseaseTypes: [
+        { value: '病种1', text: '病种1' },
+        { value: '病种2', text: '病种2' },
+        { value: '病种3', text: '病种3' }
+      ],
+      cases: [],
+      currentPage: 1, // 当前页码
+      pageSize: 10, // 每页显示条数
+      selectedRow: null, // 存储选中的行数据
+      // 病种筛选器选项
+      diseaseTypeFilters: [
+        { text: '病种1', value: '病种1' },
+        { text: '病种2', value: '病种2' },
+        { text: '病种3', value: '病种3' }
+      ],
+      // 当前的筛选器
+      filters: {
+        diseaseType: [] // 初始为空，表示未选择任何病种
+      }
+    };
+  },
+  created() {
+    // 在页面加载时调用后端接口获取病种名数据
+    this.fetchDiseaseOptions();
+    this.handleFilterChange();
+  },
+  computed: {
+    // 计算映射后的病种列表
+    mappedCases() {
+      return this.cases.map(item => ({
+        ...item,
+        typeName: this.mapCategoryIdToTypeName(item.category_id)
+      }));
+    },
+    // 计算当前页显示的数据
+    currentPageData() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.filteredCases.slice(startIndex, endIndex);
+    },
+
+    // 根据搜索文本过滤病例
+    filteredCases() {
+      if (Array.isArray(this.cases)) {
+        const filtered = this.cases.filter(item =>
+          item.name.toLowerCase().includes(this.searchText.toLowerCase())
+        );
+        return filtered;
+      } else {
+        return [];
+      }
+    },
+
+  },
+  methods: {
+    handleSearch() {
+      // 处理搜索功能
+      // 触发计算属性重新计算过滤后的疾病
+    },
+    handleClearSearch() {
+      // 处理清除搜索文本
+      this.searchText = '';
+    },
+    // 处理新增按钮点击事件
+    handleAdd() {
+      // 打开新增弹窗
+      this.dialogVisible = true;
+      // 自动生成新的 ID
+      //this.form.id = this.cases.length + 1;
+    },
+    // 处理新增弹窗确定按钮点击事件
+    handleConfirm() {
+      // 表单验证
+      this.$refs.form.validate((valid) => {
+        console.log('新增图片名:', this.form.photo,);
+        if (valid) {
+          // 发送 POST 请求将表单数据提交到后端
+          axios.post('api/diseases', {
+            name: this.form.name,
+            description: this.form.description,
+            category_id: this.form.category_id,
+            photo: this.form.photo,
+            video: this.form.video
+          }, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+            }
+          })
+          .then(response => {
+            // 处理成功响应
+            
+            console.log('新增疾病成功:', response.data);
+            // 关闭新增弹窗
+            this.dialogVisible = false;
+            // 清空表单数据
+            this.$refs.form.resetFields();
+            this.handleFilterChange();
+          })
+          .catch(error => {
+            // 处理失败响应
+            console.error('新增疾病失败:', error);
+            // 提示用户
+            this.$message.error('新增疾病失败，请稍后重试！');
+          });
+        } else {
+          // 如果表单验证不通过，则返回 false
+          return false;
+        }
+      });
+    },
+    // 处理删除按钮点击事件
+    handleDelete() {
+      if (this.selectedRow) {
+        // 发送 DELETE 请求将选中行的疾病删除
+        axios.delete(`api/diseases/${this.selectedRow.disease_id}`, {
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => {
+          // 处理成功响应
+          console.log('删除疾病成功:', response.data);
+          // 从列表中移除被删除的疾病
+          const index = this.cases.findIndex(item => item === this.selectedRow);
+          if (index !== -1) {
+            this.cases.splice(index, 1);
+            this.selectedRow = null;
+          }
+          // 删除成功后重新获取疾病列表并更新表格
+          this.handleFilterChange();
+        })
+        .catch(error => {
+          // 处理失败响应
+          console.error('删除疾病失败:', error);
+          // 提示用户
+          this.$message.error('删除疾病失败，请稍后重试！');
+        });
+      }
+    },
+
+    // 处理每页显示条数改变事件
+    handleSizeChange(val) {
+      this.pageSize = val;
+    },
+    // 处理页码改变事件
+    handleCurrentChange(val) {
+      this.currentPage = val;
+      this.handleFilterChange();
+    },
+    // 处理新增弹窗关闭前的回调
+    handleCloseDialog(done) {
+      this.dialogVisible = false;
+    },
+    // 处理修改弹窗关闭前的回调
+    handleCloseModifyDialog(done) {
+      this.modifyDialogVisible = false;
+    },
+    // 处理行点击事件
+    handleRowClick(row) {
+      if (this.selectedRow === row) {
+        // 取消选中状态
+        this.selectedRow = null;
+      } else {
+        // 设置选中状态
+        this.selectedRow = row;
+      }
+    },
+    // 处理病种筛选器变化
+    handleDiseaseTypeFilter(value, row) {
+      return this.filters.diseaseType.length === 0 || this.filters.diseaseType.includes(row.diseaseType);
+    },
+    // 处理表格筛选
+    handleFilter(filters) {
+      this.filters = filters;
+    },
+    // 处理修改按钮点击事件
+    openModifyDialog() {
+    // 检查是否有选中的行
+    if (this.selectedRow) {
+      // 将选中行的数据填充到表单中
+      this.form.id = this.selectedRow.disease_id; // 使用疾病ID填充表单中的ID
+      this.form.category_id = this.selectedRow.category_id; // 使用病种ID填充表单中的病种ID
+      this.form.name = this.selectedRow.name;
+      this.form.description = this.selectedRow.description;
+      //this.form.photo = this.selectedRow.photo;
+      //this.form.video = this.selectedRow.video;
+
+      // 设置修改弹窗可见
+      this.modifyDialogVisible = true;
+    } else {
+      console.log('没有选择')
+      // 如果没有选中行，提示用户选择行
+      // this.$message({
+      //   type: 'warning',
+      //   message: '请先选择要修改的行',
+      // });
+    }
+  },
+
+
+    // 处理修改弹窗确定按钮点击事件
+    handleModifyConfirm() {
+      // 表单验证
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          // 发送 PUT 请求将表单数据提交到后端
+          axios.put(`api/diseases/${this.form.id}`, {
+            name: this.form.name,
+            description: this.form.description,
+            category_id: this.form.category_id,
+            photo: this.form.photo,
+            video: this.form.video
+          }, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+            }
+          })
+          .then(response => {
+            // 处理成功响应
+            console.log('修改疾病成功:', response.data);
+            // 关闭修改弹窗
+            this.modifyDialogVisible = false;
+            // 清空表单数据
+            this.$refs.form.resetFields();
+            // 更新列表
+            this.handleFilterChange();
+          })
+          .catch(error => {
+            // 处理失败响应
+            console.error('修改疾病失败:', error);
+            // 提示用户
+            this.$message.error('修改疾病失败，请稍后重试！');
+          });
+        } else {
+          // 如果表单验证不通过，则返回 false
+          return false;
+        }
+      });
+    },
+
+
+    // 处理疾病图片和视频的预览和移除
+    handlePreview(file) {
+      console.log('文件是什么',file);
+      // 构造文件下载链接
+      const downloadUrl = `api/files/download?file_name=${file.name}`;
+      // 使用浏览器的下载功能下载文件
+      console.log('Session ID:', sessionStorage.getItem('sessionId'));
+
+      const config = {
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      };
+      window.open(downloadUrl, config);
+    },
+
+    handleRemove(file, fileList) {
+      // 这里可以根据需要添加移除文件的逻辑，例如从列表中移除文件等
+      console.log('remove', file, fileList);
+    },
+    // 调用后端接口获取病种名数据
+    fetchDiseaseOptions() {
+      axios.get('api/categories', {
+        withCredentials: true, // 允许携带 Cookie
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'), // 携带会话 ID
+          'Content-Type': 'application/json' // 设置请求头
+        }
+      })
+      .then(response => {
+        // 将获取到的病种名数据赋值给 diseaseOptions
+        this.diseaseOptions = response.data.data;
+      })
+      .catch(error => {
+        console.error('Failed to fetch disease options: ', error);
+      });
+    },
+    
+    // 处理筛选器变化事件
+    handleFilterChange() {
+      console.log('handleFilterChange is called');
+      // 检查筛选器是否为空
+      if (!this.selectedDiseaseType) {
+        // 如果筛选器为空，则将 category_id 设置为 1
+        this.selectedDiseaseType = 1;
+      }
+      // 发起后端请求获取指定病种下的疾病列表
+      axios.get(`api/diseases/categories/${this.selectedDiseaseType}`, {
+        withCredentials: true, // 允许携带 Cookie
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'), // 携带会话 ID
+          'Content-Type': 'application/json' // 设置请求头
+        }
+      })
+      .then(response => {
+        console.log('Response data:', response.data);
+        const responseData = response.data;
+        
+        if (responseData.code === 0) {
+          // 处理后端返回的数据
+          const diseases = responseData.data.map(item => ({
+            disease_id: item.disease_id,
+            name: item.name,
+            description: item.description,
+            category_id: item.category_id,
+            photo: `/files/download?file_name=${item.photo}`,
+            video: item.video
+          }));
+
+          // 将处理后的疾病列表赋值给 cases
+          this.cases = diseases;
+          // 输出填充后的 cases 到控制台
+          console.log("Filled cases:", this.cases);
+        } else {
+          // 处理错误情况
+          console.error('Failed to fetch disease list:', responseData.msg);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to fetch disease list:', error);
+      });
+    },
+
+    // 将病种ID映射到病种名
+    mapCategoryIdToTypeName(categoryId) {
+      const type = this.diseaseOptions.find(option => option.category_id === categoryId);
+      return type ? type.name : '';
+    },
+    handleDiseaseTypeChange(value) {
+      // 更新表单项的病种ID
+      this.form.category_id = value;
+    },
+    beforeUpload(file) {
+      // 设置请求头和withCredentials
+      this.uploadHeaders = {
+        'Session': sessionStorage.getItem('sessionId'),
+        'Content-Type': 'application/json',
+      };
+      this.uploadWithCredentials = true;
+
+      // 返回false阻止上传组件自动上传
+      return false;
+    }
+
+
+    
+
+  },
+};
   </script>
   
   <style scoped>
@@ -44,10 +628,15 @@
     margin-left: 10px;
     padding: 20px;
     padding-bottom: 20px;
+
+  }
+  .container {
+    height: 100%;
   }
   
   .user-management-container {
     width: 100%; /* 设置容器宽度为100% */
+    height: 100%;
   }
   
   .role-play-title {
@@ -62,7 +651,41 @@
     max-width: 100%; /* 设置表格最大宽度为容器的100% */
     border-collapse: separate;
     border-spacing: 0;
-    border-radius: 20px;
+  }
+
+  .tanchuang {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* 确保弹窗位于最顶层 */
+  }
+  .el-dialog__body .el-select-dropdown {
+    z-index: 1050; /* 调整下拉选择框的 z-index 值 */
+  }
+
+  .dialog-content {
+    border-radius: 10px;
+    padding: 20px;
+    width: 80%;
+    max-width: 100%; /* 设置弹窗最大宽度 */
+    max-height: 80%;  /* 设置弹窗内容区域最大高度为页面高度的60% */
+    overflow-y: auto; /* 如果内容过多，添加滚动条 */
+    background-color: white;
+  }
+  
+  .el-upload__tip {
+    font-size: 12px; /* 设置上传提示字体大小 */
+  }
+  
+  .el-pagination {
+    margin-top: 20px; /* 添加上边距 */
+    display: flex;
+    justify-content: center; /* 居中显示 */
   }
   </style>
-  

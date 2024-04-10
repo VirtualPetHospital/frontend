@@ -1,13 +1,18 @@
 <template>
   <div>
+    <div class="buttons-container">
+      <div  class="input-group" style="margin-bottom: 10px;">
+      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
+      <button @click="searchPapers" class="btn btn-primary">搜索</button>
+      </div>
+    </div>
     <!-- 表格容器 -->
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
           <col style="width: 5%">
           <col style="width: 7%">
-          <col style="width: 63%">
-          <col style="width: 7%">
+          <col style="width: 70%">
           <col style="width: 7%">
           <col style="width: 11%">
         </colgroup>
@@ -29,62 +34,44 @@
           <tr>
             <th scope="col" class="text-center rounded-top-left">选择</th>
             <th scope="col" class="text-center">试卷ID</th>
-            <th scope="col" class="text-center">试卷名</th>
-            <th scope="col" class="text-center" style="word-break: break-word;">题目数量</th>
-            <th scope="col" class="text-center" style="word-break: break-word;">考试时间</th>
+            <th scope="col" class="text-center" style="word-break: break-word;">试卷名</th>
+            <th scope="col" class="text-center" >题目数量</th>
             <th scope="col" class="text-center rounded-top-right">试卷详情</th>
           </tr>
         </thead>
         <tbody>
           <!-- 遍历每个考试项 -->
-          <tr v-for="(paper, index) in papers" :key="index">
+          <tr v-for="(paper, index) in paginatedPapers" :key="index">
             <td class="text-center">
               <input type="checkbox" v-model="paper.checked" @change="handlePaperSelection(paper)">
             </td>
-        <td class="text-center ">{{ paper.id }}</td>
-        <td class="text-center ">{{ paper.name }}</td>
-        <td class="text-center " style="word-break: break-word;">{{ paper.problemcount }}</td>
-        <td class="text-center " style="word-break: break-word;">{{ paper.time.hours }}时{{ paper.time.mins }}分钟</td>
+            <td class="text-center ">{{ paper.id }}</td>
+        <td class="text-center " style="word-break: break-word;">{{ paper.name }}</td>
+        <td class="text-center " >{{ paper.problemcount }}</td>
         <td class="text-center ">
           <!-- 查看按钮 -->
           <!-- <button @click="openPaperDetails(paper)"  class="btn btn-primary">查看详情</button> -->
           <button @click="myWatch(paper.id)" class="btn btn-primary">查看详情</button>
+          <!-- <button @click="myWatch(paper.id)" class="btn btn-primary" style="margin-left: 5px;">修改试卷</button> -->
         </td>
       </tr>
         </tbody>
       </table>
     </div>
-<transition name="modal">
-    <div class="modal-mask" v-if="showPaperDetails" @click="closePaperDetails">
-      <div class="modal-wrapper" @click.stop>
-        <div class="modal-container" style="width: 60%; height: 60%; overflow-y: auto; position: fixed; top: 50%; left: 40%; transform: translate(-50%, -50%);">
-          <h3>试卷详情</h3>
-          <form>
-            <label>题目ID：</label>
-            <input type="text" class="form-control" v-model="selectedPaper.id" disabled><br>
-            <label>分类：</label>
-            <input type="text" class="form-control" v-model="selectedPaper.category" :disabled="!editMode"><br>
-            <label>题目描述：</label>
-            <textarea class="form-control auto-height" v-model="selectedPaper.description" :disabled="!editMode"></textarea><br>
-            <label>A：</label>
-            <input type="text" class="form-control" v-model="selectedPaper.choiceA" :disabled="!editMode"><br>
-            <label>B：</label>
-            <input type="text" class="form-control" v-model="selectedPaper.choiceB" :disabled="!editMode"><br>
-            <label>C：</label>
-            <input type="text" class="form-control" v-model="selectedPaper.choiceC" :disabled="!editMode"><br>
-            <label>D：</label>
-            <input type="text" class="form-control" v-model="selectedPaper.choiceD" :disabled="!editMode"><br>
-            <label>答案：</label>
-            <input type="text" class="form-control" v-model="selectedPaper.answer" :disabled="!editMode"><br>
-            <div class="button-container">
-              <button type="button" class="btn btn-lg btn-block btn-primary" @click="editMode ? savePaperDetails() : toggleEditMode()">{{ editMode ? '保存' : '修改' }}</button>
-              <button type="button" class="btn btn-lg btn-block btn-warning" @click="editMode ? cancelEdit() : closePaperDetails()">{{ editMode ? '取消修改' : '关闭' }}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </transition>
+     <!-- 分页控件 -->
+     <nav aria-label="Page navigation example">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
+        </li>
+        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
+        </li>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
+        </li>
+      </ul>
+    </nav>
   </div>
 </template>
 
@@ -98,66 +85,62 @@ import { ref, Vue } from 'vue';
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router"; // 导入Vue
 import {ElButton, ElPagination, ElProgress, ElTable, ElTableColumn} from "element-plus";
+import axios from 'axios';
 const API_URL = `/api/paper`
 export default {
-  // props: {
-  //   problemmax: String,
-  //   tempname1: String,
-  //   temphours1: String,
-  //   tempmins1: String,
-  //   tempproblems: Array,
-  //   flag: Boolean,
-  // },
   data() {
     return {
       papers: [
-        { id: 1, name: '数学试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 2,mins: 30},checked: false },
-        { id: 2, name: '语文试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 1,mins: 30},checked: false},
-        { id: 3, name: '英语试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 3,mins: 2},checked: false},
+        // { id: 1, name: '数学试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 2,mins: 30},checked: false },
+        // { id: 2, name: '语文试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 1,mins: 30},checked: false},
+        // { id: 3, name: '英语试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 3,mins: 2},checked: false},
       ],
       editing: null,
       showEditModal: false, // 控制编辑窗口显示与隐藏
       showDeleteWarning: false, // 控制删除提示窗口的显示与隐藏
       editMode: false, // 是否为编辑模式
-      newPaper: { id: '', name: '', problemcount: '',problems:[],time:{hours:'',mins:''}},// 新增题目的初始信息
+      newPaper: { id: '', name: '', problemcount: '',problems:[]},// 新增题目的初始信息
       showPaperDetails: false,
       showSelectPaper: false,
-      selectedPaper: { id: '', name: '', problemcount: '',problems:[],time:{hours:'',mins:''}},
+      selectedPaper: { id: '', name: '', problemcount: '',problems:[]},
       temppaper:0,
       temppapername:'',
-    //   newPaper2: {
-    //     id: '',
-    //     name: this.tempname1, // 使用 props 中的 tempname1 值
-    //     problemcount: this.problemmax, // 使用 props 中的 problemmax 值
-    //     problems: this.tempproblems, // 使用 props 中的 tempproblems 值
-    //     time: {
-    //       hours: this.temphours1, // 使用 props 中的 temphours1 值
-    //       mins: this.tempmins1 // 使用 props 中的 tempmins1 值
-    //     }
-    //   },
-    //   flag1:this.flag,
-    selectedCount: 0, // 已选试题数量
-      tempexamlevel1:'', 
+      pageSize:7,
+      currentPage:1,
+      totalPapers:0,
+      selectedPapersMap: new Map(),
+      selectedCount: 0, // 已选试题数量
+      templevel1:'', 
       tempname1:'',
-      temphours1:'',
-      tempmins1:'',
+      tempstarttime1:'',
+      tempendtime1:'',
+      tempduration1:'',
       flag1:true,
+      allpapers:[],
+      tempselepaperid:0,
+      tempselepapername:'',
+      searchKeyword: '', // 搜索关键词
     };
   },
   created() {
     // 从路由参数中获取传递的参数值，并填充到文本框中
   this.tempname1=this.$route.params.tempname;
-  this.tempexamlevel1 = this.$route.params.tempexamlevel;
-  this.temphours1=this.$route.params.temphours;
-  this.tempmins1=this.$route.params.tempmins;
+  this.templevel1 = this.$route.params.templevel;
+  this.tempduration1 = this.$route.params.tempduration;
+  this.tempstarttime1=this.$route.params.tempstarttime;
+  this.tempendtime1=this.$route.params.tempendtime;
   console.log(this.tempname1);
-    console.log(this.newPaper);
   },
   watch: {
     // 监听已选试题数量的变化
     selectedCount(newValue) {
       // 更新动态进度条的宽度
       this.progressWidth = (newValue ) * 100 + '%';
+    },
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.totalPapers / this.pageSize);
     },
   },
   setup() {
@@ -171,6 +154,11 @@ export default {
      });
      return {};
    },
+   mounted() {
+    // 组件加载完成后立即获取题目列表数据
+    this.fetchPapers();
+    this.fetchAllPapers();
+  },
   methods: {
     openPaperDetails(paper) {
       this.selectedPaper = { ...paper };
@@ -198,8 +186,8 @@ export default {
       }
     },
     handlePaperSelection(paper) {
-      this.selectedCount = this.papers.filter(p => p.checked).length;
-
+      // this.selectedCount = this.papers.filter(p => p.checked).length;
+      this.selectedCount += paper.checked ? 1 : -1;
       // 如果已选试题数量达到上限，则取消当前选中的复选框并弹出提示
       if (this.selectedCount > 1 && paper.checked) {
         paper.checked = false;
@@ -207,6 +195,7 @@ export default {
         this.selectedCount--;
         return ;
       }
+      this.selectedPapersMap.set(paper.id, paper.checked);
     // 更新动态进度条的宽度
     this.progressWidth = (this.selectedCount ) * 100 + '%';
   },
@@ -226,26 +215,143 @@ export default {
       // 选题成功，弹出提示
       alert('选择试卷成功！');
         // 其他处理逻辑
-    this.papers.forEach(paper => {
-      if (paper.checked) {
-        this.temppaper = paper.id;
-        this.temppapername = paper.name;
+    this.allpapers.forEach(paper => {
+      if (this.selectedPapersMap.get(paper.id)) {
+        this.tempselepaperid=paper.id;
+        this.tempselepapername=paper.name;
       }
     });
     this.$router.push({
       name: '管理考试', // 跳转回之前的页面的名称
       params: {
-        tempexamlevel1: this.tempexamlevel1,
+        templevel1: this.templevel1,
         tempname1: this.tempname1,
-        temphours1: this.temphours1,
-        tempmins1: this.tempmins1,    
-        temppaper: this.temppaper, // 将数组转换为以逗号分隔的字符串
-        temppapername: this.temppapername, 
+        tempduration1: this.tempduration1,
+        tempstarttime1: this.tempstarttime1,
+        tempendtime1:this.tempendtime1,    
+        temppaper: this.tempselepaperid, 
+        temppapername: this.tempselepapername, 
         flag: this.flag1,
       }
     });
     }
   },
+  async fetchPapers() {
+    try {
+      const response = await axios.get('/api/papers', {
+        params: {
+          page_size: this.pageSize,
+          page_num: this.currentPage,
+          name: '', // 添加名称参数
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.papers = response.data.data.records.map(record => ({
+          id: record.paper_id, // 修改属性名为 paper_id
+          name: record.name, // 添加试卷名
+          problemcount: record.question_num, // 需要前端提供的题目数
+          checked: this.selectedPapersMap.get(record.paper_id) || false,
+          problems:[],
+        }));
+        this.$forceUpdate();
+        this.totalPapers = response.data.data.total;
+      this.paginatedPapers = this.papers;
+        console.log(this.paginatedPapers);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.fetchPapers(); // 调用 fetchProblems 获取新页数据
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.fetchPapers(); // 调用 fetchProblems 获取新页数据
+      }
+    },
+    gotoPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+        this.fetchPapers(); // 调用 fetchProblems 获取新页数据
+      }
+    },
+    myWatch(id) {
+      const paper = this.papers.find(paper => paper.id === id);
+      if (paper) {
+        // this.$router.push(`/Papers/${paper.id}`);
+        this.$router.push({ name: '查看试卷', params: {id : paper.id} });
+      } else {
+        console.error(`Paper with id ${id} not found`);
+      }
+    },
+    async fetchAllPapers() {
+    try {
+      const response = await axios.get('/api/papers', {
+        params: {
+          page_size: 200, // 获取所有题目数据
+          page_num: 1, // 获取第一页数据
+          name: '', // 添加名称参数
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.allpapers = response.data.data.records.map(record => ({
+          id: record.paper_id, // 修改属性名为 paper_id
+          name: record.name, // 添加试卷名
+          problemcount: record.question_num, // 需要前端提供的题目数
+          checked: this.selectedPapersMap.get(record.paper_id) || false,
+          problems:[],
+        }));
+        console.log(this.allproblems);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
+  async searchPapers() {
+    try {
+      const response = await axios.get('/api/papers', {
+        params: {
+          page_size: this.pageSize,
+          page_num: this.currentPage,
+          name: this.searchKeyword, // 添加名称参数
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.papers = response.data.data.records.map(record => ({
+          id: record.paper_id, // 修改属性名为 paper_id
+          name: record.name, // 添加试卷名
+          problemcount: record.question_num, // 需要前端提供的题目数
+          checked: this.selectedPapersMap.get(record.paper_id) || false,
+          problems:[],
+        }));
+          this.totalPapers = response.data.data.total;
+          this.paginatedPapers = this.papers;
+          console.log(this.papers);
+        }
+      } catch (error) {
+        console.error('Error fetching papers:', error);
+      }
+    },
   },
   components: {
     ArgonBadge,
@@ -405,5 +511,18 @@ margin-bottom: 10px;
   height: 100%;
   background-color: #007bff;
   transition: width 0.5s ease; /* 进度条动画效果 */
+}
+.small-input {
+  height: 40px; /* 设置输入框高度为 30px */
+  max-width: 200px; /* 设置输入框的最大宽度为 200px */
+  width: 50%; /* 设置输入框宽度为父元素宽度的 50% */
+}
+.btn-success,
+.btn-primary,
+.btn-danger {
+  height: 40px; /* 设置按钮高度为 40px */
+  width: auto; /* 让按钮宽度自适应内容 */
+  padding: 0 15px; 
+  white-space: nowrap; /* 防止按钮文字换行 */
 }
 </style>

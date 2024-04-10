@@ -1,9 +1,12 @@
 <template>
   <div>
     <!-- 按钮容器 -->
-    <div class="buttons-container">
+   <div class="buttons-container">
       <button @click="openAddModal" class="btn btn-success" style="margin-left: 2%;">新增试卷</button>
-
+      <div  class="input-group" style="margin-bottom: 10px;">
+      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
+      <button @click="searchPapers" class="btn btn-primary">搜索</button>
+      </div>
       <button @click="deletePaper" class="btn btn-danger" style="margin-right: 2%;">删除试卷</button>
     </div>
     <!-- 表格容器 -->
@@ -12,8 +15,7 @@
         <colgroup>
           <col style="width: 5%">
           <col style="width: 7%">
-          <col style="width: 63%">
-          <col style="width: 7%">
+          <col style="width: 70%">
           <col style="width: 7%">
           <col style="width: 11%">
         </colgroup>
@@ -21,30 +23,43 @@
           <tr>
             <th scope="col" class="text-center rounded-top-left">选择</th>
             <th scope="col" class="text-center">试卷ID</th>
-            <th scope="col" class="text-center">试卷名</th>
-            <th scope="col" class="text-center" style="word-break: break-word;">题目数量</th>
-            <th scope="col" class="text-center" style="word-break: break-word;">考试时间</th>
+            <th scope="col" class="text-center" style="word-break: break-word;">试卷名</th>
+            <th scope="col" class="text-center" >题目数量</th>
             <th scope="col" class="text-center rounded-top-right">试卷详情</th>
           </tr>
         </thead>
         <tbody>
           <!-- 遍历每个考试项 -->
-          <tr v-for="(paper, index) in papers" :key="index">
+          <tr v-for="(paper, index) in paginatedPapers" :key="index">
           <td class="text-center"><input type="checkbox" v-model="paper.checked"></td>
         <td class="text-center ">{{ paper.id }}</td>
-        <td class="text-center ">{{ paper.name }}</td>
-        <td class="text-center " style="word-break: break-word;">{{ paper.problemcount }}</td>
-        <td class="text-center " style="word-break: break-word;">{{ paper.time.hours }}时{{ paper.time.mins }}分钟</td>
+        <td class="text-center " style="word-break: break-word;">{{ paper.name }}</td>
+        <td class="text-center " >{{ paper.problemcount }}</td>
         <td class="text-center ">
           <!-- 查看按钮 -->
           <!-- <button @click="openPaperDetails(paper)"  class="btn btn-primary">查看详情</button> -->
           <button @click="myWatch(paper.id)" class="btn btn-primary">查看详情</button>
+          <!-- <button @click="myWatch(paper.id)" class="btn btn-primary" style="margin-left: 5px;">修改试卷</button> -->
         </td>
       </tr>
         </tbody>
       </table>
     </div>
 
+     <!-- 分页控件 -->
+     <nav aria-label="Page navigation example">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
+        </li>
+        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
+        </li>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
+        </li>
+      </ul>
+    </nav>
 <!-- 弹出窗口 -->
 <transition name="modal">
   <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
@@ -56,19 +71,19 @@
           <label>试卷名：</label>
           <input type="text" class="form-control" :value="editMode ? editingPaper.name : newPaper.name" @input="editMode ? editingPaper.name = $event.target.value : newPaper.name = $event.target.value"><br>
           <div style="display: flex; justify-content: space-between;">
-            <div style="width: 48%;">
+            <div style="width: 100%;">
               <label>题目个数：</label>
               <input type="text" class="form-control" :value="editMode ? editingPaper.problemcount : newPaper.problemcount" @input="editMode ? editingPaper.problemcount = $event.target.value : newPaper.problemcount= $event.target.value"><br>
             </div>
-            <div style="width: 48%;">
-              <label>考试时间：</label>
+            <!-- <div style="width: 100%;"> -->
+              <!-- <label>考试时间：</label>
               <div style="display: flex; align-items: center;">
                 <input type="text" class="form-control" style="width: 45%;" :value="editMode ? editingPaper.time.hours : newPaper.time.hours" @input="editMode ? editingPaper.time.hours = $event.target.value : newPaper.time.hours = $event.target.value">
                 <span style="margin: 0 5px;">时</span>
                 <input type="text" class="form-control" style="width: 45%;" :value="editMode ? editingPaper.time.mins: newPaper.time.mins" @input="editMode ? editingPaper.time.mins = $event.target.value : newPaper.time.mins = $event.target.value">
                 <span style="margin: 0 5px;">分</span>
-              </div>
-            </div>
+              </div> -->
+            <!-- </div> -->
           </div>
           <div>
             <label>试题选择：</label>
@@ -81,7 +96,7 @@
               /> -->
           </div>
           <div class="button-container">
-            <button type="submit" class="btn btn-lg btn-block btn-primary">{{'添加'}}</button>
+            <button type="submit" class="btn btn-lg btn-block btn-info">{{'添加'}}</button>
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
           </div>
         </form>
@@ -89,6 +104,7 @@
     </div>
   </div>
 </transition>
+
 <transition name="modal">
     <div class="modal-mask" v-if="showPaperDetails" @click="closePaperDetails">
       <div class="modal-wrapper" @click.stop>
@@ -112,7 +128,7 @@
             <label>答案：</label>
             <input type="text" class="form-control" v-model="selectedPaper.answer" :disabled="!editMode"><br>
             <div class="button-container">
-              <button type="button" class="btn btn-lg btn-block btn-primary" @click="editMode ? savePaperDetails() : toggleEditMode()">{{ editMode ? '保存' : '修改' }}</button>
+              <button type="button" class="btn btn-lg btn-block btn-info" @click="editMode ? savePaperDetails() : toggleEditMode()">{{ editMode ? '保存' : '修改' }}</button>
               <button type="button" class="btn btn-lg btn-block btn-warning" @click="editMode ? cancelEdit() : closePaperDetails()">{{ editMode ? '取消修改' : '关闭' }}</button>
             </div>
           </form>
@@ -160,27 +176,27 @@
           <label>试卷名：</label>
           <input type="text" class="form-control"  v-model="newPaper.name" :disabled="!editMode"><br>
           <div style="display: flex; justify-content: space-between;">
-            <div style="width: 48%;">
+            <div style="width: 100%;">
               <label>题目个数：</label>
               <input type="text" class="form-control" v-model="newPaper.problemcount" :disabled="!editMode"><br>
             </div>
-            <div style="width: 48%;">
-              <label>考试时间：</label>
+            <!-- <div style="width: 48%;"> -->
+              <!-- <label>考试时间：</label>
               <div style="display: flex; align-items: center;">
                 <input type="text" class="form-control" style="width: 45%;" v-model="newPaper.time.hours" :disabled="!editMode">
                 <span style="margin: 0 5px;">时</span>
                 <input type="text" class="form-control" style="width: 45%;" v-model="newPaper.time.mins" :disabled="!editMode">
                 <span style="margin: 0 5px;">分</span>
-              </div>
-            </div>
+              </div> -->
+            <!-- </div> -->
           </div>
           <div>
             <label>试题集：</label>
             <input type="text" class="form-control"  v-model="newPaper.problems" :disabled="!editMode"><br>
-            <span>已选试题：{{ newPaper.problems.length/2+0.5 }}/{{ newPaper.problemcount }}</span>
+            <span>已选试题：{{ newPaper.problemcount }}/{{ newPaper.problemcount }}</span>
           </div>
           <div class="button-container">
-            <button type="submit" class="btn btn-lg btn-block btn-primary">{{'添加'}}</button>
+            <button type="submit" class="btn btn-lg btn-block btn-info" @click="addPaper(newPaper)">{{'添加'}}</button>
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
           </div>
         </form>
@@ -201,6 +217,7 @@ import { ref, Vue } from 'vue';
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router"; // 导入Vue
 import {ElButton, ElPagination, ElProgress, ElTable, ElTableColumn} from "element-plus";
+import axios from 'axios';
 const API_URL = `/api/paper`
 export default {
   // props: {
@@ -214,18 +231,22 @@ export default {
   data() {
     return {
       papers: [
-        { id: 1, name: '数学试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 2,mins: 30},checked: false },
-        { id: 2, name: '语文试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 1,mins: 30},checked: false},
-        { id: 3, name: '英语试卷', problemcount: 3 ,problems: [{},{},{}],time: {hours: 3,mins: 2},checked: false},
+        // { id: 1, name: '数学试卷', problemcount: 3 ,problems: [{},{},{}],checked: false},
+        // { id: 2, name: '语文试卷', problemcount: 3 ,problems: [{},{},{}],checked: false},
+        // { id: 3, name: '英语试卷', problemcount: 3 ,problems: [{},{},{}],checked: false},
       ],
       editing: null,
       showEditModal: false, // 控制编辑窗口显示与隐藏
       showDeleteWarning: false, // 控制删除提示窗口的显示与隐藏
       editMode: false, // 是否为编辑模式
-      newPaper: { id: '', name: '', problemcount: '',problems:[],time:{hours:'',mins:''}},// 新增题目的初始信息
+      newPaper: { id: '', name: '', problemcount: '',problems:[]},// 新增题目的初始信息
       showPaperDetails: false,
       showSelectPaper: false,
-      selectedPaper: { id: '', name: '', problemcount: '',problems:[],time:{hours:'',mins:''}},
+      selectedPaper: { id: '', name: '', problemcount: '',problems:[]},
+      pageSize:7,
+      currentPage:1,
+      totalPapers:0,
+      searchKeyword: '', // 搜索关键词
     //   newPaper2: {
     //     id: '',
     //     name: this.tempname1, // 使用 props 中的 tempname1 值
@@ -243,11 +264,16 @@ export default {
     // 从路由参数中获取传递的参数值，并填充到文本框中
     this.newPaper.name =this.$route.params.tempname1;
     this.newPaper.problemcount = this.$route.params.problemmax;
-    this.newPaper.time.hours = this.$route.params.temphours1;
-    this.newPaper.time.mins = this.$route.params.tempmins1;
+    // this.newPaper.time.hours = this.$route.params.temphours1;
+    // this.newPaper.time.mins = this.$route.params.tempmins1;
     this.newPaper.problems=this.$route.params.tempproblems;
     this.flag1=this.$route.params.flag;
     console.log(this.newPaper);
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.totalPapers / this.pageSize);
+    },
   },
   setup() {
      const store = useStore();
@@ -260,6 +286,10 @@ export default {
      });
      return {};
    },
+   mounted() {
+    // 组件加载完成后立即获取题目列表数据
+    this.fetchPapers();
+  },
   methods: {
     openEditModal(paper) {
       this.editMode = true; // 进入编辑模式
@@ -305,19 +335,34 @@ export default {
       this.flag1=false;
     },
     deletePaper() {
-      const selectedPapers = this.papers.filter(paper => paper.checked);
+      const selectedPapers = this.papers.filter(paper => paper.checked);//
       if (selectedPapers.length > 0) {
-        // 删除选中的题目信息
-        selectedPapers.forEach(paper => {
-          const index = this.papers.findIndex(u => u.id === paper.id);
-          if (index !== -1) 
-          {
-            this.papers.splice(index, 1);
-            console.log('已删除题目:', paper);
-          }
+        const promises = selectedPapers.map(paper => {
+          // 发送 DELETE 请求到后端删除试题
+          return axios.delete(`/api/papers/${paper.id}`, {
+            withCredentials: true,
+              headers: {
+                'Session': sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+              }
+          }).then(response => {
+            // 删除成功后从前端数据中移除已删除的题目
+            const index = this.papers.findIndex(u => u.id === paper.id);
+            if (index !== -1) {
+              this.papers.splice(index, 1);
+              console.log('已删除试卷:', paper);
+            }
+          }).catch(error => {
+            console.error('Error deleting paper:', error);
+          });
+        });
+
+        // 使用 Promise.all 等待所有删除操作完成
+        Promise.all(promises).then(() => {
+          console.log('所有选中的试卷已删除');
         });
       } else {
-        console.log('请至少选择一个要删除的题目');
+        console.log('请至少选择一个要删除的试卷');
         this.showDeleteWarning = true;
       }
     },
@@ -346,7 +391,8 @@ export default {
     myWatch(id) {
       const paper = this.papers.find(paper => paper.id === id);
       if (paper) {
-        this.$router.push(`/papers/${paper.id}`);
+        // this.$router.push(`/Papers/${paper.id}`);
+        this.$router.push({ name: '查看试卷', params: {id : paper.id} });
       } else {
         console.error(`Paper with id ${id} not found`);
       }
@@ -360,10 +406,10 @@ export default {
     //   }
     // }
   selectQuestions(newPaper) {
-  if (newPaper.problemcount !='' && newPaper.name!='' && newPaper.time.hours!=''&& newPaper.time.mins!='') {
+  if (newPaper.problemcount !='' && newPaper.name!='') {
     this.showEditModal = false; // 关闭编辑窗口
     this.editMode = false; // 重置编辑模式
-    this.$router.push({ name: '选择试题', params: { tempname: newPaper.name, tempproblemcount:newPaper.problemcount, temphours:newPaper.time.hours, tempmins:newPaper.time.mins} });
+    this.$router.push({ name: '选择试题', params: { tempname: newPaper.name, tempproblemcount:newPaper.problemcount} });
     // console.log(newPaper);
   } else {
     console.error(`试卷基本信息填写不完整`);
@@ -372,6 +418,128 @@ export default {
   },
   closeSelectPaper() {
       this.showSelectPaper = false; // 关闭删除提示窗口
+    },
+  async fetchPapers() {
+    try {
+      const response = await axios.get('/api/papers', {
+        params: {
+          page_size: this.pageSize,
+          page_num: this.currentPage,
+          name: '', // 添加名称参数
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.papers = response.data.data.records.map(record => ({
+          id: record.paper_id, // 修改属性名为 paper_id
+          name: record.name, // 添加试卷名
+          problemcount: record.question_num, // 需要前端提供的题目数
+          checked: false,
+          problems:[],
+        }));
+        this.$forceUpdate();
+        this.totalPapers = response.data.data.total;
+      this.paginatedPapers = this.papers;
+        console.log(this.papers);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.fetchPapers(); // 调用 fetchProblems 获取新页数据
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.fetchPapers(); // 调用 fetchProblems 获取新页数据
+      }
+    },
+    gotoPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+        this.fetchPapers(); // 调用 fetchProblems 获取新页数据
+      }
+    },
+  async addPaper(newPaper) {
+  // 解析 newPaper.problems 字符串，得到题目序号数组
+  const problemIds = newPaper.problems.split(',').map(id => parseInt(id.trim()));
+  try {
+    // 依次发送请求获取每个题目的具体信息
+    const problemsPromises = problemIds.map(async (question_id) => {
+      const response = await axios.get(`/api/questions/${question_id}`, {
+        withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+      });
+      return response.data.data; // 返回题目信息对象
+    });
+
+    // 等待所有题目信息请求完成
+    const problems = await Promise.all(problemsPromises);
+    console.log(problems);
+    // 构建完整的试卷对象
+    const paper = {
+      name: newPaper.name,
+      question_num: newPaper.problemcount,
+      questions: problems
+    };
+    // 发送试卷信息给后端的 /papers 接口
+    const response = await axios.post('/api/papers', paper, {
+      withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+    });
+    // 处理返回的响应数据
+    console.log('试卷添加成功：', response.data);
+    // 关闭编辑窗口
+    this.closeEditModal();
+    // 重新获取试卷数据
+    this.fetchPapers();
+  } catch (error) {
+    console.error('添加试卷失败：', error);
+  }
+      },
+      async searchPapers() {
+        try {
+      const response = await axios.get('/api/papers', {
+        params: {
+          page_size: this.pageSize,
+          page_num: this.currentPage,
+          name: this.searchKeyword, // 添加名称参数
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.papers = response.data.data.records.map(record => ({
+          id: record.paper_id, // 修改属性名为 paper_id
+          name: record.name, // 添加试卷名
+          problemcount: record.question_num, // 需要前端提供的题目数
+          checked: false,
+          problems:[],
+        }));
+          this.totalPapers = response.data.data.total;
+          this.paginatedPapers = this.papers;
+          console.log(this.papers);
+        }
+      } catch (error) {
+        console.error('Error fetching papers:', error);
+      }
     },
   },
   components: {
@@ -514,5 +682,18 @@ margin-bottom: 10px;
   max-height: 300px; /* 设置文本框的最大高度 */
   resize: none; /* 禁止用户调整文本框的大小 */
   overflow-y: auto; /* 当文本内容超出文本框高度时，显示滚动条 */
+}
+.small-input {
+  height: 40px; /* 设置输入框高度为 30px */
+  max-width: 200px; /* 设置输入框的最大宽度为 200px */
+  width: 50%; /* 设置输入框宽度为父元素宽度的 50% */
+}
+.btn-success,
+.btn-primary,
+.btn-danger {
+  height: 40px; /* 设置按钮高度为 40px */
+  width: auto; /* 让按钮宽度自适应内容 */
+  padding: 0 15px; 
+  white-space: nowrap; /* 防止按钮文字换行 */
 }
 </style>

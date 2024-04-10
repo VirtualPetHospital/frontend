@@ -34,9 +34,9 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
         <sidenav-item
-            to="/MedcaseManagement"
-            :class="getRoute() === 'MedcaseManagement' ? 'active' : ''"
-            :navText="isRTL ? 'MedcaseManagement' : '病例管理'"
+            to="/CategoryManagement"
+            :class="getRoute() === 'CategoryManagement' ? 'active' : ''"
+            :navText="isRTL ? 'CategoryManagement' : '病种管理'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
@@ -54,6 +54,18 @@ const getRoute = () => {
           </template>
         </sidenav-item>
       </li>
+      <li class="nav-item">
+        <sidenav-item
+            to="/MedcaseManagement"
+            :class="getRoute() === 'MedcaseManagement' ? 'active' : ''"
+            :navText="isRTL ? 'MedcaseManagement' : '病例管理'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
+      
       <li class="nav-item">
         <sidenav-item
             to="/InspectionManagement"
@@ -76,6 +88,19 @@ const getRoute = () => {
           </template>
         </sidenav-item>
       </li>
+
+      <li class="nav-item">
+        <sidenav-item
+            to="/OperationManagement"
+            :class="getRoute() === 'OperationManagement' ? 'active' : ''"
+            :navText="isRTL ? 'OperationManagement' : '手术管理'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
+      
       <li class="nav-item">
         <sidenav-item
             to="/RoomManagement"
@@ -87,6 +112,22 @@ const getRoute = () => {
           </template>
         </sidenav-item>
       </li>
+
+      <li class="nav-item">
+        <sidenav-item
+            to="/TTT"
+            :class="getRoute() === 'TTT' ? 'active' : ''"
+            :navText="isRTL ? 'TTT' : '测试'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
+
+      
+
+
     </ul>
   </div>
 

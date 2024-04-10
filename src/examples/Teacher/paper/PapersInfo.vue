@@ -1,318 +1,277 @@
 <template>
-  <!-- <div v-for="(paper, index) in papers" :key="index" class="row"> -->
-  <div class="row">
-    <div class="col-1"></div>
-    <div class="col">
-      <div class="card p-4">
-        <argon-button @click="goBack" color="secondary" variant="gradient" class="ms-3 col-1">返回</argon-button>
-        <h3 class="ms-3">{{ name }}</h3>
-        <div class="mt-3">
-          <div v-for="(question, idx) in questions" :key="idx">
-            <div>
-              <div class="card mb-2 me-3 ms-3 pe-4 ps-4 pt-3 pb-3">
-                <div >
-                  <div>
-                    <h6>{{ idx + 1 }}. {{ question.description }}</h6>
+  <div class="card p-4" >
+    <div class=" row">
+      <div class="col-12">
+        <h3>试卷：{{this.paper.name}}</h3>
+        <button @click="goBack" class="btn btn-success" style="margin-right: 2%;">返回</button>
+        <button @click="showInputBox = true" class="btn btn-success" style="margin-right: 2%;">重选试题</button>
+        <div v-if="showInputBox" class="input-group" style="margin-bottom: 10px;">
+          <input type="text" class="form-control small-input" placeholder="请输入试题总数" v-model="newQuestionNum">
+          <button class="btn btn-primary" @click="confirmNewQuestionNum">确定</button>
+        </div>
+        <el-container>
+          <el-aside class="asideLeft">
+            <div class="aside_div">
+              <div class="oneItem">
+                <div class="fl">
+                  <div class="fs14">试题总数</div>
+                  <div ><i class="fs28">{{this.paper.question_num}}</i>
+                    <i class="fs12 co333">题</i>
                   </div>
-                    <div v-for="item of question.options" :key="item.id">
-                      <div>
-                        <input @change="getScore(idx)"  type="radio" :id="item.id"
-                               :value="item.id" v-model="question.yourAns" :disabled="!isActive">
-                        <label :for="item.id" class="ms-4 me-4">{{ item.content }}</label>
-                        <i v-if="!isActive && isRightAnswer(item.id, idx)"
-                           class="ni ni-check-bold text-success opacity-10"></i>
-                      </div>
+                </div>
+              </div>
+              <div class="itemInner">
+                <div class="fs16">
+                  单选题
+                </div>
+                <div class="box-list">
+                  <div
+                      class="box normal-box question_cbox"
+                      v-for="(question,index) in this.paper.questions"
+                      :key="index"
+                  >
+                    <div
+                        :class="{ 'ansRight': checkResult(question), 'ansFalse': !checkResult(question) }"
+                        @click="selectQuestion(question)"
+                    >
+                      {{index+1}}
                     </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
+          </el-aside>
+          <el-main style="padding:5px">
+            <el-card style="border-radius: 10px">
+              <span style="font-size: larger;">题目描述</span>
+              <div v-if="selectedQuestion">
+                {{selectedQuestion.description}}
+              </div>
+            </el-card>
+            <el-card style="border-radius: 10px;margin-top:10px">
+              <div v-if="selectedQuestion">
+                <span>选项</span>
+                <div>
+                <!-- <el-radio-group v-model="selectedAns"> -->
+                    <el-radio disabled>A. {{ selectedQuestion.a }}</el-radio>
+                    <el-radio disabled>B. {{ selectedQuestion.b }}</el-radio>
+                    <el-radio disabled>C. {{ selectedQuestion.c }}</el-radio>
+                    <el-radio disabled>D. {{ selectedQuestion.d }}</el-radio>
+                <!-- </el-radio-group> -->
+              </div>
+                <span>正确答案：{{selectedQuestion.answer}}
+                </span>
+              </div>
+            </el-card>
+          </el-main>
+        </el-container>
       </div>
     </div>
-    <div class="col-1"></div>
-
-  </div>
-  <div>
-    <pre v-if="showTest">{{ paper }}</pre>
   </div>
 </template>
-
 <script>
-
-import ArgonBadge from "@/components/ArgonBadge.vue";
-import ArgonButton from "@/components/ArgonButton.vue";
+import { defineComponent, ref, reactive} from 'vue'
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router";
-
-const API_URL = `/api/paper`
-
-export default {
-  data() {
-    return {
-      qId: '',//选择题目
-      qScore: '',//设置分数
-      paper_id: "p1",
-      name: "数学考试1",
-
-      questions: [
-        {
-          question_id: "q01",
-          description: "1+1=",
-          options: [
-            {
-              id: 1,
-              content: "1"
-            },
-            {
-              id: 2,
-              content: "2"
-            },
-            {
-              id: 3,
-              content: "3"
-            }
-          ],
-          answer: 2,
-          category_id:98,
-        },
-        {
-          question_id: "q01",
-          description: "1+1=",
-          options: [
-            {
-              id: 1,
-              content: "1"
-            },
-            {
-              id: 2,
-              content: "2"
-            },
-            {
-              id: 3,
-              content: "3"
-            }
-          ],
-          answer: 2,
-          category_id:98,
-        }
-      ],
-      //status: 'undo',//完成考试状态'undo','todo','done'
-      isActive: false,//如果是交互的则为true，否则为false.[只有学生操作是true,老师编辑试卷、批改试卷，学生查看试卷都是false]
-      isResult: false,//用来展示题目的正状态：正确、错误、待评审
-      editScore: false,//用来修改分数(新建/修改试卷的时候为true；其他时候为false)
-      editUScore: false,//用来修改学生分数（批改时为true；其他时候为false）
-
-      showTest: false,//打印测试信息
-      mock: false,//用来HTTP测试
+import {ElHeader, ElRadio, ElRadioGroup, ElAside, ElContainer
+  , ElMain, ElProgress,ElCard,ElButton
+} from "element-plus";
+import axios from "axios";
+export default{
+  data(){
+    return{
+      name:null,
+      answerInfo:null,
+      selectedQuestion: {
+        description:"请选择题目",
+        a:null,
+        b:null,
+        c:null,
+        d:null
+      },
+      selectedAns:null,
+      exam_id:null,
+      paper:[],
+      showInputBox: false,
+      newQuestionNum: '',
     }
   },
-  components: {
-    ArgonButton,
-
-  },
-  methods: {
-    async getPaper() {
-      const id = this.$route.params.id;
-      console.log(this.$route.params);//打印结果为{user:'david'}
-      const url = `${API_URL}?paperId=${id}`
-      // const url = `${API_URL}/`
-
-      if (!this.mock) {
-        this.paper =  await (await fetch(url)).json()
-        console.log(this.paper)
-      }
-      /* mock */
-      if (this.mock) {
-        this.paper = {
-          "id": id,
-          "name": "数学考试1",
-          "time": {
-            "hours": "2",
-            "mins": "10"
-          },
-          "permission": "public",
-          "userId": "",
-          "questions": [
-            {
-              "id": "q01",
-              "description": "1+1=",
-              "options": [
-                {
-                  "id": 1,
-                  "content": "1"
-                },
-                {
-                  "id": 2,
-                  "content": "2"
-                },
-                {
-                  "id": 3,
-                  "content": "3"
-                }
-              ],
-              "answer": 2,
-              "type": "single",
-              "category": "A",
-              "disease": "A1",
-              "analysis": "1+1=2",
-              "score": 5
-            },
-            {
-              "id": "q02",
-              "description": "1+2=",
-              "options": [
-                {
-                  "id": 1,
-                  "content": "1"
-                },
-                {
-                  "id": 2,
-                  "content": "three"
-                },
-                {
-                  "id": 3,
-                  "content": "3"
-                },
-                {
-                  "id": 4,
-                  "content": "4"
-                }
-              ],
-              "answer": [
-                2,
-                3
-              ],
-              "type": "multiple",
-              "category": "B",
-              "disease": "B2",
-              "analysis": "1+2=3",
-              "score": 10
-            },
-            {
-              "id": "q05",
-              "description": "1+4=",
-              "options": [],
-              "answer": [
-                "5",
-                "五"
-              ],
-              "type": "short",
-              "category": "C",
-              "disease": "C1",
-              "analysis": "1+4=5",
-              "score": 5
-            },
-            {
-              "id": "q04",
-              "stem": "1+23=",
-              "options": [],
-              "answer": "",
-              "type": "long",
-              "category": "D",
-              "disease": "D2",
-              "analysis": "1+23=24",
-              "score": 10
-            }
-          ]
-        }
-      }
-    },
-    init(mode) {
-      switch (mode) {
-        case 't'://test 测试
-          this.showTest = true
-          break;
-        case 'p'://teacher paper 老师组卷
-          // this.question.yourAns = []//used
-          this.editScore = false
-          break;
-        case 'e'://student exam  学生考试
-          this.isActive = true
-          break;
-        case 'r'://student result 学生答卷
-          this.isResult = true
-          break;
-        case 'w'://teacher watch 审批
-          this.editUScore = true
-          this.isResult = true
-          break;
-        default:
-          this.editUScore = false
-          this.editScore = false
-          this.isActive = false
-          this.isResult = false
-          break;
-      }
-    },
-    getPaperId(result) {
-      //todo：需要修改
-      if (result.ok) {
-        return result.json().id
-      } else {
-        return "Q01_test"
-      }
-    },
+  methods:{
     goBack() {
-      this.$router.back()
-     
+      this.$router.back();
     },
-    // showHidden(idx) {
-    //   if (this.isActive) {
-    //     this.questions[idx].hidden = false
-    //   } else {
-    //     this.questions[idx].hidden = !this.paper.questions[idx].hidden
+    selectQuestion(question) {
+      // let qid=answer.answers.question_id;
+      // axios.get(
+      //     '/questions',
+      //     {
+      //       params:{
+      //         question_id:qid
+      //       }
+      //     }
+      // ).then(response=>{
+      //   this.selectedQuestion.description=response.data.description
+      //   this.selectedQuestion.a=response.data.a;
+      //   this.selectedQuestion.b=response.data.b;
+      //   this.selectedQuestion.c=response.data.c;
+      //   this.selectedQuestion.d=response.data.d;
+      //   this.selectedQuestion.answer=response.data.answer;
+      //   if(answer.option==='A'){
+      //     this.selectedAns=1;
+      //   }else if(answer.option==='B'){
+      //     this.selectedAns=2;
+      //   }else if(answer.option==='C'){
+      //     this.selectedAns=3;
+      //   }else if(answer.option==='D'){
+      //     this.selectedAns=4;
+      //   }
+      // }).catch(error=>{
+      //   console.error('获取'+qid+'题目信息失败',error);
+      // })
+      this.selectedQuestion = question;
+      this.selectedAns = null; // Reset selected answer  
+    },
+    selectQuestionMock(answer){
+      let qid=answer.answers.question_id
+      if(qid===85){
+        this.selectedQuestion.description='85';
+        this.selectedQuestion.a='85a';
+        this.selectedQuestion.b='85b';
+        this.selectedQuestion.c='85c';
+        this.selectedQuestion.d='85d';
+        this.selectedQuestion.answer='D';
+      }else if(qid===86){
+        this.selectedQuestion.description='86';
+        this.selectedQuestion.a='856';
+        this.selectedQuestion.b='856';
+        this.selectedQuestion.c='856';
+        this.selectedQuestion.d='856d';
+        this.selectedQuestion.answer='A'
+      }
+      if(answer.option==='A'){
+        this.selectedAns=1;
+      }else if(answer.option==='B'){
+        this.selectedAns=2;
+      }else if(answer.option==='C'){
+        this.selectedAns=3;
+      }else if(answer.option==='D'){
+        this.selectedAns=4;
+      }
+    },
+    // checkResult(answer){
+    //   if(!answer){
+    //     return;
+    //   }
+    //   if(answer.option===answer.answers.answer){
+    //     return true;
+    //   }else{
+    //     return false;
     //   }
     // },
-    isRightAnswer(id, idx) {
-        return id == this.questions[idx].answer
+    checkResult(question) {
+      return true;
     },
-    isEqual(l1, l2) {
-      if (l1.length != l2.length) {
-        return false
+    // fetchExam(examId){
+    //   axios.get(`/answer-sheets/${examId}`).then(response=>{
+    //     const examData = response.data.data;
+    //     this.answerInfo=examData;
+    //   }).catch(error=>{
+    //     console.log('获取试卷失败2',error);
+    //   })
+    // },
+    fetchExamMock() {
+      return new Promise((resolve, reject) => {
+        // 模拟考试数据
+        const examData =  [
+          {
+            "answer_sheet_id": 34,
+            "user_id": 57,
+            "option": "D",
+            "exam_id": 62,
+            "answers":{
+              "id": 1,
+              "answer_sheet_id":34,
+              "question_id":85,
+              "answer":"D"
+            }
+          },
+          {
+            "answer_sheet_id": 4,
+            "user_id": 57,
+            "option": "B",
+            "exam_id": 62,
+            "answers":{
+              "id": 1,
+              "answer_sheet_id":4,
+              "question_id":86,
+              "answer":"A"
+            }
+          },
+          {
+            "answer_sheet_id": 4,
+            "user_id": 57,
+            "option": "B",
+            "exam_id": 62,
+            "answers":{
+              "id": 1,
+              "answer_sheet_id":4,
+              "question_id":86,
+              "answer":"A"
+            }
+          }
+        ];
+        this.answerInfo=examData;
+        console.log(this.answerInfo);
+        // 模拟异步请求
+        setTimeout(() => {
+          resolve(examData);
+        }, 50);
+      });
+    },
+    confirmNewQuestionNum() {
+      if (this.newQuestionNum !== '') {
+        const tempname = this.paper.name;
+        this.$router.push({ name: '重选试题', params: { tempid:this.exam_id,tempname:tempname, tempproblemcount: this.newQuestionNum } });
       } else {
-        l1 = l1.sort
-        l2 = l2.sort
-        return l1 == l2
+        console.error(`请输入试题总数`);
       }
-    },
-    getScore(idx) {//提交试卷的时候调用//used
-      //todo:还没调用
-      this.questions[idx].status = 'done'
-        this.questions[idx].uScore = this.questions[idx].yourAns == this.questions[idx].answer ? this.questions[idx].score : 0
-
-    },
-    correct(idx) {
-      if (this.questions[idx].status == 'done') {
-        return this.questions[idx].uScore == this.questions[idx].score
-      }
-      return false
-    },
-    wrong(idx) {
-      if (this.questions[idx].status == 'done') {
-        return this.questions[idx].uScore != this.questions[idx].score
-
-      }
-      return false
-    },
-    waiting(idx) {
-      return this.questions[idx].status == 'todo'
-    },
-    undo(idx) {
-      return this.questions[idx].status == 'undo'
-    },
-    todo(idx) {
-      return this.questions[idx].status == 'todo'
     },
   },
+  components:{
+    ElRadio,
+    ElRadioGroup,
+    ElAside,
+    ElMain,
+    ElHeader,
+    ElContainer,
+    ElProgress,
+    defineComponent,
+    ElCard,
+    ElButton
+  },
   mounted() {
-    // this.getPaper()
-    this.init('p')
+    const examId=this.$route.params.id;
+    // const name=this.$route.params.name;
+    // console.log('name',name);
+    // this.name=name;
+    this.exam_id=examId;
+    console.log('examId IN PAPERINFO',this.exam_id);
+    axios.get(`/api/papers/${examId}`, {
+      withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+  }).then(response => {
+    this.paper = response.data.data;
+    // 在这里处理获取的试卷数据，例如将试题信息存储到组件的数据中
+    console.log(this.paper);
+  }).catch(error => {
+    console.error('获取试卷失败', error);
+  });
   },
   setup() {
     const store = useStore();
-
     // 在组件被挂载后，设置 showSidenavStudent 为 true
     store.commit('setShowSidenavTeacher', true);
     onBeforeRouteLeave((to, from, next) => {
@@ -320,12 +279,142 @@ export default {
       store.commit('setShowSidenavTeacher', false);
       next();
     });
-
-    return {};
-  },
-  created(){
-    this.getPaper()
   }
+};
+</script>
+
+<style scoped>
+
+.card.p-4{
+  margin-left: 5px;
+  margin-bottom: 10px;
+}
+/* Scoped styles for the el-aside component */
+.asideLeft {
+  width: 200px;
 }
 
-</script>
+/* Container styles */
+.aside_div {
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #fff; /* Change as needed */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow effect */
+}
+
+/* Styles for the first item */
+.oneItem {
+  margin-bottom: 20px;
+}
+
+/* Styles for the second item */
+.twoItem {
+  padding: 20px;
+  background-color: #f9f9f9; /* Change as needed */
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.custom-button {
+  /* 设置背景颜色 */
+  background-color: #b6d0ff;
+  /* 设置边框颜色和样式 */
+  border: 3px solid #4b7cff;
+  /* 设置字体颜色 */
+  color: #0265e7;
+  /* 设置字体大小 */
+  font-size: 18px;
+
+  /* 设置圆角 */
+  border-radius: 6px;
+  padding-left: 10px;
+  padding-right: 10px;
+  /* 设置按钮悬停时的背景颜色 */
+}
+.custom-button:hover {
+  /* 设置按钮悬停时的背景颜色 */
+  background-color: #ffffff;
+  border-color: #66b1ff;
+}
+::v-deep .el-radio{
+  display: block;
+  margin:10px 0;
+}
+.bottomItem i {
+  margin: 0 5px;
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.bottomItem i:first-child {
+  background-color: #999; /* Color for unanswered question icon */
+}
+
+.bottomItem i:last-child {
+  background-color: #007bff; /* Color for answered question icon */
+}
+.countdown-main .time-num{
+  font-weight: 400;
+  display: inline-block;
+  border: 1px solid #f4f4f4;
+  padding: 0 4px;
+  border-radius: 4px;
+  min-width: 48px;
+  text-align: center;
+  background-color: #f4f4f4;
+  font-size: 18px;
+}
+.box-list {
+  padding-bottom: 0;
+  position: relative;
+  left: -5px;
+  font-size: 0;
+  margin-right: -15px;
+}
+
+.box-list .box {
+  height: auto;
+  line-height: unset;
+  position: relative;
+  margin-bottom: 15px;
+  font-size: 14px;
+  width: 35px;
+  margin-top: unset;
+  margin-right: unset;
+  display: inline-block;
+}
+
+.box-list .box .ansRight {
+  border: 1px solid #dcdfe6;
+  color: #dcdfe6;
+  width: 27px;
+  height: 27px;
+  text-align: center;
+  display: inline-block;
+  line-height: 27px;
+  background: #3a50be;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.box-list .box .ansFalse {
+  border: 1px solid #dcdfe6;
+  color: #a81818;
+  width: 27px;
+  height: 27px;
+  text-align: center;
+  display: inline-block;
+  line-height: 27px;
+  background: #ff7676;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.small-input {
+  width: 50%; /* 设置输入框宽度为父元素宽度的 70% */
+  height: 40px; /* 设置输入框高度为 30px */
+}
+
+</style>
