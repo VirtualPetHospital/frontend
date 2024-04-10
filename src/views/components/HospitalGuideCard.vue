@@ -18,14 +18,14 @@
                 <!-- 化验室 -->
                 <div class="location-container lab-container" @mouseover="showLocationName('化验室')" v-if="showMap">
                     <router-link to="/photoSphere?index=2" data-name="化验室">
-                        <img class="location-img lab" src="../../assets/img/room/2.png" style="position:absolute;top:2.2%; left:32.8%; width: 11.5%;">
+                        <img class="location-img lab" src="@/assets/img/room/2.png" style="position:absolute;top:2.2%; left:32.8%; width: 11.5%;">
                         <span class="btn btn-lg btn-secondary location-name" v-if="isLocationNameVisible && locationName === '化验室'" style="position:absolute;top:4%; left:38%; z-index: 999;">化验室</span>
                     </router-link>
                 </div>
                 <!-- 档案室//免疫室 -->
                 <div class="location-container archive-container" @mouseover="showLocationName('免疫室')" v-if="showMap">
                     <router-link to="/photoSphere?index=3" data-name="免疫室">
-                        <img class="location-img archive" src="../../assets/img/room/3.png" style="position:absolute;top:2%; left:42%; width: 11.8%;">
+                        <img class="location-img archive" src="@/assets/img/room/3.png" style="position:absolute;top:2%; left:42%; width: 11.8%;">
                         <span class="btn btn-lg btn-primary location-name" v-if="isLocationNameVisible && locationName === '免疫室'" style="position:absolute;top:4%; left:46%; z-index: 999;">免疫室</span>
                     </router-link>
                 </div>
@@ -148,7 +148,7 @@ export default {
 
 .location-img:hover {
     transform: scale(1.1); /* 当鼠标悬停时，图片将放大到110% */
-    border-color: red;
+    border-color: #7399f8;
     z-index: 998;
 }
 
@@ -161,7 +161,7 @@ export default {
     top: 50%; /* 居中显示 */
     left: 50%; /* 居中显示 */
     transform: translate(-50%, -50%);
-    background-color: rgba(237, 82, 82, 0.8); /* 设置背景颜色和透明度 */
+    background-color: rgb(75, 124, 255); /* 设置背景颜色和透明度 */
     padding: 5px 10px; /* 设置内边距 */
     border-radius: 5px; /* 设置圆角 */
     display: none; /* 初始状态下隐藏 */

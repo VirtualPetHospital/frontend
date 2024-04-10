@@ -2,6 +2,7 @@
   <div class="card p-4" >
     <div class=" row">
       <div class="col-12">
+        <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
         <h3 style="margin-top: 20px">{{diseaseName}}详情</h3>
         <el-card class="custom-elcard">
           <h4>疾病信息</h4>
@@ -154,6 +155,9 @@ export default{
     return {};
   },
   methods: {
+    backto(){
+      this.$router.go(-1);
+    },
     jumpToMedcase(medcaseId){
       this.$router.push({name:'Medcase',params:{medcaseId:medcaseId}});
     },
@@ -189,24 +193,9 @@ export default{
       console.log(response.data.data);
       const data = response.data.data;
       this.description = data.description;
-      axios.get('/api/files/download',
-          {
-            params:{
-              file_name:"medcase_video_2024-03-31-16-16-02.mp4"
-            },
-            withCredentials : true,
-            headers:{
-              'Session':sessionStorage.getItem('sessionId'),
-              'Content-Type': 'application/json',},
-          }
-      ).then(response=>{
-          const vn="";
-          console.log("vn",vn);
-          if(vn){
-            this.playerOptions.sources[0].src=vn;
-          }
-      });
+
       this.video = data.video;
+        this.playerOptions.sources[0].src=this.video;
       this.photo=data.photo;
       }
       catch(error){

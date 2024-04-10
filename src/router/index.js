@@ -1,8 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Dashboard from "../views/Dashboard.vue";
-import Tables from "../views/Tables.vue";
-import VirtualReality from "../views/VirtualReality.vue";
-import RTL from "../views/Rtl.vue";
 import Profile from "../views/Profile.vue";
 import Signup from "../views/Signup.vue";
 import Signin from "../views/Signin.vue";
@@ -10,7 +7,7 @@ import Cosplay from "../examples/Student/cosplay/Cosplay.vue";
 import qiantai from "../examples/Student/cosplay/qiantai.vue";
 import yizhu from "../examples/Student/cosplay/yizhu.vue";
 import yishi from "../examples/Student/cosplay/yishi.vue";
-import HospitalGuide from "../examples/Student/HospitalGuide.vue";
+import overview from "../examples/Student/HospitalGuide/overview.vue";
 import Myexam from "../examples/Student/exams/Myexam.vue"
 import SearchMedcase from  "../examples/Student/Search/SearchMedcase.vue"
 import DashboardTeacher from "@/examples/Teacher/DashboardTeacher.vue";
@@ -38,6 +35,9 @@ import InspectionManagement from "../examples/Admin/inspectionManagement/Inspect
 import MedicineManagement from "../examples/Admin/medicineManagement/MedicineManagement.vue"
 import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue"
 import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue"
+import Scene from "@/examples/Student/HospitalGuide/Scene.vue";
+import HospitalGuide from "@/examples/Student/HospitalGuide.vue";
+import Chat from "@/examples/Student/chat/Chat.vue";
 
 const routes = [
   {
@@ -66,6 +66,11 @@ const routes = [
     component: Dashboard,
   },
   {
+    path: "/photoSphere",
+    name: "PhotoSphere",
+    component: Scene,
+  },
+  {
     path: "/Cosplay",
     name: "Cosplay",
     component: Cosplay,
@@ -73,27 +78,12 @@ const routes = [
   {
     path: "/HospitalGuide",
     name: "医院导览",
-    component: HospitalGuide,
-  },
-  {
-    path: "/tables",
-    name: "Tables",
-    component: Tables,
+    component:HospitalGuide,
   },
   {
     path: "/Category",
     name: "病例学习",
     component: Category,
-  },
-  {
-    path: "/virtual-reality",
-    name: "Virtual Reality",
-    component: VirtualReality,
-  },
-  {
-    path: "/rtl-page",
-    name: "RTL",
-    component: RTL,
   },
   {
     path: "/profile",
@@ -114,6 +104,11 @@ const routes = [
     path: "/signup",
     name: "Signup",
     component: Signup,
+  },
+  {
+    path: "/Chat",
+    name: "Chat",
+    component: Chat,
   },
   {
     path: "/qiantai",

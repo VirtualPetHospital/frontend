@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted } from "vue";
 import * as THREE from "three";
-
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
 
 defineProps({
   width: {
@@ -95,7 +95,7 @@ onMounted(() => {
         // must be called inside animation loop.
         camera.orbitControls.update();
         requestAnimationFrame(animate);
-        renderer.render(scene, camera);
+        renderer.render(proxy.$scene, camera);
       }
       animate();
     }

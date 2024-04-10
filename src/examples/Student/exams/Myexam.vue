@@ -16,10 +16,10 @@
               label="操作">
             <template v-slot="scope">
               <div class="button-group">
-                <el-button :class="getButtonClassAndDisabled(scope.row).class" @click="watch(scope.row)" type="text" size="small" style="margin-left: 10px" :disabled="getButtonClassAndDisabled(scope.row).disabled">
+                <el-button :class="{ 'checki': !getButtonClassAndDisabledForWatch(scope.row), 'checked': getButtonClassAndDisabledForWatch(scope.row) }" @click="watch(scope.row)" type="text" size="small" style="margin-left: 5px"  :disabled="getButtonClassAndDisabledForWatch(scope.row) ">
                   查看</el-button>
-                <el-button :class="getButtonClassAndDisabled(scope.row).class" @click="take(scope.row)" type="text" size="small" :disabled="getButtonClassAndDisabled(scope.row).disabled">参加</el-button>
-                <el-button :class="getButtonClassAndDisabled(scope.row).class" @click="participate(scope.row)" type="text" size="small" :disabled="getButtonClassAndDisabled(scope.row).disabled">报名</el-button>
+                <el-button :class="{ 'checki': !getButtonClassAndDisabledForTake(scope.row), 'checked': getButtonClassAndDisabledForTake(scope.row) }" @click="take(scope.row)" type="text" size="small" style="margin-left: 5px" :disabled="getButtonClassAndDisabledForTake(scope.row)">参加</el-button>
+                <el-button :class="{ 'checki': !getButtonClassAndDisabledForEnroll(scope.row), 'checked': getButtonClassAndDisabledForEnroll(scope.row) }" @click="participate(scope.row)" type="text" size="small" style="margin-left: 5px" :disabled="getButtonClassAndDisabledForEnroll(scope.row)">报名</el-button>
               </div>
             </template>
           </el-table-column>
@@ -102,12 +102,17 @@ export default{
             }})
           .then(response => {
             console.log('报名成功');
+            this.refresh();
           })
           .catch(error => {
             // 处理报名失败的情况
             console.error('报名失败:', error);
           });
     },
+    refresh() {
+      location.reload();
+    },
+
     handleSizeChange(val) {
       this.pageSize = val;
       this.fetchPageExams();
@@ -129,23 +134,21 @@ export default{
       this.fetchPageExams(); // 重新获取数据
     },
     // 根据当前时间设置按钮样式
-    getButtonClassAndDisabled(row) {
-      if(row.participated===1){
-        return{
-          disabled:false,
-          class:"custom-button"
-        }
-      }else if(row.participated===0){
-        return{
-          disabled:true,
-          class:"gray-button"
-        }
-      }
-      return{
-        disabled:false,
-        class:"custom-button"
-      }
+    getButtonClassAndDisabledForWatch(row) {
+      if(row.participated===true){
+      return false;}
+      return true;
     },
+    getButtonClassAndDisabledForEnroll(row) {
+      if(row.participated===null){
+        return false;}
+      return true;
+    },
+    getButtonClassAndDisabledForTake(row) {
+      if(row.participated===false){
+        return false;}
+      return true;
+    }
   },
   created() {
     this.fetchExams();
@@ -194,7 +197,32 @@ export default{
   border-radius: 3px;
   width: calc(33% - 10px);
 }
-
+.checked {
+  border: 1px solid #dcdfe6;
+  color: #dcdfe6;
+  width: 27px;
+  height: 27px;
+  text-align: center;
+  display: inline-block;
+  line-height: 27px;
+  background: #fff;
+  border-radius: 2px;
+  padding: 0px;
+  cursor: pointer;
+}
+.checki {
+  border: 1px solid #dcdfe6;
+  color: #4b7cff;
+  width: 27px;
+  height: 27px;
+  text-align: center;
+  display: inline-block;
+  line-height: 27px;
+  background: #b6e3ff;
+  border-radius: 2px;
+  padding:0px;
+  cursor: pointer;
+}
 .gray-button {
   margin-left: 15px;
   background-color: #ccc;

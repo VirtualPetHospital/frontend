@@ -57,6 +57,17 @@ const getRoute = () => {
           </template>
         </sidenav-item>
       </li>
+      <li class="nav-item">
+        <sidenav-item
+            to="/Chat"
+            :class="getRoute() === 'Chat' ? 'active' : ''"
+            :navText="isRTL ? 'Chat' : '智能问答'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-chat-round text-info text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
 
       <li class="nav-item">
         <sidenav-item

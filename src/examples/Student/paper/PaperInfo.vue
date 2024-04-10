@@ -1,7 +1,9 @@
 <template>
   <div class="card p-4" >
     <div class=" row">
+      <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
       <div class="col-12">
+
         <h3>考试id：{{this.exam_id}}</h3>
         <el-container>
           <el-aside class="asideLeft">
@@ -16,15 +18,15 @@
                 <div class="fs16">
                   单选题
                 </div>
-                <div class="box-list">
+                <div class="box-list" v-if="showBoxlist">
                   <div
                       class="box normal-box question_cbox"
                       v-for="(answer,index) in this.answerInfo"
                       :key="index"
                   >
                     <div
-                        :class="{ 'ansRight': checkResult(answer), 'ansFalse': !checkResult(answer) }"
-                        @click="selectQuestionMock(answer, index)"
+                        :class="{ 'ansRight':answer.isCorrect, 'ansFalse': !answer.isCorrect }"
+                        @click="selectQuestion(answer, index)"
                     >
                       {{index+1}}
                     </div>
@@ -86,15 +88,20 @@ export default{
         d:null
       },
       selectedAns:null,
-      exam_id:null
+      exam_id:null,
+      showBoxlist:false,
 
     }
   },
   methods:{
+    backto(){
+      this.$router.go(-1);
+    },
     selectQuestion(answer) {
-      let qid=answer.answers.question_id;
+      console.log(answer);
+      let qid=answer.question_id;
       axios.get(
-          '/api/questions',
+          `/api/questions/${qid}`,
           {
             params:{
               question_id:qid
@@ -108,19 +115,20 @@ export default{
           }
       ).then(response=>{
         const resdata=response.data;
+        console.log(resdata);
         this.selectedQuestion.description=resdata.data.description
         this.selectedQuestion.a=resdata.data.a;
         this.selectedQuestion.b=resdata.data.b;
         this.selectedQuestion.c=resdata.data.c;
         this.selectedQuestion.d=resdata.data.d;
         this.selectedQuestion.answer=resdata.data.answer;
-        if(answer.option==='A'){
+        if(answer.answer==='A'){
           this.selectedAns=1;
-        }else if(answer.option==='B'){
+        }else if(answer.answer==='B'){
           this.selectedAns=2;
-        }else if(answer.option==='C'){
+        }else if(answer.answer==='C'){
           this.selectedAns=3;
-        }else if(answer.option==='D'){
+        }else if(answer.answer==='D'){
           this.selectedAns=4;
         }
       }).catch(error=>{
@@ -128,44 +136,30 @@ export default{
       })
 
     },
-    selectQuestionMock(answer){
-      let qid=answer.answers.question_id
-      if(qid===85){
-        this.selectedQuestion.description='85';
-        this.selectedQuestion.a='85a';
-        this.selectedQuestion.b='85b';
-        this.selectedQuestion.c='85c';
-        this.selectedQuestion.d='85d';
-        this.selectedQuestion.answer='D';
-      }else if(qid===86){
-        this.selectedQuestion.description='86';
-        this.selectedQuestion.a='856';
-        this.selectedQuestion.b='856';
-        this.selectedQuestion.c='856';
-        this.selectedQuestion.d='856d';
-        this.selectedQuestion.answer='A'
-      }
-      if(answer.option==='A'){
-        this.selectedAns=1;
-      }else if(answer.option==='B'){
-        this.selectedAns=2;
-      }else if(answer.option==='C'){
-        this.selectedAns=3;
-      }else if(answer.option==='D'){
-        this.selectedAns=4;
-      }
+    checkResult(answer) {
+      const qid = answer.question_id;
+      return axios.get(`/api/questions/${qid}`, {
+        params: { qid: answer.question_id },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      })
+          .then(res => {
+            const trueAns = res.data.data.answer;
+            console.log(trueAns === answer.answer);
+            return trueAns === answer.answer;
+          })
+          .catch(error => {
+            console.error('Error fetching question info:', error);
+            return false; // 如果出现错误，返回 false
+          });
     },
-    checkResult(answer){
-      if(!answer){
-        return;
-      }
-      if(answer.option===answer.answers.answer){
-        return true;
-      }else{
-        return false;
-      }
 
-    },
+
+
+
     fetchExam(){
       axios.get(`/api/answer-sheets/${this.exam_id}`,
           {
@@ -175,62 +169,33 @@ export default{
               'Content-Type': 'application/json',
 
             }
-          }).then(response=>{
+          }).then(async response => {
         const examData = response.data.data;
-        this.answerInfo=examData;
+        this.answerInfo = examData.answers;
+        const requests = this.answerInfo.map(answer => {
+          const qid = answer.question_id;
+          return axios.get(`/api/questions/${qid}`, {
+            params: {qid: answer.question_id},
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+            }
+          });
+        });
+
+        // 使用 Promise.all 方法等待所有请求完成
+        const responses = await Promise.all(requests);
+        responses.forEach((res, index) => {
+          const trueAns = res.data.data.answer;
+          const answer = this.answerInfo[index];
+          answer.isCorrect = trueAns === answer.answer;
+          this.showBoxlist = true;
+        });
       }).catch(error=>{
         console.log('获取试卷失败2',error);
       })
 
-    },
-    fetchExamMock() {
-      return new Promise((resolve, reject) => {
-        // 模拟考试数据
-        const examData =  [
-          {
-            "answer_sheet_id": 34,
-            "user_id": 57,
-            "option": "D",
-            "exam_id": 62,
-            "answers":{
-              "id": 1,
-              "answer_sheet_id":34,
-              "question_id":85,
-              "answer":"D"
-            }
-          },
-          {
-            "answer_sheet_id": 4,
-            "user_id": 57,
-            "option": "B",
-            "exam_id": 62,
-            "answers":{
-              "id": 1,
-              "answer_sheet_id":4,
-              "question_id":86,
-              "answer":"A"
-            }
-          },
-          {
-            "answer_sheet_id": 4,
-            "user_id": 57,
-            "option": "B",
-            "exam_id": 62,
-            "answers":{
-              "id": 1,
-              "answer_sheet_id":4,
-              "question_id":86,
-              "answer":"A"
-            }
-          }
-        ];
-        this.answerInfo=examData;
-        console.log(this.answerInfo);
-        // 模拟异步请求
-        setTimeout(() => {
-          resolve(examData);
-        }, 50);
-      });
     },
   },
   components:{

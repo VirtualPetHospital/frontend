@@ -2,7 +2,11 @@
   <div class="card p-4" >
     <div class=" row">
       <div class="col-12">
-        <h3>考试名：{{name}}</h3>
+        <div class="row">
+          <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
+          <h3>考试名：{{name}}</h3>
+        </div>
+
         <el-container>
           <el-aside class="asideLeft">
             <div class="aside_div">
@@ -108,6 +112,9 @@ export default{
     }
   },
   methods:{
+    backto(){
+      this.$router.go(-1);
+    },
     selectQuestion(questionId) {
       const index = this.paper.questions.findIndex(question => question.question_id === questionId);
       if (index !== -1) {
@@ -188,12 +195,13 @@ export default{
     },
     submitExam() {
       this.answerSheet.shift();
+      this.answerSheet.sort((a, b) => a.question_id - b.question_id);
       console.log(this.answerSheet);
       axios.post(
           '/api/answer-sheets',
           {
             exam_id:this.exam_id,
-            answers:this.answerSheet
+            answers:this.answerSheet,
           },
           {
             withCredentials : true,
@@ -204,10 +212,8 @@ export default{
             }}
       ).then(response=>{
         const data=response.data.data;
-        const code=data.code;
-        if(code===200){
+        this.$router.go(-1);
           console.log("提交成功");
-        }
       })
 
     },

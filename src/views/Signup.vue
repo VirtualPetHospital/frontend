@@ -11,7 +11,7 @@
         />
 
         <el-card class="box-card">
-          <div slot="header" class="card-header">登录</div>
+          <div slot="header" class="card-header">注册</div>
         <el-form :model="ruleForm" label-position="left" status-icon :rules="rules" ref="ruleForm"  class="demo-ruleForm">
           <el-form-item prop="nickname">
             <el-input type="nickname" v-model="ruleForm.nickname" placeholder="用户名" autocomplete="off"></el-input>
@@ -23,10 +23,10 @@
           <el-form-item prop="email">
             <div class="row">
               <div class="col-sm-7">
-                <el-input v-model="ruleForm.email" placeholder="邮箱" autocomplete="off"></el-input>
+                <el-input type="email" v-model="ruleForm.email" placeholder="邮箱" autocomplete="off"></el-input>
               </div>
               <div class="col-sm-2">
-                <el-button style="background-color: rgba(255,127,0,0.4) " @click="sendCaptcha(ruleForm.email)">发送验证码</el-button>
+                <el-button type="captcha" style="background-color: rgba(255,127,0,0.4) " @click="sendCaptcha(ruleForm.email)">发送验证码</el-button>
               </div>
             </div>
           </el-form-item>
