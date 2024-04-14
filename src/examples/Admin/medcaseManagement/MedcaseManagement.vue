@@ -402,7 +402,11 @@
                       <el-table-column prop="name" label="病例名"></el-table-column>
                       <el-table-column prop="price" label="价格"></el-table-column>
                       <el-table-column prop="info_description" label="病例描述"></el-table-column>
-
+                      <el-table-column label="操作">
+                      <template v-slot="{row}">
+                        <el-link type="primary" @click="showMedcaseDetails(row)">病例详情</el-link>
+                      </template>
+                    </el-table-column>
                     </el-table>
                   </div>
                 </div>
@@ -431,7 +435,7 @@
   <script>
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
-  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer ,ElMessageBox } from "element-plus";
+  import { ElLink, ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer ,ElMessageBox } from "element-plus";
 
   import axios from "axios"; 
   
@@ -453,6 +457,7 @@
       ElCol,
       ElTransfer,
       ElMessageBox,
+      ElLink,
     },
     setup() {
       const store = useStore();
@@ -1200,6 +1205,18 @@
       this.form.video = [file];
       console.log('上传的视频文件对象真的是吗:', this.form.video);
       return true; // 确保继续上传过程
+    },
+    showMedcaseDetails(row) {
+      // 在这里处理点击设施详情按钮后的逻辑
+      console.log("显示病例详情:", row);
+      // 构建动态路由路径，并传递科室ID和科室名称参数
+      const medcaseDetailsRoute = {
+        name: '病例情况-管理员',
+        params: { id: row.medcase_id} // 此处传递 row.room_id 和 row.name 作为参数
+      };
+      console.log("跳转到病例设施详情页面，参数：", medcaseDetailsRoute); // 添加日志来检查传递的参数
+      // 导航到相应的详情页面
+      this.$router.push(medcaseDetailsRoute);
     },
 
 

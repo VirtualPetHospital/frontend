@@ -39,6 +39,7 @@ import MedicineManagement from "../examples/Admin/medicineManagement/MedicineMan
 import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue"
 import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue"
 import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue"
+import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue"
 import TTT from "../examples/Admin/testMe/testtest.vue"
 import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
@@ -294,7 +295,12 @@ const routes = [
     path:"/ReselectQuestions/:tempid/:tempname/:tempproblemcount",
     name:"重选试题",
     component:ReselectQuestions,
-  }
+  },
+  {
+    path:"/MedcaseDetail/:id",
+    name:"病例情况-管理员",
+    component:MedcaseDetail,
+  },
 ];
 
 const router = createRouter({
