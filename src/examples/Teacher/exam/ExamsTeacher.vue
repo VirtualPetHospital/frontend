@@ -37,7 +37,9 @@
         <tbody>
           <!-- 遍历每个考试项 -->
           <tr v-for="(exam, index) in paginatedExams" :key="index">
-        <td class="text-center"><input type="checkbox" v-model="exam.checked"></td>
+            <td class="text-center">
+              <input type="checkbox" v-model="exam.checked" @change="handleExamSelection(exam)">
+            </td>
         <td class="text-center ">{{ exam.id }}</td>
         <td class="text-center " style="word-break: break-word;">{{ exam.name }}</td>
         <td class="text-center ">{{ exam.level }}</td>
@@ -54,20 +56,41 @@
         </tbody>
       </table>
     </div>
- <!-- 分页控件 -->
- <nav aria-label="Page navigation example">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
-        </li>
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
-        </li>
-      </ul>
-    </nav>
+   <!-- 分页控件 -->
+   <nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <!-- 上一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+      <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
+    </li>
+
+    <!-- 仅显示当前页码和前后一个页码 -->
+    <li class="page-item" v-for="page in visiblePages" :key="page" :class="{ active: page === currentPage }">
+      <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
+    </li>
+
+    <!-- 下一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+      <button class="btn btn-primary" @click="nextPage">下一页</button>
+    </li>
+    <li>
+      <span class="input-group-text">页数: {{ currentPage }}/{{ totalPages }}</span>
+    </li>
+    
+  </ul>
+</nav>
+  <!-- 使用网格系统将跳转框固定在最右侧 -->
+  <div class="row" style="margin-top: -6.12%;">
+  <div class="col-md-6 ml-auto" style="margin-left: 75%;">
+    <div class="input-group" style="margin-bottom: 10px;">
+      <input type="text" class="form-control small-input" v-model="gotoPageNumber" placeholder="输入页码">
+      <div class="input-group-append">
+        <button @click="gotoSpecifiedPage" class="btn btn-primary">跳转</button>
+        <!-- 将"页数"文本内容放置在跳转按钮的附加内容中 -->
+      </div>
+    </div>
+  </div>
+</div>
 <!-- 弹出窗口 -->
 <transition name="modal">
   <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
@@ -110,7 +133,7 @@
             <button type="button" class="btn btn-secondary" @click="selectPaper(newExam)">选择试卷</button>
           </div>
           <div class="button-container">
-            <button type="submit" class="btn btn-lg btn-block btn-info">{{'添加'}}</button>
+            <!-- <button type="submit" class="btn btn-lg btn-block btn-info">{{'添加'}}</button> -->
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
           </div>
         </form>
@@ -268,6 +291,10 @@ export default {
       currentPage:1,
       totalExams:0,
       searchKeyword: '', // 搜索关键词
+      gotoPageNumber: '', // 用于存储跳转的页码
+      allexams:[],
+      selectedExamsMap: new Map(),
+      name_keyword:''//搜索关键词
     };
   },
   created() {
@@ -297,11 +324,22 @@ export default {
     totalPages() {
       return Math.ceil(this.totalExams / this.pageSize);
     },
+    visiblePages() {
+      const pages = [this.currentPage];
+      if (this.currentPage > 1) {
+        pages.unshift(this.currentPage - 1); // 前一个页码
+      }
+      if (this.currentPage < this.totalPages) {
+        pages.push(this.currentPage + 1); // 后一个页码
+      }
+      return pages;
+    },
   },
   mounted() {
     // 组件加载完成后立即获取题目列表数据
     this.fetchExams();
     this.fetchAllPapers();
+    this.fetchAllExams();
   },
   methods: {
     openEditModal(exam) {
@@ -347,11 +385,18 @@ export default {
       this.closeEditModal();
     },
     deleteExam() {
-      const selectedExams = this.exams.filter(exam => exam.checked);//
+      // const selectedExams = this.exams.filter(exam => exam.checked);//
+      const selectedExams = [];
+    this.allexams.forEach(exam => {
+      if (this.selectedExamsMap.get(exam.id)) {
+        selectedExams.push(exam.id);
+      }
+    });
+    console.log(selectedExams);
       if (selectedExams.length > 0) {
-        const promises = selectedExams.map(exam => {
+        const promises = selectedExams.map(examId => {
           // 发送 DELETE 请求到后端删除试题
-          return axios.delete(`/api/exams/${exam.id}`, {
+          return axios.delete(`/api/exams/${examId}`, {
             withCredentials: true,
               headers: {
                 'Session': sessionStorage.getItem('sessionId'),
@@ -359,7 +404,7 @@ export default {
               }
           }).then(response => {
             // 删除成功后从前端数据中移除已删除的题目
-            const index = this.exams.findIndex(u => u.id === exam.id);
+            const index = this.exams.findIndex(u => u.id === examId);
             if (index !== -1) {
               this.exams.splice(index, 1);
               console.log('已删除试卷:', exam);
@@ -368,10 +413,12 @@ export default {
             console.error('Error deleting exam:', error);
           });
         });
-
         // 使用 Promise.all 等待所有删除操作完成
         Promise.all(promises).then(() => {
           console.log('所有选中的考试已删除');
+          this.selectedExamsMap.clear(); // 清空选中题目的 Map
+          this.showDeleteWarning = false; // 重置删除警告状态
+          this.fetchExams();
         });
       } else {
         console.log('请至少选择一场要删除的考试');
@@ -458,7 +505,7 @@ export default {
       params: {
         page_size: this.pageSize,
         page_num: this.currentPage,
-        name_keyword: '', // 添加名称参数
+        name_keyword: this.name_keyword, // 添加名称参数
         level:'',
         sort_by_start_time:2,
         participated:'',
@@ -479,7 +526,8 @@ export default {
         level:record.level,
         paper:record.paper,//内含对应的一张paper的所有信息
         participated:record.participated,//是否参加？
-        checked:false,
+        // checked:false,
+        checked: this.selectedExamsMap.get(record.exam_id) || false,
       }));
       this.$forceUpdate();
       this.totalExams = response.data.data.total;
@@ -566,9 +614,12 @@ async fetchAllPapers() {
     try {
       const response = await axios.get('/api/papers', {
         params: {
-          page_size: 200, // 获取所有题目数据
-          page_num: 1, // 获取第一页数据
-          name: '', // 添加名称参数
+          page_size: 200,
+        page_num: 1,
+        name_keyword: '', // 添加名称参数
+        level:'',
+        sort_by_start_time:2,
+        participated:'',
         },
         withCredentials: true,
         headers: {
@@ -591,11 +642,12 @@ async fetchAllPapers() {
       },
     async searchExams() {
     try {
+      this.name_keyword=this.searchKeyword;
     const response = await axios.get('/api/exams', {
       params: {
         page_size: this.pageSize,
         page_num: this.currentPage,
-        name_keyword: this.searchKeyword, // 添加名称参数
+        name_keyword: this.name_keyword, // 添加名称参数
         level:'',
         sort_by_start_time:2,
         participated:'',
@@ -616,7 +668,8 @@ async fetchAllPapers() {
         level:record.level,
         paper:record.paper,//内含对应的一张paper的所有信息
         participated:record.participated,//是否参加？
-        checked:false,
+        // checked:false,
+        checked: this.selectedExamsMap.get(record.exam_id) || false,
       }));
           this.totalExams = response.data.data.total;
           this.paginatedExams = this.exams;
@@ -626,6 +679,55 @@ async fetchAllPapers() {
         console.error('Error fetching exams:', error);
       }
     },
+    async fetchAllExams() {
+    try {
+      const response = await axios.get('/api/exams', {
+        params: {
+        page_size: 200,
+        page_num: 1,
+        name_keyword: '', // 添加名称参数
+        level:'',
+        sort_by_start_time:2,
+        participated:'',
+      },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.allexams = response.data.data.records.map(record => ({
+        id: record.exam_id, // 修改属性名为 paper_id
+        name: record.name, // 添加试卷名
+        starttime:record.start_time,//开始时间
+        endtime:record.end_time,//结束时间
+        duration:record.duration,//考试时长
+        level:record.level,
+        paper:record.paper,//内含对应的一张paper的所有信息
+        participated:record.participated,//是否参加？
+        checked: this.selectedExamsMap.get(record.exam_id) || false,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
+    gotoSpecifiedPage() {
+    const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
+      // 如果输入的是一个有效的页码，则跳转到该页
+      this.gotoPage(pageNumber);
+    } else {
+      // 如果输入的页码无效，则给出提示或者不执行任何操作，根据需求决定
+      console.error('Invalid page number');
+    }
+    // 清空输入框内容
+    this.gotoPageNumber = '';
+  },
+  handleExamSelection(exam) {
+      this.selectedExamsMap.set(exam.id, exam.checked);
+  },
   },
   components: {
     ArgonBadge,
@@ -724,20 +826,19 @@ margin-bottom: 10px;
   margin: 0 10%; /* 调整按钮之间的间距 */
 }
 /* 纵向分隔线样式 */
-.table td,
+/* .table td,
 .table th {
-  border-right: 1px solid #dee2e6; /* 添加纵向分隔线 */
-}
+  border-right: 1px solid #dee2e6; 
+} */
 
 .table th:last-child,
 .table td:last-child {
   border-right: none; /* 最后一列去除右侧分隔线 */
 }
 
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  /* border-left: 1px solid #dee2e6; */
-}
+/* .table tbody tr:last-child td:not(:last-child) {
+  border-right: 1px solid #dee2e6; 
+} */
 .table td {
   white-space: pre-wrap;
 }

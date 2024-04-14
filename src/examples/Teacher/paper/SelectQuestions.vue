@@ -2,10 +2,24 @@
   <div>
     <div class="buttons-container">
       <div  class="input-group" style="margin-bottom: 10px;">
-      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
+      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入题目描述关键词搜索" style="margin-left: 2%;">
       <button @click="searchProblems" class="btn btn-primary">搜索</button>
       </div>
     </div>
+    <div class="biaoge ps-3" style="margin-top: 10px;">
+  <table class="table" bgcolor="#ffffff">
+    <tbody>
+      <tr>
+        <td v-for="(category, index) in allcategory" :key="index">
+          <button @click="searchProblems2(category)" class="btn" :class="{ 'btn-secondary': !category.isHovered, 'btn-primary': category.isHovered }" style="margin-bottom: 5px;" @mouseover="category.isHovered = true" @mouseleave="category.isHovered = false">{{ category.name }}</button>
+        </td>
+        <td>
+          <button @click="searchProblems3()" class="btn" :class="{ 'btn-secondary': !isHoveredAll, 'btn-primary': isHoveredAll }" style="margin-bottom: 5px;" @mouseover="isHoveredAll = true" @mouseleave="isHoveredAll = false">{{ "全部" }}</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
@@ -45,7 +59,7 @@
               <input type="checkbox" v-model="problem.checked" @change="handleProblemSelection(problem)">
             </td>
             <td class="text-center ">{{ problem.id }}</td>
-            <td class="text-center ">{{ problem.category }}</td>
+            <td class="text-center ">{{ problem.categoryname }}</td>
             <td class="text-center " style="word-break: break-word;">{{ problem.description }}</td>
           <td class="text-center ">
           <!-- 查看按钮 -->
@@ -56,22 +70,41 @@
       </table>
     </div>
 
-    
-    <!-- 分页控件 -->
-    <nav aria-label="Page navigation example">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
-        </li>
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
-        </li>
-      </ul>
-    </nav>
+  <!-- 分页控件 -->
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <!-- 上一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+      <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
+    </li>
 
+    <!-- 仅显示当前页码和前后一个页码 -->
+    <li class="page-item" v-for="page in visiblePages" :key="page" :class="{ active: page === currentPage }">
+      <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
+    </li>
+
+    <!-- 下一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+      <button class="btn btn-primary" @click="nextPage">下一页</button>
+    </li>
+    <li>
+      <span class="input-group-text">页数: {{ currentPage }}/{{ totalPages }}</span>
+    </li>
+    
+  </ul>
+</nav>
+  <!-- 使用网格系统将跳转框固定在最右侧 -->
+  <div class="row" style="margin-top: -6.12%;">
+  <div class="col-md-6 ml-auto" style="margin-left: 75%;">
+    <div class="input-group" style="margin-bottom: 10px;">
+      <input type="text" class="form-control small-input" v-model="gotoPageNumber" placeholder="输入页码">
+      <div class="input-group-append">
+        <button @click="gotoSpecifiedPage" class="btn btn-primary">跳转</button>
+        <!-- 将"页数"文本内容放置在跳转按钮的附加内容中 -->
+      </div>
+    </div>
+  </div>
+</div>
 
  <transition name="modal">
     <div class="modal-mask" v-if="showProblemDetails" @click="closeProblemDetails">
@@ -82,7 +115,7 @@
             <label>题目ID：</label>
             <input type="text" class="form-control" v-model="selectedProblem.id" disabled><br>
             <label>分类：</label>
-            <input type="text" class="form-control" v-model="selectedProblem.category" :disabled="!editMode"><br>
+            <input type="text" class="form-control" v-model="selectedProblem.categoryname" :disabled="!editMode"><br>
             <label>题目描述：</label>
             <textarea class="form-control auto-height" v-model="selectedProblem.description" :disabled="!editMode"></textarea><br>
             <label>A：</label>
@@ -130,9 +163,9 @@ export default {
       showEditModal: false, // 控制编辑窗口显示与隐藏
       showDeleteWarning: false, // 控制删除提示窗口的显示与隐藏
       editMode: false, // 是否为编辑模式
-      newProblem: { id: '', category: '', description: '',choiceA:'',choiceB:'',choiceC:'',choiceD:'',answer:''},// 新增题目的初始信息
+      newProblem: { id: '', category: '', description: '',choiceA:'',choiceB:'',choiceC:'',choiceD:'',answer:'',categoryname:''},// 新增题目的初始信息
       showProblemDetails: false,
-      selectedProblem: { id: '', category: '', description: '', choiceA: '', choiceB: '', choiceC: '', choiceD: '', answer: '' },
+      selectedProblem: { id: '', category: '', description: '', choiceA: '', choiceB: '', choiceC: '', choiceD: '', answer: '',categoryname:''},
       selectedCount: 0, // 已选试题数量
       progressWidth: '0%', // 动态进度条宽度
       problemmax:0, 
@@ -145,6 +178,11 @@ export default {
       totalProblems:0,
       selectedProblemsMap: new Map(),
       searchKeyword: '', // 搜索关键词
+      gotoPageNumber: '', // 用于存储跳转的页码
+      allcategory:[],
+      category_keyword: '',
+      description_keyword: '', // 使用搜索关键词
+      isHoveredAll: false, // 控制全部按钮鼠标悬停状态
     };
   },
   created() {
@@ -165,6 +203,17 @@ export default {
     totalPages() {
       return Math.ceil(this.totalProblems / this.pageSize);
     },
+           // 计算属性，仅包含当前页码和前后一个页码
+    visiblePages() {
+      const pages = [this.currentPage];
+      if (this.currentPage > 1) {
+        pages.unshift(this.currentPage - 1); // 前一个页码
+      }
+      if (this.currentPage < this.totalPages) {
+        pages.push(this.currentPage + 1); // 后一个页码
+      }
+      return pages;
+    },
   },
   setup() {
      const store = useStore();
@@ -179,6 +228,7 @@ export default {
    },
    mounted() {
     // 组件加载完成后立即获取题目列表数据
+    this.fetchCategories();
     this.fetchProblems();
     this.fetchAllProblems();
   },
@@ -190,23 +240,6 @@ export default {
     closeProblemDetails() {
       this.showProblemDetails = false;
       this.selectedProblem = { id: '', category: '', description: '', choiceA: '', choiceB: '', choiceC: '', choiceD: '', answer: '' };
-    },
-    deleteProblem() {
-      const selectedProblems = this.problems.filter(problem => problem.checked);
-      if (selectedProblems.length > 0) {
-        // 删除选中的题目信息
-        selectedProblems.forEach(problem => {
-          const index = this.problems.findIndex(u => u.id === problem.id);
-          if (index !== -1) 
-          {
-            this.problems.splice(index, 1);
-            console.log('已删除题目:', problem);
-          }
-        });
-      } else {
-        console.log('请至少选择一个要删除的题目');
-        this.showDeleteWarning = true;
-      }
     },
     handleProblemSelection(problem) {
       // this.selectedCount = this.problems.filter(p => p.checked).length;
@@ -259,8 +292,8 @@ export default {
           params: {
             page_size: this.pageSize,
             page_num: this.currentPage,
-            category_keyword: '',
-            description_keyword: '',
+            category_keyword: this.category_keyword,
+            description_keyword: this.description_keyword,
           },
           withCredentials: true,
           headers: {
@@ -269,7 +302,6 @@ export default {
           }
         });
         if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
-          
           this.problems = response.data.data.records.map(record => ({
             id: record.question_id,
             description: record.description,
@@ -279,6 +311,7 @@ export default {
             choiceC: record.c,
             choiceD: record.d,
             category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
             // checked: false,
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
@@ -317,6 +350,7 @@ export default {
           choiceC: record.c,
           choiceD: record.d,
           category: record.category_id,
+          categoryname:this.getCategoryName(record.category_id),
           checked: this.selectedProblemsMap.get(record.question_id) || false,
         }));
         console.log(this.allproblems);
@@ -344,12 +378,13 @@ export default {
       }
     },
     async searchProblems() {
+      this.description_keyword=this.searchKeyword;
       try {
         const response = await axios.get('/api/questions', {
           params: {
             page_size: this.pageSize,
             page_num: this.currentPage,
-            category_keyword: '',
+            category_keyword: this.category_keyword,
             description_keyword: this.searchKeyword, // 使用搜索关键词
           },
           withCredentials: true,
@@ -368,6 +403,8 @@ export default {
             choiceC: record.c,
             choiceD: record.d,
             category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
+            // checked: false,
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
           this.totalProblems = response.data.data.total;
@@ -378,6 +415,125 @@ export default {
         console.error('Error fetching questions:', error);
       }
     },
+    async searchProblems2(category) {
+      this.category_keyword=category.name;
+      try {
+        const response = await axios.get('/api/questions', {
+          params: {
+            page_size: this.pageSize,
+            page_num: this.currentPage,
+            category_keyword: this.category_keyword,
+            description_keyword: this.description_keyword,
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.problems = response.data.data.records.map(record => ({
+            id: record.question_id,
+            description: record.description,
+            answer: record.answer,
+            choiceA: record.a,
+            choiceB: record.b,
+            choiceC: record.c,
+            choiceD: record.d,
+            category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
+            // checked: false,
+            checked: this.selectedProblemsMap.get(record.question_id) || false,
+          }));
+          this.totalProblems = response.data.data.total;
+          this.paginatedProblems = this.problems;
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    async searchProblems3() {
+      this.category_keyword='';
+      try {
+        const response = await axios.get('/api/questions', {
+          params: {
+            page_size: this.pageSize,
+            page_num: this.currentPage,
+            category_keyword: this.category_keyword,
+            description_keyword: this.searchKeyword, // 使用搜索关键词
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.problems = response.data.data.records.map(record => ({
+            id: record.question_id,
+            description: record.description,
+            answer: record.answer,
+            choiceA: record.a,
+            choiceB: record.b,
+            choiceC: record.c,
+            choiceD: record.d,
+            category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
+            // checked: false,
+            checked: this.selectedProblemsMap.get(record.question_id) || false,
+          }));
+          this.totalProblems = response.data.data.total;
+          this.paginatedProblems = this.problems;
+          // console.log(this.problems);
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    gotoSpecifiedPage() {
+    const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
+      // 如果输入的是一个有效的页码，则跳转到该页
+      this.gotoPage(pageNumber);
+    } else {
+      // 如果输入的页码无效，则给出提示或者不执行任何操作，根据需求决定
+      console.error('Invalid page number');
+    }
+    // 清空输入框内容
+    this.gotoPageNumber = '';
+  },
+  async fetchCategories() {
+    try {
+      const response = await axios.get('/api/categories', {
+        params: {
+        name_keyword:'',
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data ) {
+        this.allcategory = response.data.data.map(record => ({
+          id: record.category_id,
+          name:record.name,
+          isHovered:false,
+        }));
+        console.log(this.allcategory);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
+  getCategoryName(categoryId) {
+    const category = this.allcategory.find(cat => cat.id === categoryId);
+    return category ? category.name : '未知分类';
+  },
+  getCategoryId(categoryname) {
+    const category2 = this.allcategory.find(cat => cat.name === categoryname);
+    return category2 ? category2.id : 0 ;
+  },
   },
   components: {
     ArgonBadge,
@@ -467,20 +623,19 @@ margin-bottom: 10px;
   margin: 0 10%; /* 调整按钮之间的间距 */
 }
 /* 纵向分隔线样式 */
-.table td,
+/* .table td,
 .table th {
-  border-right: 1px solid #dee2e6; /* 添加纵向分隔线 */
-}
+  border-right: 1px solid #dee2e6; 
+} */
 
 .table th:last-child,
 .table td:last-child {
   border-right: none; /* 最后一列去除右侧分隔线 */
 }
-
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  /* border-left: 1px solid #dee2e6; */
-}
+/* 右侧边框线 */
+/* .table tbody tr:last-child td:not(:last-child) {
+  border-right: 1px solid #dee2e6;
+} */
 .table td {
   white-space: pre-wrap;
 }
@@ -539,6 +694,7 @@ margin-bottom: 10px;
 }
 .btn-success,
 .btn-primary,
+.btn-secondary,
 .btn-danger {
   height: 40px; /* 设置按钮高度为 40px */
   width: auto; /* 让按钮宽度自适应内容 */

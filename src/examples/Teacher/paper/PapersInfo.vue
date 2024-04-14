@@ -98,7 +98,7 @@ export default{
   },
   methods:{
     goBack() {
-      this.$router.back();
+      this.$router.push({ name: '试卷管理' });
     },
     selectQuestion(question) {
       // let qid=answer.answers.question_id;

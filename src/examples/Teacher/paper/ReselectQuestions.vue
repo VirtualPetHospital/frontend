@@ -51,20 +51,41 @@
     </div>
 
     
-    <!-- 分页控件 -->
-    <nav aria-label="Page navigation example">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
-        </li>
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
-        </li>
-      </ul>
-    </nav>
+<!-- 分页控件 -->
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <!-- 上一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+      <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
+    </li>
+
+    <!-- 仅显示当前页码和前后一个页码 -->
+    <li class="page-item" v-for="page in visiblePages" :key="page" :class="{ active: page === currentPage }">
+      <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
+    </li>
+
+    <!-- 下一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+      <button class="btn btn-primary" @click="nextPage">下一页</button>
+    </li>
+    <li>
+      <span class="input-group-text">页数: {{ currentPage }}/{{ totalPages }}</span>
+    </li>
+    
+  </ul>
+</nav>
+  <!-- 使用网格系统将跳转框固定在最右侧 -->
+  <div class="row" style="margin-top: -6.12%;">
+  <div class="col-md-6 ml-auto" style="margin-left: 75%;">
+    <div class="input-group" style="margin-bottom: 10px;">
+      <input type="text" class="form-control small-input" v-model="gotoPageNumber" placeholder="输入页码">
+      <div class="input-group-append">
+        <button @click="gotoSpecifiedPage" class="btn btn-primary">跳转</button>
+        <!-- 将"页数"文本内容放置在跳转按钮的附加内容中 -->
+      </div>
+    </div>
+  </div>
+</div>
 
 
  <transition name="modal">
@@ -138,6 +159,7 @@ export default {
       currentPage:1,
       totalProblems:0,
       selectedProblemsMap: new Map(),
+      gotoPageNumber: '' // 用于存储跳转的页码
     };
   },
   created() {
@@ -158,6 +180,17 @@ export default {
   computed: {
     totalPages() {
       return Math.ceil(this.totalProblems / this.pageSize);
+    },
+      // 计算属性，仅包含当前页码和前后一个页码
+      visiblePages() {
+      const pages = [this.currentPage];
+      if (this.currentPage > 1) {
+        pages.unshift(this.currentPage - 1); // 前一个页码
+      }
+      if (this.currentPage < this.totalPages) {
+        pages.push(this.currentPage + 1); // 后一个页码
+      }
+      return pages;
     },
   },
   setup() {
@@ -358,6 +391,18 @@ export default {
         this.fetchProblems(); // 调用 fetchProblems 获取新页数据
       }
     },
+    gotoSpecifiedPage() {
+    const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
+      // 如果输入的是一个有效的页码，则跳转到该页
+      this.gotoPage(pageNumber);
+    } else {
+      // 如果输入的页码无效，则给出提示或者不执行任何操作，根据需求决定
+      console.error('Invalid page number');
+    }
+    // 清空输入框内容
+    this.gotoPageNumber = '';
+  },
   },
   components: {
     ArgonBadge,
@@ -511,5 +556,18 @@ margin-bottom: 10px;
   height: 100%;
   background-color: #007bff;
   transition: width 0.5s ease; /* 进度条动画效果 */
+}
+.btn-success,
+.btn-primary,
+.btn-danger {
+  height: 40px; /* 设置按钮高度为 40px */
+  width: auto; /* 让按钮宽度自适应内容 */
+  padding: 0 15px; 
+  white-space: nowrap; /* 防止按钮文字换行 */
+}
+.small-input {
+  height: 40px; /* 设置输入框高度为 30px */
+  max-width: 200px; /* 设置输入框的最大宽度为 200px */
+  width: 50%; /* 设置输入框宽度为父元素宽度的 50% */
 }
 </style>
