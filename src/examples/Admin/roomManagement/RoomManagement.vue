@@ -14,13 +14,13 @@
               @input="handleSearch"
             ></el-input>
             <!-- 按钮区域 -->
-            <div class="row mb-4">
+            <!-- <div class="row mb-4">
               <div class="col-6">
                 <el-button type="primary" @click="handleAdd">新增</el-button>
                 <el-button type="danger" @click="handleDelete">删除</el-button>
                 <el-button type="success" @click="openModifyDialog">修改</el-button>
               </div>
-            </div>
+            </div> -->
             <!-- 表格 -->
             <div class="row">
               <div class="col-12">

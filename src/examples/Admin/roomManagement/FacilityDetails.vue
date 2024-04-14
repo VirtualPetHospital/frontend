@@ -13,7 +13,7 @@
   </template>
   
   <script>
-  import FacilityDetailsCard from "./FacilityDetailsCard.vue";
+  import FacilityDetailsCard from "../roomManagement/FacilityDetailsCard.vue";
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
   

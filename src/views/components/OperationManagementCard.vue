@@ -35,14 +35,14 @@
           <el-form-item label="手术图片">
             <el-upload
                 class="upload-demo"
-                action="/upload.do"
-                :on-success="handlePhotoUploadSuccess"
-                :on-remove="handlePhotoUploadRemove"
-                multiple
-                :limit="3" 
-                list-type="picture"
-                :file-list="form.photos"
-                :auto-upload="false" 
+                action="api/files/upload"
+                :on-preview="handlePreview"
+                :on-remove="handleRemove" 
+                :on-success="handleSuccess"
+                :data="{ file: this.form.photo, location: 'operation' }"
+                :before-upload="beforeUpload"
+                :headers="headerObj"
+                :with-credentials="true"
                 accept="image/jpeg,image/png"
             >
                 <el-button size="small" type="primary">点击上传</el-button>
@@ -52,14 +52,15 @@
             <el-form-item label="手术视频">
             <el-upload
                 class="upload-demo"
-                action="/upload.do"
-                :on-success="handleVideoUploadSuccess"
-                :on-remove="handleVideoUploadRemove"
-                multiple
-                :limit="1" 
-                list-type="picture"
-                :file-list="form.videos"
-                :auto-upload="false" 
+                action="api/files/upload"
+                :on-preview="handlePreview"
+                :on-remove="handleRemove"
+                :on-success="handleSuccess_V"
+                :file-list="form.video"
+                :data="{ file: this.form.video, location: 'operation' }"
+                :before-upload="beforeUpload_V"
+                :headers="headerObj"
+                :with-credentials="true"
                 accept="video/*" 
             >
                 <el-button size="small" type="primary">点击上传</el-button>
@@ -100,14 +101,15 @@
           <el-form-item label="手术图片">
                 <el-upload
                     class="upload-demo"
-                    action="/upload.do"
-                    :on-success="handlePhotoUploadSuccess"
-                    :on-remove="handlePhotoUploadRemove"
-                    multiple
-                    :limit="3" 
-                    list-type="picture"
-                    :file-list="form.photos"
-                    :auto-upload="false" 
+                    action="api/files/upload"
+                    :on-preview="handlePreview"
+                    :on-remove="handleRemove"
+                    :on-success="handleSuccess"
+                    :file-list="form.photo"
+                    :data="{ file: this.form.photo, location: 'operation' }"
+                    :before-upload="beforeUpload"
+                    :headers="headerObj"
+                    :with-credentials="true"
                     accept="image/jpeg,image/png"
                 >
                     <el-button size="small" type="primary">点击上传</el-button>
@@ -117,14 +119,15 @@
             <el-form-item label="手术视频">
                 <el-upload
                     class="upload-demo"
-                    action="/upload.do"
-                    :on-success="handleVideoUploadSuccess"
-                    :on-remove="handleVideoUploadRemove"
-                    multiple
-                    :limit="1" 
-                    list-type="picture"
-                    :file-list="form.videos"
-                    :auto-upload="false" 
+                    action="api/files/upload"
+                    :on-preview="handlePreview"
+                    :on-remove="handleRemove"
+                    :on-success="handleSuccess_V"
+                    :file-list="form.video"
+                    :data="{ file: this.form.video, location: 'operation' }"
+                    :before-upload="beforeUpload_V"
+                    :headers="headerObj"
+                    :with-credentials="true"
                     accept="video/*" 
                 >
                     <el-button size="small" type="primary">点击上传</el-button>
@@ -213,13 +216,13 @@
         searchText: '',
         dialogVisible: false,
         modifyDialogVisible: false,
+        uploadedFileName_P: null,// 新增一个变量用于存储上传成功的图片文件名
+        uploadedFileName_V: null,// 新增一个变量用于存储上传成功的视频文件名
         form: {
           operation_id: '',
           name: '',
           price: 0,
           description: '',
-          photos: [], // 存储上传的图片文件列表
-          videos: [], // 存储上传的视频文件列表
         },
         rules: {
           name: [{ required: true, message: '请输入手术名', trigger: 'blur' }],
@@ -230,7 +233,11 @@
         currentPage: 1,
         pageSize: 10,
         selectedRow: null,
-        filters: {}
+        filters: {},
+        headerObj: {
+          'Session': sessionStorage.getItem('sessionId'),
+          //'Content-Type': 'application/json'
+        },
       };
     },
     computed:  {
@@ -305,8 +312,8 @@
               name: this.form.name,
               price: Number(this.form.price),
               description: this.form.description,
-              photo: this.form.photos.length > 0 ? this.form.photos[0] : null,
-              video: this.form.videos.length > 0 ? this.form.videos[0] : null
+              photo: this.uploadedFileName_P,
+              video: this.uploadedFileName_V
             };
 
             const response = await axios.put(`/api/operations/${this.selectedRow.operation_id}`, modifiedOperation, {
@@ -331,7 +338,7 @@
         try {
             const response = await axios.get('/api/operations', {
                 params: {
-                    page_size: 20,
+                    page_size: 100,
                     page_num: this.currentPage,
                     name_keyword: this.searchText
                 },
@@ -362,8 +369,8 @@
           name: this.form.name,
           price: Number(this.form.price),
           description: this.form.description,
-          photo: this.form.photos.length > 0 ? this.form.photos[0] : null,
-          video: this.form.videos.length > 0 ? this.form.videos[0] : null
+          photo: this.uploadedFileName_P,
+          video: this.uploadedFileName_V
         };
 
         const response = await axios.post('/api/operations', operationData, {
@@ -379,6 +386,7 @@
         this.dialogVisible = false;
         this.resetForm();
         this.fetchOperations();
+        console.log('刷新页面了');
       } catch (error) {
         console.error('新增手术失败:', error);
       }
@@ -391,28 +399,66 @@
           this.form.name = '';
           this.form.price = 0;
           this.form.description = '';
-          this.form.photos = [];
-          this.form.videos = [];
+          //this.form.photos = null;
+          //this.form.videos = null;
         },
 
 
 
-        handlePhotoUploadSuccess(response, file, fileList) {
-        // Handle photo upload success
-        this.form.photos = fileList.map(file => file.url); // 只存储文件的 URL
+        // handlePhotoUploadSuccess(response, file, fileList) {
+
+        // this.form.photos = fileList.map(file => file.url); // 只存储文件的 URL
+        // },
+        // handlePhotoUploadRemove(file, fileList) {
+
+        // this.form.photos = fileList.map(file => file.url); // 只存储文件的 URL
+        // },
+        // handleVideoUploadSuccess(response, file, fileList) {
+
+        // this.form.videos = fileList.map(file => file.url); // 只存储文件的 URL
+        // },
+        // handleVideoUploadRemove(file, fileList) {
+
+        // this.form.videos = fileList.map(file => file.url); // 只存储文件的 URL
+        // },
+        handlePreview(file) {
+          
         },
-        handlePhotoUploadRemove(file, fileList) {
-        // Handle photo upload remove
-        this.form.photos = fileList.map(file => file.url); // 只存储文件的 URL
+        handleRemove(file, fileList) {
+          // 这里可以根据需要添加移除文件的逻辑，例如从列表中移除文件等
+          console.log('remove', file, fileList);
         },
-        handleVideoUploadSuccess(response, file, fileList) {
-        // Handle video upload success
-        this.form.videos = fileList.map(file => file.url); // 只存储文件的 URL
+        handleSuccess(response) {
+          // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
+          console.log('上传是不是真的成功:', response);
+          // 假设上传成功后后端返回的文件名字段为fileName
+          //this.form.photo = response.data.file_name;
+          this.uploadedFileName_P = response.data.file_name;
+          console.log('上传文件名:', this.uploadedFileName_P);
         },
-        handleVideoUploadRemove(file, fileList) {
-        // Handle video upload remove
-        this.form.videos = fileList.map(file => file.url); // 只存储文件的 URL
+        beforeUpload(file) {
+          console.log('上传的文件对象:', file);
+          this.form.photo = [file];
+          console.log('上传的文件对象真的是吗:', this.form.photo);
+          return true; // 确保继续上传过程
         },
+
+        handleSuccess_V(response) {
+          // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
+          console.log('上传视频是不是真的成功:', response);
+          // 假设上传成功后后端返回的文件名字段为fileName
+          //this.form.photo = response.data.file_name;
+          this.uploadedFileName_V = response.data.file_name;
+          console.log('上传视频文件名:', this.uploadedFileName_V);
+        },
+
+        beforeUpload_V(file) {
+          console.log('上传的视频文件对象:', file);
+          this.form.video = [file];
+          console.log('上传的视频文件对象真的是吗:', this.form.video);
+          return true; // 确保继续上传过程
+        },
+
 
 },
     mounted() {

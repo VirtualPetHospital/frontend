@@ -41,11 +41,14 @@
         <el-form-item label="设施图片">
           <el-upload
             class="upload-demo"
-            action="/upload.do"
-            :on-success="handlePhotoUploadSuccess"
-            :on-remove="handlePhotoUploadRemove"
-            :file-list="form.photo ? [form.photo] : []"
-            :auto-upload="false"
+            action="/api/files/upload"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove" 
+            :on-success="handleSuccess"
+            :data="{ file: this.form.photo, location: 'room-asset' }"
+            :before-upload="beforeUpload"
+            :headers="headerObj"
+            :with-credentials="true"
             accept="image/jpeg,image/png"
           >
             <el-button size="small" type="primary">点击上传</el-button>
@@ -55,11 +58,15 @@
         <el-form-item label="设施视频">
           <el-upload
             class="upload-demo"
-            action="/upload.do"
-            :on-success="handleVideoUploadSuccess"
-            :on-remove="handleVideoUploadRemove"
-            :file-list="form.video ? [form.video] : []"
-            :auto-upload="false"
+            action="/api/files/upload"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :on-success="handleSuccess_V"
+            :file-list="form.video"
+            :data="{ file: this.form.video, location: 'room-asset' }"
+            :before-upload="beforeUpload_V"
+            :headers="headerObj"
+            :with-credentials="true"
             accept="video/*"
           >
             <el-button size="small" type="primary">点击上传</el-button>
@@ -100,11 +107,14 @@
     <el-form-item label="设施图片">
       <el-upload
         class="upload-demo"
-        action="/upload.do"
-        :on-success="handlePhotoUploadSuccess"
-        :on-remove="handlePhotoUploadRemove"
-        :file-list="updateForm.photo ? [updateForm.photo] : []"
-        :auto-upload="false"
+        action="/api/files/upload"
+        :on-preview="handlePreview"
+        :on-remove="handleRemove" 
+        :on-success="handleSuccess"
+        :data="{ file: this.form.photo, location: 'room-asset' }"
+        :before-upload="beforeUpload"
+        :headers="headerObj"
+        :with-credentials="true"
         accept="image/jpeg,image/png"
       >
         <el-button size="small" type="primary">点击上传</el-button>
@@ -114,11 +124,15 @@
     <el-form-item label="设施视频">
       <el-upload
         class="upload-demo"
-        action="/upload.do"
-        :on-success="handleVideoUploadSuccess"
-        :on-remove="handleVideoUploadRemove"
-        :file-list="updateForm.video ? [updateForm.video] : []"
-        :auto-upload="false"
+        action="/api/files/upload"
+        :on-preview="handlePreview"
+        :on-remove="handleRemove"
+        :on-success="handleSuccess_V"
+        :file-list="form.video"
+        :data="{ file: this.form.video, location: 'room-asset' }"
+        :before-upload="beforeUpload_V"
+        :headers="headerObj"
+        :with-credentials="true"
         accept="video/*"
       >
         <el-button size="small" type="primary">点击上传</el-button>
@@ -179,12 +193,12 @@ export default {
       searchText: '',
       dialogVisible: false,
       updateDialogVisible:false,
+      uploadedFileName_P: null,// 新增一个变量用于存储上传成功的图片文件名
+      uploadedFileName_V: null,// 新增一个变量用于存储上传成功的视频文件名
       form: {
         room_asset_id: '',
         name: '',
         description: '',
-        photo: null,
-        video: null,
         room_id: null
       },
       rules: {
@@ -193,7 +207,11 @@ export default {
         room_id: [{ required: true, message: '请输入所属科室', trigger: 'blur' }]
       },
       facilities: [],
-      selectedFacility: null
+      selectedFacility: null,
+      headerObj: {
+        'Session': sessionStorage.getItem('sessionId'),
+        //'Content-Type': 'application/json'
+      },
     };
   },
   computed: {
@@ -225,8 +243,8 @@ export default {
         const response = await axios.post('/api/room-assets', {
           name: this.form.name,
           description: this.form.description,
-          photo: this.form.photo,
-          video: this.form.video,
+          photo: this.uploadedFileName_P,
+          video: this.uploadedFileName_V,
           room_id: roomId
         }, {
           withCredentials: true,
@@ -244,6 +262,14 @@ export default {
         console.error('新增设施失败:', error);
       }
     },
+    resetForm() {
+          this.form.room_asset_id = '';
+          this.form.name = '';
+          this.form.description = '';
+          this.form.room_id = 0;
+          this.uploadedFileName_P = null;
+          this.uploadedFileName_V = null;
+        },
     handleModifyFacility() {
       console.log('点了修改按钮');
       if (!this.selectedFacility) {
@@ -260,8 +286,8 @@ export default {
       const response = await axios.put(`/api/room-assets/${this.updateForm.room_asset_id}`, {
         name: this.updateForm.name,
         description: this.updateForm.description,
-        photo: this.updateForm.photo,
-        video: this.updateForm.video,
+        photo: this.uploadedFileName_P,
+        video: this.uploadedFileName_V,
         room_id: this.updateForm.room_id
       }, {
         withCredentials: true,
@@ -272,6 +298,7 @@ export default {
       });
       // 处理更新成功后的逻辑，比如关闭弹窗、刷新数据等
       this.updateDialogVisible = false;
+      this.resetForm();
       this.fetchData(); // 刷新数据
       //this.$message.success('设施修改成功');
     } catch (error) {
@@ -339,7 +366,43 @@ export default {
         console.error('Error deleting facility:', error);
         this.$message.error('删除失败');
       }
-    }
+    },
+    handlePreview(file) {
+          
+    },
+    handleRemove(file, fileList) {
+      // 这里可以根据需要添加移除文件的逻辑，例如从列表中移除文件等
+      console.log('remove', file, fileList);
+    },
+    handleSuccess(response) {
+      // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
+      console.log('上传是不是真的成功:', response);
+      // 假设上传成功后后端返回的文件名字段为fileName
+      //this.form.photo = response.data.file_name;
+      this.uploadedFileName_P = response.data.file_name;
+      console.log('上传文件名:', this.uploadedFileName_P);
+    },
+    beforeUpload(file) {
+      console.log('上传的文件对象:', file);
+      this.form.photo = [file];
+      console.log('上传的文件对象真的是吗:', this.form.photo);
+      return true; // 确保继续上传过程
+    },
+    handleSuccess_V(response) {
+      // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
+      console.log('上传视频是不是真的成功:', response);
+      // 假设上传成功后后端返回的文件名字段为fileName
+      //this.form.photo = response.data.file_name;
+      this.uploadedFileName_V = response.data.file_name;
+      console.log('上传视频文件名:', this.uploadedFileName_V);
+    },
+    beforeUpload_V(file) {
+      console.log('上传的视频文件对象:', file);
+      this.form.video = [file];
+      console.log('上传的视频文件对象真的是吗:', this.form.video);
+      return true; // 确保继续上传过程
+    },
+
 
   },
   mounted() {
