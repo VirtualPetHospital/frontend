@@ -1,11 +1,5 @@
 <template>
   <div>
-    <div class="buttons-container">
-      <div  class="input-group" style="margin-bottom: 10px;">
-      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
-      <button @click="searchProblems" class="btn btn-primary">搜索</button>
-      </div>
-    </div>
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
@@ -40,7 +34,7 @@
         </thead>
         <tbody>
           <!-- 遍历每个考试项 -->
-          <tr v-for="(problem, index) in paginatedProblems" :key="index">
+          <tr v-for="(problem, index) in problems" :key="index">
             <td class="text-center">
               <input type="checkbox" v-model="problem.checked" @change="handleProblemSelection(problem)">
             </td>
@@ -55,24 +49,6 @@
         </tbody>
       </table>
     </div>
-
-    
-    <!-- 分页控件 -->
-    <nav aria-label="Page navigation example">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
-        </li>
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
-        </li>
-      </ul>
-    </nav>
-
-
  <transition name="modal">
     <div class="modal-mask" v-if="showProblemDetails" @click="closeProblemDetails">
       <div class="modal-wrapper" @click.stop>
@@ -115,17 +91,15 @@ import Modal from "@/components/Modal.vue";
 import { ref, Vue } from 'vue';
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router"; // 导入Vue
-import axios from 'axios';
 const API_URL = `/api/problem`
 export default {
   data() {
     return {
       problems: [
-        // { id: 1, category: '传染病', description:'狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀到底是什么病呀狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀到底是什么病呀狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀到底是什么病呀',choiceA:"小病",choiceB:"中病",choiceC:"传染病",choiceD:"大病",answer:"C",checked: false },
-        // { id: 2, category: '传染病', description:'狂猫病是什么病呀？',choiceA:"小病",choiceB:"中病",choiceC:"传染病",choiceD:"大病",answer:"C",checked: false},
-        // { id: 3, category: '传染病', description:'狂鸟病是什么病呀？',choiceA:"小病",choiceB:"中病",choiceC:"传染病",choiceD:"大病",answer:"C",checked: false },
+        { id: 1, category: '传染病', description:'狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀到底是什么病呀狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀到底是什么病呀狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀？狂犬病是什么病呀到底是什么病呀',choiceA:"小病",choiceB:"中病",choiceC:"传染病",choiceD:"大病",answer:"C",checked: false },
+        { id: 2, category: '传染病', description:'狂猫病是什么病呀？',choiceA:"小病",choiceB:"中病",choiceC:"传染病",choiceD:"大病",answer:"C",checked: false},
+        { id: 3, category: '传染病', description:'狂鸟病是什么病呀？',choiceA:"小病",choiceB:"中病",choiceC:"传染病",choiceD:"大病",answer:"C",checked: false },
       ],
-      allproblems:[],
       editing: null,
       showEditModal: false, // 控制编辑窗口显示与隐藏
       showDeleteWarning: false, // 控制删除提示窗口的显示与隐藏
@@ -137,21 +111,16 @@ export default {
       progressWidth: '0%', // 动态进度条宽度
       problemmax:0, 
       tempname1:'',
-      // temphours1:'',
-      // tempmins1:'',
+      temphours1:'',
+      tempmins1:'',
       flag1:true,
-      pageSize:7,
-      currentPage:1,
-      totalProblems:0,
-      selectedProblemsMap: new Map(),
-      searchKeyword: '', // 搜索关键词
     };
   },
   created() {
   this.tempname1=this.$route.params.tempname;
   this.problemmax = this.$route.params.tempproblemcount;
-  // this.temphours1=this.$route.params.temphours;
-  // this.tempmins1=this.$route.params.tempmins;
+  this.temphours1=this.$route.params.temphours;
+  this.tempmins1=this.$route.params.tempmins;
   console.log(this.tempname1);
   },
   watch: {
@@ -159,11 +128,6 @@ export default {
     selectedCount(newValue) {
       // 更新动态进度条的宽度
       this.progressWidth = (newValue / this.problemmax) * 100 + '%';
-    },
-  },
-  computed: {
-    totalPages() {
-      return Math.ceil(this.totalProblems / this.pageSize);
     },
   },
   setup() {
@@ -177,11 +141,6 @@ export default {
      });
      return {};
    },
-   mounted() {
-    // 组件加载完成后立即获取题目列表数据
-    this.fetchProblems();
-    this.fetchAllProblems();
-  },
   methods: {
     openProblemDetails(problem) {
       this.selectedProblem = { ...problem };
@@ -209,8 +168,8 @@ export default {
       }
     },
     handleProblemSelection(problem) {
-      // this.selectedCount = this.problems.filter(p => p.checked).length;
-      this.selectedCount += problem.checked ? 1 : -1;
+      this.selectedCount = this.problems.filter(p => p.checked).length;
+
       // 如果已选试题数量达到上限，则取消当前选中的复选框并弹出提示
       if (this.selectedCount > this.problemmax && problem.checked) {
         problem.checked = false;
@@ -218,7 +177,6 @@ export default {
         this.selectedCount--;
         return ;
       }
-      this.selectedProblemsMap.set(problem.id, problem.checked);
     // 更新动态进度条的宽度
     this.progressWidth = (this.selectedCount / this.problemmax) * 100 + '%';
   },
@@ -232,10 +190,11 @@ export default {
     } else if (this.selectedCount == this.problemmax) {
       // 选题成功，弹出提示
       alert('选题成功！');
-  // 其他处理逻辑
-  const tempproblems = [];
-  this.allproblems.forEach(problem => {
-      if (this.selectedProblemsMap.get(problem.id)) {
+    }
+    // 其他处理逻辑
+    const tempproblems = [];
+    this.problems.forEach(problem => {
+      if (problem.checked) {
         tempproblems.push(problem.id);
       }
     });
@@ -245,139 +204,13 @@ export default {
       params: {
         problemmax: this.problemmax,
         tempname1: this.tempname1,
-        // temphours1: this.temphours1,
-        // tempmins1: this.tempmins1,    
+        temphours1: this.temphours1,
+        tempmins1: this.tempmins1,    
         tempproblems: tempproblems.join(','), // 将数组转换为以逗号分隔的字符串
         flag: this.flag1,
       }
     });
-    }
   },
-  async fetchProblems() {
-      try {
-        const response = await axios.get('/api/questions', {
-          params: {
-            page_size: this.pageSize,
-            page_num: this.currentPage,
-            category_keyword: '',
-            description_keyword: '',
-          },
-          withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json',
-          }
-        });
-        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
-          
-          this.problems = response.data.data.records.map(record => ({
-            id: record.question_id,
-            description: record.description,
-            answer: record.answer,
-            choiceA: record.a,
-            choiceB: record.b,
-            choiceC: record.c,
-            choiceD: record.d,
-            category: record.category_id,
-            // checked: false,
-            checked: this.selectedProblemsMap.get(record.question_id) || false,
-          }));
-         this.$forceUpdate();
-          this.totalProblems=response.data.data.total;
-          this.paginatedProblems = this.problems;
-          console.log(this.problems);
-          console.log(this.totalProblems);
-        }
-      } catch (error) {
-        console.error('Error fetching questions:', error);
-      }
-    },
-    async fetchAllProblems() {
-    try {
-      const response = await axios.get('/api/questions', {
-        params: {
-          page_size: 200, // 获取所有题目数据
-          page_num: 1, // 获取第一页数据
-          category_keyword: '',
-          description_keyword: '',
-        },
-        withCredentials: true,
-        headers: {
-          'Session': sessionStorage.getItem('sessionId'),
-          'Content-Type': 'application/json',
-        }
-      });
-      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
-        this.allproblems = response.data.data.records.map(record => ({
-          id: record.question_id,
-          description: record.description,
-          answer: record.answer,
-          choiceA: record.a,
-          choiceB: record.b,
-          choiceC: record.c,
-          choiceD: record.d,
-          category: record.category_id,
-          checked: this.selectedProblemsMap.get(record.question_id) || false,
-        }));
-        console.log(this.allproblems);
-      }
-    } catch (error) {
-      console.error('Error fetching questions:', error);
-    }
-  },
-    prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-        this.fetchProblems(); // 调用 fetchProblems 获取新页数据
-      }
-    },
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-        this.fetchProblems(); // 调用 fetchProblems 获取新页数据
-      }
-    },
-    gotoPage(page) {
-      if (page >= 1 && page <= this.totalPages) {
-        this.currentPage = page;
-        this.fetchProblems(); // 调用 fetchProblems 获取新页数据
-      }
-    },
-    async searchProblems() {
-      try {
-        const response = await axios.get('/api/questions', {
-          params: {
-            page_size: this.pageSize,
-            page_num: this.currentPage,
-            category_keyword: '',
-            description_keyword: this.searchKeyword, // 使用搜索关键词
-          },
-          withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json',
-          }
-        });
-        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
-          this.problems = response.data.data.records.map(record => ({
-            id: record.question_id,
-            description: record.description,
-            answer: record.answer,
-            choiceA: record.a,
-            choiceB: record.b,
-            choiceC: record.c,
-            choiceD: record.d,
-            category: record.category_id,
-            checked: this.selectedProblemsMap.get(record.question_id) || false,
-          }));
-          this.totalProblems = response.data.data.total;
-          this.paginatedProblems = this.problems;
-          console.log(this.problems);
-        }
-      } catch (error) {
-        console.error('Error fetching questions:', error);
-      }
-    },
   },
   components: {
     ArgonBadge,
@@ -531,18 +364,5 @@ margin-bottom: 10px;
   height: 100%;
   background-color: #007bff;
   transition: width 0.5s ease; /* 进度条动画效果 */
-}
-.small-input {
-  height: 40px; /* 设置输入框高度为 30px */
-  max-width: 200px; /* 设置输入框的最大宽度为 200px */
-  width: 50%; /* 设置输入框宽度为父元素宽度的 50% */
-}
-.btn-success,
-.btn-primary,
-.btn-danger {
-  height: 40px; /* 设置按钮高度为 40px */
-  width: auto; /* 让按钮宽度自适应内容 */
-  padding: 0 15px; 
-  white-space: nowrap; /* 防止按钮文字换行 */
 }
 </style>
