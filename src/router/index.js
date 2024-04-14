@@ -12,6 +12,7 @@ import yizhu from "../examples/Student/cosplay/yizhu.vue";
 import yishi from "../examples/Student/cosplay/yishi.vue";
 import HospitalGuide from "../examples/Student/HospitalGuide.vue";
 import Myexam from "../examples/Student/exams/Myexam.vue"
+import SearchMedcase from  "../examples/Student/Search/SearchMedcase.vue"
 import DashboardTeacher from "@/examples/Teacher/DashboardTeacher.vue";
 import DashboardAdmin from "@/examples/Admin/DashboardAdmin.vue";
 import DashboardStudent from "@/examples/Student/DashboardStudent.vue";
@@ -41,6 +42,8 @@ import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryMana
 import TTT from "../examples/Admin/testMe/testtest.vue"
 import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
+import ExamsInfo from  "../examples/Teacher/exam/ExamsInfo.vue"
+import ReselectQuestions from "../examples/Teacher/paper/ReselectQuestions.vue";
 const routes = [
   {
     path: "/",
@@ -103,7 +106,7 @@ const routes = [
     component: Profile,
   },
   {
-    path: '/:diseaseName/medcases',
+    path: '/?diseaseName/medcases',
     name: 'Disease',
     component: Disease,
   },
@@ -142,6 +145,12 @@ const routes = [
     name:"WatchPaper",
     component:PaperInfo,
   },
+  {
+    path:"/searchMedcase",
+    name:"SearchMedcase",
+    component:SearchMedcase,
+  },
+
   {
     path:"/takeexam/:id",
     name:"TakeExam",
@@ -196,17 +205,17 @@ const routes = [
   //   })
   // },
   {
-    path:"/Papers/:id",
+    path:"/PapersInfo/:id",
     name:"查看试卷",
     component:PapersInfo,
   },
   {
-    path:"/SelectQuestions/:tempname/:tempproblemcount/:temphours/:tempmins",
+     path:"/SelectQuestions/:tempname/:tempproblemcount",
     name:"选择试题",
     component:SelectQuestions,
   },
   {
-    path:"/PapersTeacher/:problemmax/:tempname1/:temphours1/:tempmins1/:tempproblems/:flag",
+    path:"/PapersTeacher/:problemmax/:tempname1/:tempproblems/:flag",
     name:"管理试卷",
     component:PapersTeacher,
     props:true,
@@ -217,12 +226,12 @@ const routes = [
     component:ExamsTeacher,
   },
   {
-    path:"/SelectPaper/:tempname/:tempexamlevel/:temphours/:tempmins",
+  path:"/SelectPaper/:tempname/:templevel/:tempduration/:tempstarttime/:tempendtime",
     name:"选择试卷",
     component:SelectPaper,
   },
   {
-    path:"/ExamsTeacher/:tempexamlevel1/:tempname1/:temphours1/:tempmins1/:temppaper/:temppapername/:flag",
+ path:"/ExamsTeacher/:templevel1/:tempname1/:tempduration1/:tempstarttime1/:tempendtime1/:temppaper/:temppapername/:flag",
     name:"管理考试",
     component:ExamsTeacher,
   },
@@ -276,7 +285,16 @@ const routes = [
     name:"科室设施详情-管理员",
     component:FacilityDetails,
   },
-
+  {
+    path:"/Exams/:id",
+    name:"答题情况",
+    component:ExamsInfo,
+  },
+  {
+    path:"/ReselectQuestions/:tempid/:tempname/:tempproblemcount",
+    name:"重选试题",
+    component:ReselectQuestions,
+  }
 ];
 
 const router = createRouter({

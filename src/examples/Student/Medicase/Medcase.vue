@@ -7,28 +7,31 @@
         <div class="col-6">
           <el-card class="custom-elcard">
             <el-descriptions class="margin-top" title="病例信息" :column="1" style="font-size: large"  :size="size"  border>
-              <el-descriptions-item >
+              <el-descriptions-item  labelStyle="white-space:nowrap;">
                 <template v-slot:label>
                   <i class="el-icon-user"></i>
-                  治疗描述
+                  治疗描述：
                 </template>
                 {{ medCase.treatment_description }}
               </el-descriptions-item>
-              <el-descriptions-item>
-                <template v-slot:label>
-                  <i class="el-icon-mobile-phone"></i>
-                  诊断结果:
-                </template>
-                {{medCase.diagnose_result}}
-              </el-descriptions-item>
-              <el-descriptions-item>
+
+                <el-descriptions-item labelStyle="white-space:nowrap;"
+                   >
+                  <template v-slot:label >
+                    <i class="el-icon-mobile-phone" ></i>
+                    诊断结果:
+                  </template>
+                  {{medCase.diagnose_result}}
+                </el-descriptions-item>
+
+              <el-descriptions-item labelStyle="white-space:nowrap;">
                 <template v-slot:label>
                   <i class="el-icon-location-outline"></i>
                   治疗费用:
                 </template>
                 {{medCase.price}}
               </el-descriptions-item>
-              <el-descriptions-item>
+              <el-descriptions-item labelStyle="white-space:nowrap;">
                 <template v-slot:label>
                   <i class="el-icon-tickets"></i>
                   信息描述:
@@ -69,7 +72,9 @@
     <div class=" row">
       <div class="col-12">
         <h4>检查结果</h4>
-
+        <div class="Echarts">
+          <div id="main" style="width: 600px;height:400px;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -133,7 +138,21 @@ export default{
         operation_id:1,
         inspections:[],
         medicines:[],
-      }
+      },
+      xAxis:{
+        type:"category",
+        data:[
+            "白细胞",
+            "红细胞"
+        ],
+        axisLabel: {
+          //坐标轴文字显示样式
+          lineHeight: 18, //字体行高
+          fontNum: 18, //每行显示字数
+          rotate: 45, //文字旋转角度，0不旋转
+        },
+      },
+
     }
   },
   components:{
@@ -149,8 +168,70 @@ export default{
     const medcaseId = this.$route.params.medcaseId;
     // 调用fetchMedCase方法获取病例数据
     this.fetchMedCase(medcaseId);
+
   },
   methods:{
+    myEcharts(){
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('main'));
+
+      // 指定图表的配置项和数据
+      var option = {
+        title: {
+          text: '检查结果'
+        },
+        tooltip: {},
+        legend: {
+          orient:'horizontal',
+          data:['最低值','最高值','病例值'],
+
+        },
+        xAxis: this.xAxis,
+        yAxis: {},
+        series: [
+          {
+          name: '最低值',
+          type: 'bar',
+          data:[0.6,0.5],
+          itemStyle:{
+            color:'#FF9314',
+          },
+          label:{
+            show:false,
+            position:"right"
+          }
+        },
+          {
+            name: '最高值',
+            type: 'bar',
+            data:[0.7,0.8],
+            itemStyle:{
+              color:'#1492FF',
+            },
+            label:{
+              show:false,
+              position:"right"
+            }
+          },
+          {
+            name: '病例值',
+            type: 'bar',
+            data:[0.3,0.2],
+            itemStyle:{
+              color:'#a81818',
+            },
+            label:{
+              show:false,
+              position:"right"
+            }
+          }
+        ],
+
+      };
+
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+    },
     goToOperationPage() {
       // 获取当前病例的 operation_id
       const operationId = this.medCase.operation_id;
@@ -175,8 +256,15 @@ export default{
     },
 
     async fetchMedCase(medcaseId){
-      const response = await axios.get(`/api/medcases/${medcaseId}`);
-      const data = response.data;
+      const response = await axios.get(`/api/medcases/${medcaseId}`,
+          {
+            withCredentials : true,
+            headers:{
+              'Session':sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',},
+
+          });
+      const data = response.data.data;
       this.medCase.name = data.name;
       this.medCase.treatment_description = data.treatment_description;
       this.medCase.diagnose_result = data.diagnose_result;
@@ -189,6 +277,7 @@ export default{
       this.medCase.inspections = data.inspections;
       this.playerOptions.sources[0].src=this.medCase.info_video;
       this.medCase.medicines = data.medicines;
+      this.myEcharts();
     },
     async fetchMedCaseMock(medcaseId) {
       try {
@@ -309,4 +398,21 @@ export default{
 .card.p-4{
   margin-left: 5px;
 }
+.my-class {
+  max-width: 25px;
+  word-break: break-all;
+  word-wrap: break-word;
+}
+
+.my-label {
+  width: 200px;
+  color: #999;
+  font-weight: normal;
+  background: #fff;
+}
+
+v-deep.el-descriptions-item__content{
+  max-width: 26px;
+}
+
 </style>

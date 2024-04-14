@@ -74,8 +74,10 @@ export default {
         axios(config)
             .then(response => {
               console.log(response.headers['session']);
+              const user_id=response.data.data.user_id;
               sessionStorage.setItem('nickname', this.loginRuleForm.nickname);
               sessionStorage.setItem('password', this.loginRuleForm.password);
+              sessionStorage.setItem('user_id', this.loginRuleForm.user_id);
               sessionStorage.setItem("type",response.data.data.type);
               sessionStorage.setItem('sessionId',response.headers['session']);
               this.handleLoginSuccess(response.data.data.type);
@@ -125,13 +127,13 @@ export default {
     }
   },
   created() {
-    // const rememberedNickname = sessionStorage.getItem('nickname');
-    // const rememberedPassword = sessionStorage.getItem('password');
-    // if (rememberedNickname && rememberedPassword) {
-    //   this.loginRuleForm.nickname = rememberedNickname;
-    //   this.loginRuleForm.password = rememberedPassword;
-    //   this.loginRuleForm.rememberMe = true; // 这里假设记住密码复选框是默认勾选的
-    // }
+    const rememberedNickname = sessionStorage.getItem('nickname');
+    const rememberedPassword = sessionStorage.getItem('password');
+    if (rememberedNickname && rememberedPassword) {
+      this.loginRuleForm.nickname = rememberedNickname;
+      this.loginRuleForm.password = rememberedPassword;
+      this.loginRuleForm.rememberMe = true; // 这里假设记住密码复选框是默认勾选的
+    }
     this.$store.state.hideConfigButton = true;
     this.$store.state.showNavbar = false;
     body.classList.remove("bg-gray-100");
@@ -198,10 +200,10 @@ onBeforeUnmount(() => {
                 <div class="card-body">
                     <el-form :model="loginRuleForm" label-position="left" status-icon :rules="rules" ref="ruleForm"  class="demo-ruleForm">
                       <el-form-item prop="nickname">
-                        <el-input type="nickname" v-model="loginRuleForm.nickname" placeholder="用户名" autocomplete="off"></el-input>
+                        <el-input type="nickname" v-model="loginRuleForm.nickname" placeholder="用户名" autocomplete="on"></el-input>
                       </el-form-item>
                       <el-form-item  prop="password">
-                        <el-input type="password" v-model="loginRuleForm.password" placeholder="密码" autocomplete="off"></el-input>
+                        <el-input type="password" v-model="loginRuleForm.password" placeholder="密码" autocomplete="on"></el-input>
                       </el-form-item>
                       <el-form-item>
                     <el-checkbox

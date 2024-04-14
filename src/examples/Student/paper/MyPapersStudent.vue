@@ -70,27 +70,33 @@ export default{
   },
   methods:{
     fetchPapers(){
-      axios.get('/exams',{
+      axios.get('/api/exams',{
         params:{
           page_size:this.pageSize,
           page_num:this.pageNum,
         },
+        withCredentials : true,
         headers:{
-          Session:this.session
+          'Session':sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+
         }
       }).then(response=>{
         this.responseData=response.data;
         if (this.responseData && this.responseData.data && this.responseData.data.records.length > 0) {
-
           // 使用 map 方法遍历所有记录并提取 paper 字段
-            for(let i=0;i<this.responseData.data.records.length;i++){
-              let paperInfo = {
-                examId: this.responseData.data.records[i].exam_id,
-                paper: this.responseData.data.records[i].paper
-              };
-              this.papers.push(paperInfo);
-              console.log("correctnum"+paperInfo.paper.correct_num);
-            }
+          for(let i=0;i<this.responseData.data.records.length;i++){
+            let tmpPaper=this.responseData.data.records[i].paper;
+            tmpPaper.correct_num=this.correctNum(this.responseData.data.records[i].exam_id)
+
+            let paperInfo = {
+              examId: this.responseData.data.records[i].exam_id,
+              paper: tmpPaper
+            };
+            this.papers.push(paperInfo);
+            console.log(paperInfo);
+          }
+
             this.total=this.responseData.data.total;
 
         } else {
@@ -128,16 +134,24 @@ export default{
     },
     correctNum(examId){
       try{
-        const response=axios.get('/answer-sheets/' ,
+        axios.get(`/api/answer-sheets/${examId}` ,
             {
               params: {
                 exam_id:examId,
-              },}
-        );
-        const answers=response.data.answers;
-        const correctAnswers = answers.filter(answer => answer.answer === answer.option);
-        return correctAnswers;
-      }catch(error){
+              },
+              withCredentials : true,
+              headers:{
+                'Session':sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+
+              }}
+        ).then(response=>{
+          const answers=response.data.data.answers;
+          const correctAnswers = answers.filter(answer => answer.answer === answer.option);
+          console.log('correc',correctAnswers);
+          return correctAnswers;
+        }
+        )}catch(error){
         console.log("获取正确数失败",error);
       }
     },
@@ -1111,7 +1125,7 @@ export default{
     }
   },
   mounted() {
-    this.fetchPapersMock();
+    this.fetchPapers();
   },
   setup() {
     const store = useStore();
