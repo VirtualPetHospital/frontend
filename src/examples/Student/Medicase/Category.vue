@@ -10,10 +10,10 @@
 <!--            <el-tab-pane label="病种名3">3</el-tab-pane>-->
 <!--            <el-tab-pane label="病种名4">4</el-tab-pane>-->
 <!--          </el-tabs>-->
-          <el-tabs type="border-card" class="rounded-tabs" >
+          <el-tabs v-if="categories.length > 0" type="border-card" class="rounded-tabs" >
             <el-tab-pane v-for="category in categories" :key="category.category_id" :label="category.name">
               <el-row>
-                <el-col v-for="(disease, index) in diseases[category.category_id]" :key="index" :span="8" >
+                <el-col v-for="(disease, index) in category.diseases" :key="index" :span="8" >
                   <el-button class="custom-button" style="margin-bottom: 10px;margin-left: 20px" @click="fetchMedCases(disease.name,disease.disease_id)">{{ disease.name }}</el-button>
                 </el-col>
               </el-row>
@@ -42,8 +42,11 @@ export default{
     return{
       pageSize:10,
       pageNum:1,
-      categories:[],
-      diseases:{},
+      categories:{
+        name:'',
+        category_id: '',
+        diseases:[{}]
+      },
       infoKeyword:"",
       meKeyword:'',
       categoriesObj:[],
@@ -60,7 +63,8 @@ export default{
   },
   methods:{
     fetchMedCases(diseaseName,diseaseId){
-      this.$router.push({ name: 'Disease', params: { diseaseName: diseaseName,diseaseId:diseaseId }});
+      console.log('fetchmed'+diseaseId+diseaseName);
+      this.$router.push({ name: 'Disease', query: { diseaseName: diseaseName,diseaseId:diseaseId }});
     },
     fetchCategories(){
       console.log('session '+sessionStorage);
@@ -78,7 +82,7 @@ export default{
           }
       ).then(response=>{
         this.categories=
-            JSON.stringify(response.data.data);
+            (response.data.data);
         console.log("category "+this.categories);
         this.fetchDiseasesForCategories();
       }).catch(error=>{
@@ -86,8 +90,9 @@ export default{
       })
     },
     fetchDiseasesForCategories(){
-      for(var category in this.categories){
-        axios.get(`/api/diseases/categories/${category['category_id']}`,
+      for(let i=0;i<this.categories.length;i++){
+        console.log("cat id"+this.categories[i]);
+        axios.get(`/api/diseases/categories/${this.categories[i].category_id}`,
             {headers:{
                 'Session':sessionStorage.getItem('sessionId'),
               'Content-Type': 'application/json',
@@ -95,7 +100,9 @@ export default{
               withCredentials : true}
         ).then
         (response=>{
-          this.categories[category.category_id].diseasesf =response.data.data;
+          console.log("aaa"+response.data.data);
+          this.categories[i].diseases=response.data.data;
+          console.log(this.categories[i].diseases);
         }).catch(error=>{
           console.error('获取疾病失败',error);
         });

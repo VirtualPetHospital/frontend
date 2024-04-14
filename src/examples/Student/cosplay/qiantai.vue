@@ -1,4 +1,5 @@
 <template>
+
   <div class="py-4 container-fluid">
     <div class="row">
       <div class="col-lg-12">
@@ -168,5 +169,10 @@ export default {
   to {
     transform: translateX(0%);
   }
+}
+.py-4 container-fluid {
+  background-image: url('@/assets/img/background.jpg'); /* 替换 'your-background-image-url.jpg' 为你的背景图路径 */
+  background-size: cover; /* 让背景图铺满整个容器 */
+  background-position: center; /* 居中显示背景图 */
 }
 </style>

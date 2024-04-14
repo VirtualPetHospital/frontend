@@ -12,6 +12,7 @@ import yizhu from "../examples/Student/cosplay/yizhu.vue";
 import yishi from "../examples/Student/cosplay/yishi.vue";
 import HospitalGuide from "../examples/Student/HospitalGuide.vue";
 import Myexam from "../examples/Student/exams/Myexam.vue"
+import SearchMedcase from  "../examples/Student/Search/SearchMedcase.vue"
 import DashboardTeacher from "@/examples/Teacher/DashboardTeacher.vue";
 import DashboardAdmin from "@/examples/Admin/DashboardAdmin.vue";
 import DashboardStudent from "@/examples/Student/DashboardStudent.vue";
@@ -38,6 +39,7 @@ import MedicineManagement from "../examples/Admin/medicineManagement/MedicineMan
 import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue"
 import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue"
 import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue"
+import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue"
 import TTT from "../examples/Admin/testMe/testtest.vue"
 import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
@@ -105,7 +107,7 @@ const routes = [
     component: Profile,
   },
   {
-    path: '/:diseaseName/medcases',
+    path: '/?diseaseName/medcases',
     name: 'Disease',
     component: Disease,
   },
@@ -144,6 +146,12 @@ const routes = [
     name:"WatchPaper",
     component:PaperInfo,
   },
+  {
+    path:"/searchMedcase",
+    name:"SearchMedcase",
+    component:SearchMedcase,
+  },
+
   {
     path:"/takeexam/:id",
     name:"TakeExam",
@@ -287,7 +295,12 @@ const routes = [
     path:"/ReselectQuestions/:tempid/:tempname/:tempproblemcount",
     name:"重选试题",
     component:ReselectQuestions,
-  }
+  },
+  {
+    path:"/MedcaseDetail/:id",
+    name:"病例情况-管理员",
+    component:MedcaseDetail,
+  },
 ];
 
 const router = createRouter({

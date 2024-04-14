@@ -34,24 +34,33 @@
               action="api/files/upload"
               :on-preview="handlePreview"
               :on-remove="handleRemove" 
+              :on-success="handleSuccess"
               :file-list="form.photo"
               :data="{ file: this.form.photo, location: 'disease' }"
               :before-upload="beforeUpload"
-              list-type="picture-card">
-              <i class="el-icon-plus"></i>
+              :headers="headerObj"
+              :with-credentials="true"
+              accept="image/jpeg,image/png">
+                <el-button size="small" type="primary">点击上传</el-button>
+                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
             </el-upload>
-
-
           </el-form-item>
+          
           <el-form-item label="视频" prop="video">
             <el-upload
               class="upload-demo"
               action="api/files/upload"
               :on-preview="handlePreview"
               :on-remove="handleRemove"
+              :on-success="handleSuccess_V"
               :file-list="form.video"
-              list-type="picture-card">
-              <i class="el-icon-video-camera"></i>
+              :data="{ file: this.form.video, location: 'disease' }"
+              :before-upload="beforeUpload_V"
+              :headers="headerObj"
+              :with-credentials="true"
+              accept="video/*" >
+                <el-button size="small" type="primary">点击上传</el-button>
+                <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
             </el-upload>
           </el-form-item>
         </el-form>
@@ -92,26 +101,38 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="图片" prop="photo">
+          <el-form-item label="图片">
             <el-upload
               class="upload-demo"
-              action="https://jsonplaceholder.typicode.com/posts/"
+              action="api/files/upload"
               :on-preview="handlePreview"
               :on-remove="handleRemove"
+              :on-success="handleSuccess"
               :file-list="form.photo"
-              list-type="picture-card">
-              <i class="el-icon-plus"></i>
+              :data="{ file: this.form.photo, location: 'disease' }"
+              :before-upload="beforeUpload"
+              :headers="headerObj"
+              :with-credentials="true"
+              accept="image/jpeg,image/png">
+                <el-button size="small" type="primary">点击上传</el-button>
+                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
             </el-upload>
           </el-form-item>
           <el-form-item label="视频" prop="video">
             <el-upload
               class="upload-demo"
-              action="https://jsonplaceholder.typicode.com/posts/"
+              action="api/files/upload"
               :on-preview="handlePreview"
               :on-remove="handleRemove"
+              :on-success="handleSuccess_V"
               :file-list="form.video"
-              list-type="picture-card">
-              <i class="el-icon-video-camera"></i>
+              :data="{ file: this.form.video, location: 'disease' }"
+              :before-upload="beforeUpload_V"
+              :headers="headerObj"
+              :with-credentials="true"
+              accept="video/*" >
+                <el-button size="small" type="primary">点击上传</el-button>
+                <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
             </el-upload>
           </el-form-item>
         </el-form>
@@ -244,6 +265,8 @@
       dialogVisible: false, // 控制新增弹窗的显示状态
       modifyDialogVisible: false, // 控制修改弹窗的显示状态
       diseaseOptions: [], // 用于存储从后端获取的病种名数据
+      uploadedFileName_P: null,// 新增一个变量用于存储上传成功的图片文件名
+      uploadedFileName_V: null,// 新增一个变量用于存储上传成功的视频文件名
       form: {
         id: '',
         diseaseType: '',
@@ -279,7 +302,11 @@
       // 当前的筛选器
       filters: {
         diseaseType: [] // 初始为空，表示未选择任何病种
-      }
+      },
+      headerObj: {
+        'Session': sessionStorage.getItem('sessionId'),
+        //'Content-Type': 'application/json'
+      },
     };
   },
   created() {
@@ -335,15 +362,16 @@
     handleConfirm() {
       // 表单验证
       this.$refs.form.validate((valid) => {
-        console.log('新增图片名:', this.form.photo,);
+        //console.log('新增图片名:', this.form.photo.name,);
+        console.log('新增sp名:', this.uploadedFileName_V,);
         if (valid) {
           // 发送 POST 请求将表单数据提交到后端
           axios.post('api/diseases', {
             name: this.form.name,
             description: this.form.description,
             category_id: this.form.category_id,
-            photo: this.form.photo,
-            video: this.form.video
+            photo: this.uploadedFileName_P,
+            video: this.uploadedFileName_V,
           }, {
             withCredentials: true,
             headers: {
@@ -464,7 +492,6 @@
     }
   },
 
-
     // 处理修改弹窗确定按钮点击事件
     handleModifyConfirm() {
       // 表单验证
@@ -475,8 +502,8 @@
             name: this.form.name,
             description: this.form.description,
             category_id: this.form.category_id,
-            photo: this.form.photo,
-            video: this.form.video
+            photo: this.uploadedFileName_P,
+            video: this.uploadedFileName_V,
           }, {
             withCredentials: true,
             headers: {
@@ -507,23 +534,35 @@
       });
     },
 
-
     // 处理疾病图片和视频的预览和移除
     handlePreview(file) {
-      console.log('文件是什么',file);
-      // 构造文件下载链接
-      const downloadUrl = `api/files/download?file_name=${file.name}`;
-      // 使用浏览器的下载功能下载文件
-      console.log('Session ID:', sessionStorage.getItem('sessionId'));
+      // console.log('文件是什么', file);
+      // // 构造文件下载链接
+      // // const downloadUrl = `${file.name}`;
+      // const downloadUrl = `${this.uploadedFileName_P}`;
+      // // 使用浏览器的下载功能下载文件
+      // console.log('Session ID:', sessionStorage.getItem('sessionId'));
 
-      const config = {
-        withCredentials: true,
-        headers: {
-          'Session': sessionStorage.getItem('sessionId'),
-          'Content-Type': 'application/json',
-        }
-      };
-      window.open(downloadUrl, config);
+      // // 设置请求头和withCredentials
+      // const config = {
+      //   withCredentials: true,
+      //   headers: {
+      //     'Session': sessionStorage.getItem('sessionId'),
+      //     'Content-Type': 'application/json',
+      //   }
+      // };
+
+      // // 发送GET请求以预览文件
+      // axios.get(downloadUrl, config)
+      //   .then(response => {
+      //     // 处理预览成功响应
+      //     console.log('预览文件成功:', response);
+      //     // 这里可以根据需要实现文件的预览逻辑，例如打开一个模态框显示图片等
+      //   })
+      //   .catch(error => {
+      //     // 处理预览失败响应
+      //     console.error('预览文件失败:', error);
+      //   });
     },
 
     handleRemove(file, fileList) {
@@ -575,8 +614,8 @@
             name: item.name,
             description: item.description,
             category_id: item.category_id,
-            photo: `/files/download?file_name=${item.photo}`,
-            video: item.video
+            photo: `${item.photo}`,
+            video: `${item.video}`
           }));
 
           // 将处理后的疾病列表赋值给 cases
@@ -603,17 +642,33 @@
       this.form.category_id = value;
     },
     beforeUpload(file) {
-      // 设置请求头和withCredentials
-      this.uploadHeaders = {
-        'Session': sessionStorage.getItem('sessionId'),
-        'Content-Type': 'application/json',
-      };
-      this.uploadWithCredentials = true;
-
-      // 返回false阻止上传组件自动上传
-      return false;
-    }
-
+      console.log('上传的文件对象:', file);
+      this.form.photo = [file];
+      console.log('上传的文件对象真的是吗:', this.form.photo);
+      return true; // 确保继续上传过程
+    },
+    beforeUpload_V(file) {
+      console.log('上传的视频文件对象:', file);
+      this.form.video = [file];
+      console.log('上传的视频文件对象真的是吗:', this.form.video);
+      return true; // 确保继续上传过程
+    },
+    handleSuccess(response) {
+      // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
+      console.log('上传是不是真的成功:', response);
+      // 假设上传成功后后端返回的文件名字段为fileName
+      //this.form.photo = response.data.file_name;
+      this.uploadedFileName_P = response.data.file_name;
+      console.log('上传文件名:', this.uploadedFileName_P);
+    },
+    handleSuccess_V(response) {
+      // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
+      console.log('上传视频是不是真的成功:', response);
+      // 假设上传成功后后端返回的文件名字段为fileName
+      //this.form.photo = response.data.file_name;
+      this.uploadedFileName_V = response.data.file_name;
+      console.log('上传视频文件名:', this.uploadedFileName_V);
+    },
 
     
 

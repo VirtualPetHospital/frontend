@@ -71,8 +71,15 @@ export default{
   methods:{
     async fetchOperationDetails(operationId) {
       try {
-        const response = await axios.get(`/operations/${operationId}`);
-        const operationDetails = response.data;
+        const response = await axios.get(`/api/operations/${operationId}`,
+            {
+              withCredentials : true,
+              headers:{
+                'Session':sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+              }
+            });
+        const operationDetails = response.data.data;
 
         // 将获取到的数据赋值给对应的变量
         this.name = operationDetails.name;
@@ -154,7 +161,7 @@ export default{
     this.operation_id = this.$route.params.operation_id;
 
     // 在页面加载时调用获取手术详情数据的方法
-    this.fetchOperationDetailsMock(this.operation_id);
+    this.fetchOperationDetails(this.operation_id);
   },
   setup() {
     const store = useStore();
