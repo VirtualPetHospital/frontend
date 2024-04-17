@@ -35,6 +35,7 @@
               :on-remove="handleRemove" 
               :on-success="handleSuccess"
               :on-progress="handleUploadProgress_photo"
+              :on-error="handleUploadError" 
               :file-list="form.photo"
               :data="{ file: this.form.photo, location: 'disease' }"
               :before-upload="beforeUpload"
@@ -46,17 +47,7 @@
                 
             </el-upload>
             <el-progress :percentage="uploadPercentage_photo" v-show="showProgress_photo"></el-progress>
-            <el-alert
-              title="成功上传"
-              type="success"
-              :show.sync="uploadSuccessAlert"
-              @close="uploadSuccessAlert = false"
-              center
-              :closable="false"
-              :duration="2000" 
-            ></el-alert>
-
-
+            
           </el-form-item>
           
           <el-form-item label="视频" prop="video">
@@ -66,6 +57,7 @@
               :on-preview="handlePreview"
               :on-remove="handleRemove"
               :on-success="handleSuccess_V"
+              :on-error="handleUploadError" 
               :on-progress="handleUploadProgress_video"
               :file-list="form.video"
               :data="{ file: this.form.video, location: 'disease' }"
@@ -123,6 +115,7 @@
               :on-preview="handlePreview"
               :on-remove="handleRemove"
               :on-success="handleSuccess"
+              :on-error="handleUploadError" 
               :on-progress="handleUploadProgress_photo_m"
               :file-list="form.photo"
               :data="{ file: this.form.photo, location: 'disease' }"
@@ -142,6 +135,7 @@
               :on-preview="handlePreview"
               :on-remove="handleRemove"
               :on-success="handleSuccess_V"
+              :on-error="handleUploadError" 
               :on-progress="handleUploadProgress_video_m"
               :file-list="form.video"
               :data="{ file: this.form.video, location: 'disease' }"
@@ -247,7 +241,7 @@
   <script>
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
-  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload ,  ElProgress} from "element-plus";
+  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload ,  ElProgress, ElAlert, ElMessage} from "element-plus";
   import axios from 'axios';
 
   export default {
@@ -264,7 +258,9 @@
       ElSelect,
       ElOption,
       ElUpload,
-      ElProgress
+      ElProgress,
+      ElAlert,
+      ElMessage,
   },
     setup() {
       const store = useStore();
@@ -340,7 +336,7 @@
       uploadPercentage_video_m: 0,
       showProgress_video_m: false,
 
-      uploadSuccessAlert: false,
+
     };
   },
   created() {
@@ -669,7 +665,12 @@
       //this.form.photo = response.data.file_name;
       this.uploadedFileName_P = response.data.file_name;
       console.log('上传文件名:', this.uploadedFileName_P);
-      this.uploadSuccessAlert = true;
+      ElMessage({
+        message: '成功上传图片',
+        type: 'success',
+        duration: 3000
+      });
+      console.log('便没有');
     },
     handleSuccess_V(response) {
       // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
@@ -678,6 +679,21 @@
       //this.form.photo = response.data.file_name;
       this.uploadedFileName_V = response.data.file_name;
       console.log('上传视频文件名:', this.uploadedFileName_V);
+      ElMessage({
+        message: '成功上传视频',
+        type: 'success',
+        duration: 3000
+      });
+    },
+    handleUploadError(err, file, fileList) {
+      // 处理上传失败的逻辑
+      console.error('上传失败:', err);
+      // 显示上传失败的消息，并在 3 秒后自动关闭
+      this.$message({
+        message: '上传失败，请重试',
+        type: 'error',
+        duration: 3000
+      });
     },
     // 上传图片进度回调
     handleUploadProgress_photo(event, file) {

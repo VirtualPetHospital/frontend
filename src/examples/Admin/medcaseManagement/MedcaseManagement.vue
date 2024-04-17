@@ -139,6 +139,8 @@
           :on-preview="handlePreview"
           :on-remove="handleRemove" 
           :on-success="handleSuccess"
+          :on-error="handleUploadError"
+          :on-progress="handleUploadProgress_photo"
           :file-list="form.photo"
           :data="{ file: this.form.photo, location: 'medcase' }"
           :before-upload="beforeUpload"
@@ -148,6 +150,7 @@
           <el-button size="small" type="primary">点击上传</el-button>
           <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
         </el-upload>
+        <el-progress :percentage="uploadPercentage_photo" v-show="showProgress_photo"></el-progress>
       </el-form-item>
 
       <el-form-item label="病例视频" >
@@ -157,6 +160,8 @@
           :on-preview="handlePreview"
           :on-remove="handleRemove"
           :on-success="handleSuccess_V"
+          :on-error="handleUploadError"
+          :on-progress="handleUploadProgress_video"
           :file-list="form.video"
           :data="{ file: this.form.video, location: 'medcase' }"
           :before-upload="beforeUpload_V"
@@ -167,6 +172,7 @@
           <el-button size="small" type="primary">点击上传</el-button>
           <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
         </el-upload>
+        <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video"></el-progress>
       </el-form-item>
 
       
@@ -322,6 +328,8 @@
           :on-preview="handlePreview"
           :on-remove="handleRemove" 
           :on-success="handleSuccess"
+          :on-error="handleUploadError"
+          :on-progress="handleUploadProgress_photo_m"
           :file-list="form.photo"
           :data="{ file: this.form.photo, location: 'medcase' }"
           :before-upload="beforeUpload"
@@ -332,6 +340,7 @@
           <el-button size="small" type="primary">点击上传</el-button>
           <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
         </el-upload>
+        <el-progress :percentage="uploadPercentage_photo_m" v-show="showProgress_photo_m"></el-progress>
       </el-form-item>
 
       <el-form-item label="病例视频" prop="info_video">
@@ -341,6 +350,8 @@
           :on-preview="handlePreview"
           :on-remove="handleRemove"
           :on-success="handleSuccess_V"
+          :on-error="handleUploadError"
+          :on-progress="handleUploadProgress_video_m"
           :file-list="form.video"
           :data="{ file: this.form.video, location: 'medcase' }"
           :before-upload="beforeUpload_V"
@@ -351,6 +362,7 @@
           <el-button size="small" type="primary">点击上传</el-button>
           <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
         </el-upload>
+        <el-progress :percentage="uploadPercentage_video_m" v-show="showProgress_video_m"></el-progress>
       </el-form-item>
     </el-form>
 
@@ -435,7 +447,7 @@
   <script>
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
-  import { ElLink, ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer ,ElMessageBox } from "element-plus";
+  import { ElLink, ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer ,ElMessageBox,ElMessage } from "element-plus";
 
   import axios from "axios"; 
   
@@ -458,6 +470,7 @@
       ElTransfer,
       ElMessageBox,
       ElLink,
+      ElMessage,
     },
     setup() {
       const store = useStore();
@@ -525,6 +538,18 @@
           'Session': sessionStorage.getItem('sessionId'),
           //'Content-Type': 'application/json'
         },
+        // 图片上传相关状态
+        uploadPercentage_photo: 0,
+        showProgress_photo: false,
+        // 视频上传相关状态
+        uploadPercentage_video: 0,
+        showProgress_video: false,
+        // 修改图片上传相关状态
+        uploadPercentage_photo_m: 0,
+        showProgress_photo_m: false,
+        // 修改视频上传相关状态
+        uploadPercentage_video_m: 0,
+        showProgress_video_m: false,
       };
     },
     computed: {
@@ -1185,6 +1210,11 @@
       //this.form.photo = response.data.file_name;
       this.uploadedFileName_P = response.data.file_name;
       console.log('上传文件名:', this.uploadedFileName_P);
+      ElMessage({
+        message: '成功上传图片',
+        type: 'success',
+        duration: 3000
+      });
     },
     beforeUpload(file) {
       console.log('上传的文件对象:', file);
@@ -1199,6 +1229,11 @@
       //this.form.photo = response.data.file_name;
       this.uploadedFileName_V = response.data.file_name;
       console.log('上传视频文件名:', this.uploadedFileName_V);
+      ElMessage({
+        message: '成功上传视频',
+        type: 'success',
+        duration: 3000
+      });
     },
     beforeUpload_V(file) {
       console.log('上传的视频文件对象:', file);
@@ -1217,6 +1252,36 @@
       console.log("跳转到病例设施详情页面，参数：", medcaseDetailsRoute); // 添加日志来检查传递的参数
       // 导航到相应的详情页面
       this.$router.push(medcaseDetailsRoute);
+    },
+    handleUploadError(err, file, fileList) {
+      // 处理上传失败的逻辑
+      console.error('上传失败:', err);
+      // 显示上传失败的消息，并在 3 秒后自动关闭
+      this.$message({
+        message: '上传失败，请重试',
+        type: 'error',
+        duration: 3000
+      });
+    },
+    // 上传图片进度回调
+    handleUploadProgress_photo(event, file) {
+      this.uploadPercentage_photo = event.percent || 0;
+      //this.showProgress_photo = true;
+    },
+    // 上传视频进度回调
+    handleUploadProgress_video(event, file) {
+      this.uploadPercentage_video = event.percent || 0;
+      //this.showProgress_video = true;
+    },
+    // 上传图片进度回调
+    handleUploadProgress_photo_m(event, file) {
+      this.uploadPercentage_photo_m = event.percent || 0;
+      //this.showProgress_photo_m = true;
+    },
+    // 上传视频进度回调
+    handleUploadProgress_video_m(event, file) {
+      this.uploadPercentage_video_m = event.percent || 0;
+      //this.showProgress_video_m = true;
     },
 
 

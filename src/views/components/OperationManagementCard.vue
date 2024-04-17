@@ -39,6 +39,8 @@
                 :on-preview="handlePreview"
                 :on-remove="handleRemove" 
                 :on-success="handleSuccess"
+                :on-error="handleUploadError"
+                :on-progress="handleUploadProgress_photo"
                 :data="{ file: this.form.photo, location: 'operation' }"
                 :before-upload="beforeUpload"
                 :headers="headerObj"
@@ -48,6 +50,7 @@
                 <el-button size="small" type="primary">点击上传</el-button>
                 <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
             </el-upload>
+            <el-progress :percentage="uploadPercentage_photo" v-show="showProgress_photo"></el-progress>
             </el-form-item>
             <el-form-item label="手术视频">
             <el-upload
@@ -56,6 +59,8 @@
                 :on-preview="handlePreview"
                 :on-remove="handleRemove"
                 :on-success="handleSuccess_V"
+                :on-error="handleUploadError"
+                :on-progress="handleUploadProgress_video"
                 :file-list="form.video"
                 :data="{ file: this.form.video, location: 'operation' }"
                 :before-upload="beforeUpload_V"
@@ -66,6 +71,7 @@
                 <el-button size="small" type="primary">点击上传</el-button>
                 <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
             </el-upload>
+            <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video"></el-progress>
             </el-form-item>
         </el-form>
         <!-- 按钮 -->
@@ -105,6 +111,8 @@
                     :on-preview="handlePreview"
                     :on-remove="handleRemove"
                     :on-success="handleSuccess"
+                    :on-error="handleUploadError"
+                    :on-progress="handleUploadProgress_photo_m"
                     :file-list="form.photo"
                     :data="{ file: this.form.photo, location: 'operation' }"
                     :before-upload="beforeUpload"
@@ -115,6 +123,7 @@
                     <el-button size="small" type="primary">点击上传</el-button>
                     <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
                 </el-upload>
+                <el-progress :percentage="uploadPercentage_photo_m" v-show="showProgress_photo_m"></el-progress>
             </el-form-item>
             <el-form-item label="手术视频">
                 <el-upload
@@ -123,6 +132,8 @@
                     :on-preview="handlePreview"
                     :on-remove="handleRemove"
                     :on-success="handleSuccess_V"
+                    :on-error="handleUploadError"
+                    :on-progress="handleUploadProgress_video_m"
                     :file-list="form.video"
                     :data="{ file: this.form.video, location: 'operation' }"
                     :before-upload="beforeUpload_V"
@@ -133,6 +144,7 @@
                     <el-button size="small" type="primary">点击上传</el-button>
                     <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
                 </el-upload>
+                <el-progress :percentage="uploadPercentage_video_m" v-show="showProgress_video_m"></el-progress>
             </el-form-item>
         </el-form>
         <!-- 按钮 -->
@@ -195,7 +207,7 @@
   <script>
     import { useStore } from "vuex";
     import { onBeforeRouteLeave } from "vue-router";
-    import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer } from "element-plus";
+    import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer,ElMessage } from "element-plus";
     import axios from 'axios';
   
   export default {
@@ -209,6 +221,7 @@
       ElTable,
       ElTableColumn,
       ElUpload,
+      ElMessage
     },
     data() {
       return {
@@ -238,6 +251,19 @@
           'Session': sessionStorage.getItem('sessionId'),
           //'Content-Type': 'application/json'
         },
+        // 图片上传相关状态
+        uploadPercentage_photo: 0,
+        showProgress_photo: false,
+        // 视频上传相关状态
+        uploadPercentage_video: 0,
+        showProgress_video: false,
+        // 修改图片上传相关状态
+        uploadPercentage_photo_m: 0,
+        showProgress_photo_m: false,
+        // 修改视频上传相关状态
+        uploadPercentage_video_m: 0,
+        showProgress_video_m: false,
+
       };
     },
     computed:  {
@@ -435,6 +461,11 @@
           //this.form.photo = response.data.file_name;
           this.uploadedFileName_P = response.data.file_name;
           console.log('上传文件名:', this.uploadedFileName_P);
+          ElMessage({
+            message: '成功上传图片',
+            type: 'success',
+            duration: 3000
+          });
         },
         beforeUpload(file) {
           console.log('上传的文件对象:', file);
@@ -450,6 +481,21 @@
           //this.form.photo = response.data.file_name;
           this.uploadedFileName_V = response.data.file_name;
           console.log('上传视频文件名:', this.uploadedFileName_V);
+          ElMessage({
+            message: '成功上传视频',
+            type: 'success',
+            duration: 3000
+          });
+        },
+        handleUploadError(err, file, fileList) {
+          // 处理上传失败的逻辑
+          console.error('上传失败:', err);
+          // 显示上传失败的消息，并在 3 秒后自动关闭
+          this.$message({
+            message: '上传失败，请重试',
+            type: 'error',
+            duration: 3000
+          });
         },
 
         beforeUpload_V(file) {
@@ -457,6 +503,26 @@
           this.form.video = [file];
           console.log('上传的视频文件对象真的是吗:', this.form.video);
           return true; // 确保继续上传过程
+        },
+        // 上传图片进度回调
+        handleUploadProgress_photo(event, file) {
+          this.uploadPercentage_photo = event.percent || 0;
+          //this.showProgress_photo = true;
+        },
+        // 上传视频进度回调
+        handleUploadProgress_video(event, file) {
+          this.uploadPercentage_video = event.percent || 0;
+          //this.showProgress_video = true;
+        },
+        // 上传图片进度回调
+        handleUploadProgress_photo_m(event, file) {
+          this.uploadPercentage_photo_m = event.percent || 0;
+          //this.showProgress_photo_m = true;
+        },
+        // 上传视频进度回调
+        handleUploadProgress_video_m(event, file) {
+          this.uploadPercentage_video_m = event.percent || 0;
+          //this.showProgress_video_m = true;
         },
 
 

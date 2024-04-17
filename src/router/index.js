@@ -31,15 +31,16 @@ import PapersInfo from "../examples/Teacher/paper/PapersInfo.vue";
 import SelectQuestions from "../examples/Teacher/paper/SelectQuestions.vue";
 import SelectPaper from "../examples/Teacher/exam/SelectPaper.vue";
 import ExamsTeacher from "../examples/Teacher/exam/ExamsTeacher.vue";
-import UserManagement from "@/examples/Admin/userManagement/UserManagement.vue"
-import MedcaseManagement from "@/examples/Admin/medcaseManagement/MedcaseManagement.vue"
-import InspectionManagement from "../examples/Admin/inspectionManagement/InspectionManagement.vue"
-import MedicineManagement from "../examples/Admin/medicineManagement/MedicineManagement.vue"
-import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue"
-import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue"
-import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue"
-import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue"
-import TTT from "../examples/Admin/testMe/testtest.vue"
+import UserManagement from "@/examples/Admin/userManagement/UserManagement.vue";
+import MedcaseManagement from "@/examples/Admin/medcaseManagement/MedcaseManagement.vue";
+import InspectionManagement from "../examples/Admin/inspectionManagement/InspectionManagement.vue";
+import MedicineManagement from "../examples/Admin/medicineManagement/MedicineManagement.vue";
+import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue";
+import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue";
+import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue";
+import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue";
+import TTT from "../examples/Admin/testMe/testtest.vue";
+import Medicines_detail from "@/examples/Admin/medicineManagement/Medicines.vue";
 import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
 import ExamsInfo from  "../examples/Teacher/exam/ExamsInfo.vue"
@@ -293,6 +294,11 @@ const routes = [
     path:"/MedcaseDetail/:id",
     name:"病例情况-管理员",
     component:MedcaseDetail,
+  },
+  {
+    path:"/medicines_detail/:medcaseId",
+    name:" Medicines_detail",
+    component:Medicines_detail,
   },
 ];
 

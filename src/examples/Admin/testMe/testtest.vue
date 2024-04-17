@@ -1,5 +1,14 @@
 <template>
   <el-button type="text" @click="goBack" style="margin-bottom: 10px;">返回</el-button>
+  <el-alert
+              title="成功上传"
+              type="success"
+              show-icon
+
+              center
+
+              :duration="2000" 
+            ></el-alert>
   <el-table
     :data="tableData"
     style="width: 100%"

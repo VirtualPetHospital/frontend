@@ -245,14 +245,15 @@
       },
       goToMedicines(){
         console.log('是什么',this.medCase);
-        const medcaseId=this.medCase.medcaseId;
+        const medcaseId = this.$route.params.id;
+        console.log('id是什么',medcaseId);
         //const medcaseId = this.$route.params.id
-        console.log(this.medCase.medicines);
+        console.log('有什么',this.medCase.medicines);
         const medicinesQuery = this.medCase.medicines.map(medicine => `${medicine.id}:${medicine.num}`).join(',');
-  
+        console.log('药品有什么呢',medicinesQuery);
         // 使用 $router.push 将数据作为查询参数传递给目标路由组件
         this.$router.push({
-          name: 'Medicines',
+          name: 'Medicines_detail',
           query: {
             medcaseId: medcaseId,
             medicines: medicinesQuery,
@@ -283,6 +284,7 @@
         this.medCase.inspections = data.inspections;
         this.playerOptions.sources[0].src=this.medCase.info_video;
         this.medCase.medicines = data.medicines;
+        this.medCase.medcaseId = this.$route.params.id;
         this.myEcharts();
 
         console.log('病例是什么呢',this.medCase);
