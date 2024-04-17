@@ -1,3 +1,4 @@
+
 <template>
   <div class="card p-4" >
     <div class=" row">
@@ -24,6 +25,7 @@
                 <div class="fs16">
                   单选题
                 </div>
+                <div :key="selectedStudent"> <!-- 使用selectedStudent作为key -->
                 <div class="box-list">
                   <div
                       class="box normal-box question_cbox"
@@ -31,14 +33,23 @@
                       :key="index"
                   >
                     <div
-                        :class="{ 'ansRight': checkResult(answer), 'ansFalse': !checkResult(answer) }"
+                        :class="{ 'ansRight':answer.isCorrect, 'ansFalse': !answer.isCorrect  }"
                         @click="selectQuestion(answer)"
                     >
                       {{index+1}}
                     </div>
                   </div>
                 </div>
+                </div>
               </div>
+              <!-- <div class="oneItem">
+                <div class="fl">
+                  <div class="fs14">学生成绩</div>
+                  <div ><i class="fs28">{{this.tempscore}}</i>
+                    <i class="fs12 co333">分</i>
+                  </div>
+                </div>
+              </div> -->
             </div>
           </el-aside>
           <el-main style="padding:5px">
@@ -52,13 +63,13 @@
               <div v-if="selectedQuestion">
                 <span>学生选择</span>
                 <div>
-                <el-radio-group v-model="selectedAns">
-                    <el-radio disabled :label="1">A. {{ selectedQuestion.a }}</el-radio>
-                    <el-radio disabled :label="2">B. {{ selectedQuestion.b }}</el-radio>
-                    <el-radio disabled :label="3">C. {{ selectedQuestion.c }}</el-radio>
-                    <el-radio disabled :label="4">D. {{ selectedQuestion.d }}</el-radio>
-                </el-radio-group>
-              </div>
+                  <el-radio-group v-model="selectedAns" style="display: flex; flex-direction: column;">
+      <el-radio disabled :label="1" style="align-self: flex-start;">{{selectedQuestion.a}}</el-radio>
+      <el-radio disabled :label="2" style="align-self: flex-start;">{{selectedQuestion.b}}</el-radio>
+      <el-radio disabled :label="3" style="align-self: flex-start;">{{selectedQuestion.c}}</el-radio>
+      <el-radio disabled :label="4" style="align-self: flex-start;">{{selectedQuestion.d}}</el-radio>
+    </el-radio-group>
+                </div>
                 <span>正确答案：{{selectedQuestion.answer}}
                 </span>
               </div>
@@ -101,6 +112,7 @@ export default{
       problemcnt:0,
       allanswers:[],
       tempanswer:'',
+      tempscore:0,
     }
   },
   computed: {
@@ -140,60 +152,13 @@ export default{
         console.error('获取'+qid+'题目信息失败',error);
       })
     },
-    // selectQuestionMock(answer){
-    //   let qid=answer.answers.question_id
-    //   if(qid===85){
-    //     this.selectedQuestion.description='85';
-    //     this.selectedQuestion.a='85a';
-    //     this.selectedQuestion.b='85b';
-    //     this.selectedQuestion.c='85c';
-    //     this.selectedQuestion.d='85d';
-    //     this.selectedQuestion.answer='D';
-    //   }else if(qid===86){
-    //     this.selectedQuestion.description='86';
-    //     this.selectedQuestion.a='856';
-    //     this.selectedQuestion.b='856';
-    //     this.selectedQuestion.c='856';
-    //     this.selectedQuestion.d='856d';
-    //     this.selectedQuestion.answer='A'
-    //   }
-    //   if(answer.option==='A'){
-    //     this.selectedAns=1;
-    //   }else if(answer.option==='B'){
-    //     this.selectedAns=2;
-    //   }else if(answer.option==='C'){
-    //     this.selectedAns=3;
-    //   }else if(answer.option==='D'){
-    //     this.selectedAns=4;
-    //   }
-    // },
-    async checkResult(answer){
-      const tempid=answer.question_id;
-      console.log(tempid);
-      await axios.get(`/api/questions/${tempid}`, {
-          withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json',
-          }
-        }).then(response=>{
-           this.tempanswer=response.data.data.answer;
-      }).catch(error=>{
-        console.error('获取'+tempid+'题目信息失败',error);
-      })
-      console.log(answer.answer,this.tempanswer);
-      if(answer.answer === this.tempanswer){
-        return true;
-      }else{
-        return false;
-      }
-    },
     toggleSelectStudent() {
       this.showStudentSelect = !this.showStudentSelect;
       this.showInput = this.showStudentSelect; // 设置输入框显示状态
     },
     fetchAnswerSheetId() {
       // 根据选中的学生nickname查找对应的答题卡数据
+      this.allanswers=[];
       const selectedStudentData = this.allanswersheets.find(student => student.nickname === this.selectedStudent);
       if (selectedStudentData) {
         // 如果找到对应的答题卡数据，则获取其对应的answer_sheet_id
@@ -204,22 +169,41 @@ export default{
     },
     // 根据答题卡id获取答题卡数据
     fetchAnswerSheetData(answerSheetId) {
-      axios.get(`/api/answer-sheets/${answerSheetId}`,{
+      axios.get(`/api/answer-sheets/answer-sheets/${answerSheetId}`,{
         withCredentials: true,
           headers: {
             'Session': sessionStorage.getItem('sessionId'),
             'Content-Type': 'application/json',
           }
       })
-        .then(response => {
+        .then(async response => {
           this.tempanswersheet = response.data.data;
           // this.problemcnt=this.tempanswersheet.answers.length;
           // 在这里处理获取的答题卡数据，例如将答题卡信息存储到组件的数据中
           console.log(this.tempanswersheet);
           this.allanswers = this.tempanswersheet.answers;
+          this.tempscore=this.tempanswersheet.score;
           console.log(this.allanswers);
+          const requests = this.allanswers.map(answer => {
+          const questionid = answer.question_id;
+          return axios.get(`/api/questions/${questionid}`, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+            }
+          });
+        });
+        // 使用 Promise.all 方法等待所有请求完成
+        const responses = await Promise.all(requests);
+        responses.forEach((res, index) => {
+          const trueAns = res.data.data.answer;
+          const temptempanswer = this.allanswers[index];
+          temptempanswer.isCorrect = trueAns === temptempanswer.answer;
+          console.log('答案对没对呢',temptempanswer.isCorrect );
+        });
         }).catch(error => {
-          console.error('获取答题卡失败', error);
+          console.error('获取题目失败', error);
         });
     },
   },
@@ -265,7 +249,7 @@ export default{
   }).then(response => {
     this.allanswersheets=response.data.data;
     // 在这里处理获取的试卷数据，例如将试题信息存储到组件的数据中
-    console.log(this.allanswersheetsanswersheets);
+    console.log(this.allanswersheets);
   }).catch(error => {
     console.error('获取答题卡失败', error);
   });
@@ -431,7 +415,4 @@ export default{
       border-radius: 50%;
       cursor: pointer;
 }
-
-
-
 </style>

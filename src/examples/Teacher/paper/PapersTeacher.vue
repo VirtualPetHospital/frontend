@@ -1,3 +1,4 @@
+@ -1,700 +1,805 @@
 <template>
   <div>
     <!-- 按钮容器 -->
@@ -31,7 +32,9 @@
         <tbody>
           <!-- 遍历每个考试项 -->
           <tr v-for="(paper, index) in paginatedPapers" :key="index">
-          <td class="text-center"><input type="checkbox" v-model="paper.checked"></td>
+            <td class="text-center">
+              <input type="checkbox" v-model="paper.checked" @change="handlePaperSelection(paper)">
+            </td>
         <td class="text-center ">{{ paper.id }}</td>
         <td class="text-center " style="word-break: break-word;">{{ paper.name }}</td>
         <td class="text-center " >{{ paper.problemcount }}</td>
@@ -46,20 +49,41 @@
       </table>
     </div>
 
-     <!-- 分页控件 -->
-     <nav aria-label="Page navigation example">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
-        </li>
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
-        </li>
-      </ul>
-    </nav>
+   <!-- 分页控件 -->
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <!-- 上一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+      <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
+    </li>
+
+    <!-- 仅显示当前页码和前后一个页码 -->
+    <li class="page-item" v-for="page in visiblePages" :key="page" :class="{ active: page === currentPage }">
+      <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
+    </li>
+
+    <!-- 下一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+      <button class="btn btn-primary" @click="nextPage">下一页</button>
+    </li>
+    <li>
+      <span class="input-group-text">页数: {{ currentPage }}/{{ totalPages }}</span>
+    </li>
+    
+  </ul>
+</nav>
+  <!-- 使用网格系统将跳转框固定在最右侧 -->
+  <div class="row" style="margin-top: -6.12%;">
+  <div class="col-md-6 ml-auto" style="margin-left: 75%;">
+    <div class="input-group" style="margin-bottom: 10px;">
+      <input type="text" class="form-control small-input" v-model="gotoPageNumber" placeholder="输入页码">
+      <div class="input-group-append">
+        <button @click="gotoSpecifiedPage" class="btn btn-primary">跳转</button>
+        <!-- 将"页数"文本内容放置在跳转按钮的附加内容中 -->
+      </div>
+    </div>
+  </div>
+</div>
 <!-- 弹出窗口 -->
 <transition name="modal">
   <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
@@ -96,7 +120,7 @@
               /> -->
           </div>
           <div class="button-container">
-            <button type="submit" class="btn btn-lg btn-block btn-info">{{'添加'}}</button>
+            <!-- <button type="submit" class="btn btn-lg btn-block btn-info">{{'添加'}}</button> -->
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
           </div>
         </form>
@@ -247,6 +271,10 @@ export default {
       currentPage:1,
       totalPapers:0,
       searchKeyword: '', // 搜索关键词
+      gotoPageNumber: '', // 用于存储跳转的页码
+      allpapers:[],
+      selectedPapersMap: new Map(),
+      searchflag:'',//管理搜索关键词
     //   newPaper2: {
     //     id: '',
     //     name: this.tempname1, // 使用 props 中的 tempname1 值
@@ -274,6 +302,17 @@ export default {
     totalPages() {
       return Math.ceil(this.totalPapers / this.pageSize);
     },
+           // 计算属性，仅包含当前页码和前后一个页码
+    visiblePages() {
+      const pages = [this.currentPage];
+      if (this.currentPage > 1) {
+        pages.unshift(this.currentPage - 1); // 前一个页码
+      }
+      if (this.currentPage < this.totalPages) {
+        pages.push(this.currentPage + 1); // 后一个页码
+      }
+      return pages;
+    },
   },
   setup() {
      const store = useStore();
@@ -289,6 +328,7 @@ export default {
    mounted() {
     // 组件加载完成后立即获取题目列表数据
     this.fetchPapers();
+    this.fetchAllPapers();
   },
   methods: {
     openEditModal(paper) {
@@ -335,11 +375,17 @@ export default {
       this.flag1=false;
     },
     deletePaper() {
-      const selectedPapers = this.papers.filter(paper => paper.checked);//
+      const selectedPapers = [];
+      this.allpapers.forEach(paper => {
+      if (this.selectedPapersMap.get(paper.id)) {
+        selectedPapers.push(paper.id);
+      }
+    });
+    console.log(selectedPapers);
       if (selectedPapers.length > 0) {
-        const promises = selectedPapers.map(paper => {
+        const promises = selectedPapers.map(paperId => {
           // 发送 DELETE 请求到后端删除试题
-          return axios.delete(`/api/papers/${paper.id}`, {
+          return axios.delete(`/api/papers/${paperId}`, {
             withCredentials: true,
               headers: {
                 'Session': sessionStorage.getItem('sessionId'),
@@ -347,7 +393,7 @@ export default {
               }
           }).then(response => {
             // 删除成功后从前端数据中移除已删除的题目
-            const index = this.papers.findIndex(u => u.id === paper.id);
+            const index = this.papers.findIndex(u => u.id === paperId);
             if (index !== -1) {
               this.papers.splice(index, 1);
               console.log('已删除试卷:', paper);
@@ -356,10 +402,12 @@ export default {
             console.error('Error deleting paper:', error);
           });
         });
-
         // 使用 Promise.all 等待所有删除操作完成
         Promise.all(promises).then(() => {
           console.log('所有选中的试卷已删除');
+          this.selectedPapersMap.clear(); // 清空选中题目的 Map
+          this.showDeleteWarning = false; // 重置删除警告状态
+          this.fetchPapers();
         });
       } else {
         console.log('请至少选择一个要删除的试卷');
@@ -425,7 +473,7 @@ export default {
         params: {
           page_size: this.pageSize,
           page_num: this.currentPage,
-          name: '', // 添加名称参数
+          name: this.searchflag, // 添加名称参数
         },
         withCredentials: true,
         headers: {
@@ -438,7 +486,8 @@ export default {
           id: record.paper_id, // 修改属性名为 paper_id
           name: record.name, // 添加试卷名
           problemcount: record.question_num, // 需要前端提供的题目数
-          checked: false,
+          // checked: false,
+          checked: this.selectedPapersMap.get(record.paper_id) || false,
           problems:[],
         }));
         this.$forceUpdate();
@@ -506,18 +555,32 @@ export default {
     // 关闭编辑窗口
     this.closeEditModal();
     // 重新获取试卷数据
-    this.fetchPapers();
+    // this.fetchPapers();
+    this.totalPapers += 1;
+      // 计算新题目所在页码
+      const totalPages = Math.ceil(this.totalPapers / this.pageSize);
+      const lastPage = totalPages === 0 ? 1 : totalPages;
+      
+      // 如果新增题目所在页码不是当前页码，则跳转到最后一页
+      if (lastPage !== this.currentPage) {
+        this.currentPage = lastPage;
+        this.fetchPapers();
+      } else {
+        // 否则，滚动到最后一页
+        window.scrollTo(0, document.body.scrollHeight);
+      }
   } catch (error) {
     console.error('添加试卷失败：', error);
   }
       },
       async searchPapers() {
+        this.searchflag = this.searchKeyword;
         try {
       const response = await axios.get('/api/papers', {
         params: {
           page_size: this.pageSize,
           page_num: this.currentPage,
-          name: this.searchKeyword, // 添加名称参数
+          name: this.searchflag, // 添加名称参数
         },
         withCredentials: true,
         headers: {
@@ -530,7 +593,8 @@ export default {
           id: record.paper_id, // 修改属性名为 paper_id
           name: record.name, // 添加试卷名
           problemcount: record.question_num, // 需要前端提供的题目数
-          checked: false,
+          // checked: false,
+          checked: this.selectedPapersMap.get(record.paper_id) || false,
           problems:[],
         }));
           this.totalPapers = response.data.data.total;
@@ -541,6 +605,49 @@ export default {
         console.error('Error fetching papers:', error);
       }
     },
+    gotoSpecifiedPage() {
+    const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
+      // 如果输入的是一个有效的页码，则跳转到该页
+      this.gotoPage(pageNumber);
+    } else {
+      // 如果输入的页码无效，则给出提示或者不执行任何操作，根据需求决定
+      console.error('Invalid page number');
+    }
+    // 清空输入框内容
+    this.gotoPageNumber = '';
+  },
+  async fetchAllPapers() {
+    try {
+      const response = await axios.get('/api/papers', {
+        params: {
+          page_size: 200, // 获取所有题目数据
+          page_num: 1, // 获取第一页数据
+          name: '', // 添加名称参数
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.allpapers = response.data.data.records.map(record => ({
+          id: record.paper_id, // 修改属性名为 paper_id
+          name: record.name, // 添加试卷名
+          problemcount: record.question_num, // 需要前端提供的题目数
+          checked: this.selectedPapersMap.get(record.paper_id) || false,
+          problems:[],
+        }));
+        console.log(this.allproblems);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
+  handlePaperSelection(paper) {
+      this.selectedPapersMap.set(paper.id, paper.checked);
+  },
   },
   components: {
     ArgonBadge,
@@ -637,20 +744,19 @@ margin-bottom: 10px;
   margin: 0 10%; /* 调整按钮之间的间距 */
 }
 /* 纵向分隔线样式 */
-.table td,
+/* .table td,
 .table th {
-  border-right: 1px solid #dee2e6; /* 添加纵向分隔线 */
-}
-
+  border-right: 1px solid #dee2e6; 
+} */
+/* 最后一列去除右侧分隔线 */
 .table th:last-child,
 .table td:last-child {
-  border-right: none; /* 最后一列去除右侧分隔线 */
+  border-right: none; 
 }
-
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  /* border-left: 1px solid #dee2e6; */
-}
+/* 右侧边框线 */
+/* .table tbody tr:last-child td:not(:last-child) {
+  border-right: 1px solid #dee2e6; 
+} */
 .table td {
   white-space: pre-wrap;
 }
