@@ -1,5 +1,6 @@
 <template>
   <div class="container sectionHeight">
+    <el-button type="text" @click="goBack" style="margin-bottom: 10px;">返回</el-button>
     <!-- 搜索栏 -->
     <el-input
       v-model="searchText"
@@ -401,6 +402,9 @@ export default {
       this.form.video = [file];
       console.log('上传的视频文件对象真的是吗:', this.form.video);
       return true; // 确保继续上传过程
+    },
+    goBack() {
+      this.$router.go(-1); // 返回上一层页面
     },
 
 

@@ -1,4 +1,5 @@
 <template>
+  <el-button type="text" @click="goBack" style="margin-bottom: 10px;">返回</el-button>
   <el-table
     :data="tableData"
     style="width: 100%"

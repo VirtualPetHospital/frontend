@@ -1,9 +1,11 @@
 <template>
-    <div class="card p-4" >
+    <div class="card p-4" >  
       <div class=" row">
-        <div class="col-12">
+        <div class="col-12">     
+          <el-button type="text" @click="goBack" style="margin-bottom: 10px;">返回</el-button> 
         <h3>{{ medCase.name }}</h3>
           <div class="row">
+            
           <div class="col-6">
             <el-card class="custom-elcard">
               <el-descriptions class="margin-top" title="病例信息" :column="1" style="font-size: large"  :size="size"  border>
@@ -91,6 +93,7 @@
     ElDescriptions,
     ElDescriptionsItem,
     ElImage,
+    ElButton,
     ElPagination,
     ElTable,
     ElTableColumn,
@@ -241,7 +244,9 @@
         this.$router.push({ name: 'Operation', params: { operation_id: operationId } });
       },
       goToMedicines(){
+        console.log('是什么',this.medCase);
         const medcaseId=this.medCase.medcaseId;
+        //const medcaseId = this.$route.params.id
         console.log(this.medCase.medicines);
         const medicinesQuery = this.medCase.medicines.map(medicine => `${medicine.id}:${medicine.num}`).join(',');
   
@@ -338,7 +343,10 @@
           console.error('Error fetching med case:', error);
           // 处理错误，例如显示错误信息给用户
         }
-      }
+      },
+      goBack() {
+        this.$router.go(-1); // 返回上一层页面
+      },
   
   
     },
