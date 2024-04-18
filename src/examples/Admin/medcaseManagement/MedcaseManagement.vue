@@ -135,6 +135,7 @@
       <el-form-item label="图片" >
         <el-upload
           class="upload-demo"
+          ref="upload"
           action="api/files/upload"
           :on-preview="handlePreview"
           :on-remove="handleRemove" 
@@ -151,11 +152,13 @@
           <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
         </el-upload>
         <el-progress :percentage="uploadPercentage_photo" v-show="showProgress_photo"></el-progress>
+        <el-button size="small" type="danger" v-if="isUploading_p" @click="cancelUpload">取消上传</el-button>
       </el-form-item>
 
       <el-form-item label="病例视频" >
         <el-upload
           class="upload-demo"
+          ref="upload"
           action="/api/files/upload"
           :on-preview="handlePreview"
           :on-remove="handleRemove"
@@ -173,6 +176,7 @@
           <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
         </el-upload>
         <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video"></el-progress>
+        <el-button size="small" type="danger" v-if="isUploading_v" @click="cancelUpload">取消上传</el-button>
       </el-form-item>
 
       
@@ -324,6 +328,7 @@
       <el-form-item label="病例图片">
         <el-upload
           class="upload-demo"
+          ref="upload"
           action="api/files/upload"
           :on-preview="handlePreview"
           :on-remove="handleRemove" 
@@ -341,11 +346,13 @@
           <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
         </el-upload>
         <el-progress :percentage="uploadPercentage_photo_m" v-show="showProgress_photo_m"></el-progress>
+        <el-button size="small" type="danger" v-if="isUploading_p" @click="cancelUpload">取消上传</el-button>
       </el-form-item>
 
       <el-form-item label="病例视频" prop="info_video">
         <el-upload
           class="upload-demo"
+          ref="upload"
           action="/api/files/upload"
           :on-preview="handlePreview"
           :on-remove="handleRemove"
@@ -363,6 +370,7 @@
           <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
         </el-upload>
         <el-progress :percentage="uploadPercentage_video_m" v-show="showProgress_video_m"></el-progress>
+        <el-button size="small" type="danger" v-if="isUploading_v" @click="cancelUpload">取消上传</el-button>
       </el-form-item>
     </el-form>
 
@@ -550,6 +558,9 @@
         // 修改视频上传相关状态
         uploadPercentage_video_m: 0,
         showProgress_video_m: false,
+
+        isUploading_p: false,
+        isUploading_v: false,
       };
     },
     computed: {
@@ -1201,6 +1212,8 @@
       },
       handleRemove(file, fileList) {
       // 这里可以根据需要添加移除文件的逻辑，例如从列表中移除文件等
+      this.isUploading_p = false;
+      this.isUploading_v = false;
       console.log('remove', file, fileList);
     },
     handleSuccess(response) {
@@ -1208,6 +1221,7 @@
       console.log('上传是不是真的成功:', response);
       // 假设上传成功后后端返回的文件名字段为fileName
       //this.form.photo = response.data.file_name;
+      this.isUploading_p = false; // 上传成功后设置为 false
       this.uploadedFileName_P = response.data.file_name;
       console.log('上传文件名:', this.uploadedFileName_P);
       ElMessage({
@@ -1217,6 +1231,7 @@
       });
     },
     beforeUpload(file) {
+      this.isUploading_p = true; // 上传开始时设置为 true
       console.log('上传的文件对象:', file);
       this.form.photo = [file];
       console.log('上传的文件对象真的是吗:', this.form.photo);
@@ -1227,6 +1242,7 @@
       console.log('上传视频是不是真的成功:', response);
       // 假设上传成功后后端返回的文件名字段为fileName
       //this.form.photo = response.data.file_name;
+      this.isUploading_v = false; // 上传成功后设置为 false
       this.uploadedFileName_V = response.data.file_name;
       console.log('上传视频文件名:', this.uploadedFileName_V);
       ElMessage({
@@ -1236,6 +1252,7 @@
       });
     },
     beforeUpload_V(file) {
+      this.isUploading_v = true; // 上传开始时设置为 true
       console.log('上传的视频文件对象:', file);
       this.form.video = [file];
       console.log('上传的视频文件对象真的是吗:', this.form.video);
@@ -1256,6 +1273,8 @@
     handleUploadError(err, file, fileList) {
       // 处理上传失败的逻辑
       console.error('上传失败:', err);
+      this.isUploading_p = false; // 上传失败后设置为 false
+      this.isUploading_v = false; // 上传失败后设置为 false
       // 显示上传失败的消息，并在 3 秒后自动关闭
       this.$message({
         message: '上传失败，请重试',
@@ -1282,6 +1301,13 @@
     handleUploadProgress_video_m(event, file) {
       this.uploadPercentage_video_m = event.percent || 0;
       //this.showProgress_video_m = true;
+    },
+
+    cancelUpload() {
+        //this.$refs.upload.uploadFiles.splice(0); // 中断上传请求
+        this.$refs.upload.abort(); // 中断上传过程
+        // 可以在这里进行其他取消上传后的处理
+        console.log("取消上传成功");
     },
 
 
