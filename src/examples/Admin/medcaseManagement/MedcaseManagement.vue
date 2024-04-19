@@ -391,13 +391,14 @@
             <div class="container sectionHeight">
               <!-- 搜索栏 -->
               <el-input
-                v-model="searchText"
+                v-model.trim="searchText"
                 placeholder="输入病例名进行搜索"
                 clearable
                 @clear="handleClearSearch"
                 @input="handleSearch"
               ></el-input>
               <!-- 按钮区域 -->
+              <div style="margin-bottom: 20px;"></div>
               <div class="row mb-4">
                 <div class="col-6">
                   <el-button type="primary" @click="handleAdd">新增</el-button>
@@ -646,10 +647,11 @@
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
-          }).then(() => {
+          }).then(response => {
+            
             // 用户确认删除后执行删除操作
             this.submitDeleteRequest(this.selectedRow.medcase_id);
-            console.log('真删了');
+            //console.log('真删了',response);
             
           }).catch(() => {
             // 用户取消删除操作
@@ -671,7 +673,11 @@
         .then(response => {
           // 处理成功响应
           console.log('删除成功:', response);
-
+          ElMessage({
+            message: response.data.msg,
+            type: 'success',
+            duration: 3000
+          });
           // 删除成功后刷新病例列表
           this.fetchCases();
 
@@ -1001,13 +1007,32 @@
           }
         })
         .then(response => {
-          // 处理成功响应
-          console.log('成功响应：', response.data);
+          console.log('走哪里了',response.data.msg);
+          console.log('走哪里了',response.data.code);
+          // 处理成功响应，例如重新加载病种列表
+          if (response.data && response.data.code === -1 ) {
+            // 如果返回了错误消息，显示消息提示
+            //this.$message.error(response.data.msg);
+            console.log('走');
+            ElMessage({
+              message: response.data.msg,
+              type: 'error',
+              duration: 3000
+            });
+          } else {
+            ElMessage({
+              message: response.data.msg,
+              type: 'success',
+              duration: 3000
+            });
+            // 处理成功响应
+            console.log('成功响应：', response.data);
 
-          // 提交成功后重新从后端获取列表数据
+            // 提交成功后重新从后端获取列表数据
 
-          this.dialogVisible = false;
-          this.fetchCases();
+            this.dialogVisible = false;
+            this.fetchCases();
+          }
         })
         .catch(error => {
           // 处理错误
@@ -1182,12 +1207,30 @@
           }
         })
         .then(response => {
+          console.log('走哪里了',response.data.msg);
+          console.log('走哪里了',response.data.code);
+          // 处理成功响应，例如重新加载病种列表
+          if (response.data && response.data.code === -1 ) {
+            // 如果返回了错误消息，显示消息提示
+            //this.$message.error(response.data.msg);
+            console.log('走');
+            ElMessage({
+              message: response.data.msg,
+              type: 'error',
+              duration: 3000
+            });
+          } else {
+            ElMessage({
+              message: response.data.msg,
+              type: 'success',
+              duration: 3000
+            });
             // 处理成功响应
             console.log('成功响应:', response);
             this.modifyDialogVisible = false;
             this.fetchCases();
             console.log('成功!');
-            
+          }
         })
         .catch(error => {
             // 处理错误
@@ -1264,7 +1307,7 @@
       // 构建动态路由路径，并传递科室ID和科室名称参数
       const medcaseDetailsRoute = {
         name: '病例情况-管理员',
-        params: { id: row.medcase_id} // 此处传递 row.room_id 和 row.name 作为参数
+        params: { medcaseId: row.medcase_id} // 此处传递 row.room_id 和 row.name 作为参数
       };
       console.log("跳转到病例设施详情页面，参数：", medcaseDetailsRoute); // 添加日志来检查传递的参数
       // 导航到相应的详情页面

@@ -2,7 +2,7 @@
   <div class="container sectionHeight">
     <!-- 搜索栏 -->
     <el-input
-      v-model="searchText"
+      v-model.trim="searchText"
       placeholder="输入检测项目名进行搜索"
       clearable
       @clear="handleClearSearch"
@@ -82,6 +82,7 @@
     </el-dialog>
 
     <!-- 按钮区域 -->
+    <div style="margin-bottom: 20px;"></div>
     <div class="row mb-4">
       <div class="col-6">
         <el-button type="primary" @click="handleAdd">新增</el-button>
@@ -132,7 +133,7 @@
 </template>
 
 <script>
-import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElMessageBox,ElMessage } from "element-plus";
 import axios from "axios";
 
 export default {
@@ -145,6 +146,8 @@ export default {
     ElPagination,
     ElTable,
     ElTableColumn,
+    ElMessageBox,
+    ElMessage,
   },
   data() {
     return {
@@ -250,11 +253,31 @@ export default {
             }
           })
           .then(response => {
-            // 处理成功响应
-            // 重新查询检查项目列表
-            this.fetchInspections(); 
-            this.dialogVisible = false; // 关闭新增弹窗
-            this.$refs.form.resetFields(); // 清空表单
+            console.log('走哪里了',response.data.msg);
+            console.log('走哪里了',response.data.code);
+            // 处理成功响应，例如重新加载病种列表
+            if (response.data && response.data.code === -1 ) {
+              // 如果返回了错误消息，显示消息提示
+              //this.$message.error(response.data.msg);
+              console.log('走');
+              ElMessage({
+                message: response.data.msg,
+                type: 'error',
+                duration: 3000
+              });
+            } else {
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
+              // 处理成功响应
+              // 重新查询检查项目列表
+              this.fetchInspections(); 
+              this.dialogVisible = false; // 关闭新增弹窗
+              this.$refs.form.resetFields(); // 清空表单
+              
+            }
           })
           .catch(error => {
             // 处理错误响应
@@ -269,27 +292,43 @@ export default {
     // 处理删除按钮点击事件
     handleDelete() {
       if (this.selectedRow) {
-        const inspectionId = this.selectedRow.inspection_id;
-        // 发送 DELETE 请求到后端接口
-        axios.delete(`api/inspections/${inspectionId}`, {
-          withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json'
-          }
-        })
-        .then(response => {
-          // 处理成功响应
-          this.fetchInspections(); // 重新查询检查项目列表
-        })
-        .catch(error => {
-          // 处理错误响应
-          console.error('Error deleting inspection:', error);
+        // 提示用户是否确认删除
+        ElMessageBox.confirm('确认删除该检查项目吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          // 用户确认删除后执行删除操作
+          const inspectionId = this.selectedRow.inspection_id;
+          // 发送 DELETE 请求到后端接口
+          axios.delete(`api/inspections/${inspectionId}`, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => {
+            ElMessage({
+              message: response.data.msg,
+              type: 'success',
+              duration: 3000
+            });
+            // 处理成功响应
+            this.fetchInspections(); // 重新查询检查项目列表
+          })
+          .catch(error => {
+            // 处理错误响应
+            console.error('Error deleting inspection:', error);
+          });
+        }).catch(() => {
+          // 用户取消删除操作
         });
       } else {
         console.log('没有选择要删除的行');
       }
     },
+
 
     // 处理每页显示条数改变事件
     handleSizeChange(val) {
@@ -373,11 +412,33 @@ export default {
             }
           })
           .then(response => {
-            // 处理成功响应
-            // 重新查询检查项目列表
-            this.fetchInspections(); 
-            this.modifyDialogVisible = false; // 关闭修改弹窗
-            this.$refs.modifyForm.resetFields(); // 清空表单
+            console.log('走哪里了',response.data.msg);
+            console.log('走哪里了',response.data.code);
+            // 处理成功响应，例如重新加载病种列表
+            if (response.data && response.data.code === -1 ) {
+              // 如果返回了错误消息，显示消息提示
+              //this.$message.error(response.data.msg);
+              console.log('走');
+              ElMessage({
+                message: response.data.msg,
+                type: 'error',
+                duration: 3000
+              });
+            } else {
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
+              // 处理成功响应
+              // 重新查询检查项目列表
+              this.fetchInspections(); 
+              this.modifyDialogVisible = false; // 关闭修改弹窗
+              this.$refs.modifyForm.resetFields(); // 清空表单
+              //location.reload();
+
+              
+            }
           })
           .catch(error => {
             // 处理错误响应

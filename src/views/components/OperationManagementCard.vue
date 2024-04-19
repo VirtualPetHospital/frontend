@@ -2,7 +2,7 @@
     <div class="container sectionHeight">
       <!-- 搜索栏 -->
       <el-input
-        v-model="searchText"
+        v-model.trim="searchText"
         placeholder="输入手术名进行搜索"
         clearable
         @clear="handleClearSearch"
@@ -163,6 +163,7 @@
       </el-dialog>
   
       <!-- 按钮区域 -->
+      <div style="margin-bottom: 20px;"></div>
       <div class="row mb-4">
         <div class="col-6">
           <el-button type="primary" @click="handleAdd">新增</el-button>
@@ -215,7 +216,7 @@
   <script>
     import { useStore } from "vuex";
     import { onBeforeRouteLeave } from "vue-router";
-    import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer,ElMessage } from "element-plus";
+    import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer,ElMessage,ElMessageBox } from "element-plus";
     import axios from 'axios';
   
   export default {
@@ -229,7 +230,8 @@
       ElTable,
       ElTableColumn,
       ElUpload,
-      ElMessage
+      ElMessage,
+      ElMessageBox,
     },
     data() {
       return {
@@ -305,8 +307,45 @@
         // Form validation and submit logic
       },
       handleDelete() {
-        // Handle delete logic
+        // 使用对话框询问用户是否确定删除操作
+        ElMessageBox.confirm('是否确定删除该条手术?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          // 用户点击了确定按钮，执行删除操作
+          if (this.selectedRow) {
+            axios.delete(
+              `/api/operations/${this.selectedRow.operation_id}`, // 将 category_id 包含在 URL 中
+              {
+                withCredentials: true,
+                headers: {
+                  'Session': sessionStorage.getItem('sessionId'),
+                  'Content-Type': 'application/json',
+                }
+              }
+            ).then(response => {
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
+              // 处理成功响应，例如重新加载病种列表
+              this.fetchOperations();
+              // 清空选中行
+              this.selectedRow = null;
+              //location.reload();
+            }).catch(error => {
+              // 处理错误
+              console.error('Error deleting operation:', error);
+            });
+          }
+        }).catch(error => {
+          // 处理错误
+          console.error('Error deleting operation:', error);
+        });
       },
+
       handleSizeChange(val) {
         this.pageSize = val;
       },
@@ -360,11 +399,28 @@
               }
             });
 
-            console.log('修改手术成功:', response.data);
+            if (response.data && response.data.code === -1 ) {
+              // 如果返回了错误消息，显示消息提示
+              //this.$message.error(response.data.msg);
+              console.log('走');
+              ElMessage({
+                message: response.data.msg,
+                type: 'error',
+                duration: 3000
+              });
+            } else {
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
+              console.log('修改手术成功:', response.data);
 
-            this.modifyDialogVisible = false;
-            this.resetForm();
-            this.fetchOperations();
+              this.modifyDialogVisible = false;
+              this.resetForm();
+              this.fetchOperations();
+              //location.reload();
+            }
           } catch (error) {
             console.error('修改手术失败:', error);
           }
@@ -375,7 +431,7 @@
             const response = await axios.get('/api/operations', {
                 params: {
                     page_size: 100,
-                    page_num: this.currentPage,
+                    page_num: 1,//this.currentPage,
                     name_keyword: this.searchText
                 },
                 withCredentials: true,
@@ -416,13 +472,30 @@
             'Content-Type': 'application/json', // 使用 application/json 类型
           }
         });
+        if (response.data && response.data.code === -1 ) {
+              // 如果返回了错误消息，显示消息提示
+              //this.$message.error(response.data.msg);
+              console.log('走');
+              ElMessage({
+                message: response.data.msg,
+                type: 'error',
+                duration: 3000
+              });
+            } else {
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
 
-        console.log('新增手术成功:', response.data);
+              console.log('新增手术成功:', response.data);
 
-        this.dialogVisible = false;
-        this.resetForm();
-        this.fetchOperations();
-        console.log('刷新页面了');
+              this.dialogVisible = false;
+              this.resetForm();
+              this.fetchOperations();
+             // location.reload();
+              console.log('刷新页面了');
+            }
       } catch (error) {
         console.error('新增手术失败:', error);
       }

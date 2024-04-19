@@ -291,7 +291,7 @@ const routes = [
     component:ReselectQuestions,
   },
   {
-    path:"/MedcaseDetail/:id",
+    path:"/MedcaseDetail/:medcaseId",
     name:"病例情况-管理员",
     component:MedcaseDetail,
   },

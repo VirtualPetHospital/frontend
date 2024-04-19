@@ -3,7 +3,7 @@
     <el-button type="text" @click="goBack" style="margin-bottom: 10px;">返回</el-button>
     <!-- 搜索栏 -->
     <el-input
-      v-model="searchText"
+      v-model.trim="searchText"
       placeholder="输入设施名进行搜索"
       clearable
       @clear="handleClearSearch"
@@ -11,6 +11,7 @@
     ></el-input>
 
     <!-- 按钮区域 -->
+    <div style="margin-bottom: 20px;"></div>
     <div class="row mb-4">
       <div class="col-6">
         <el-button type="primary" @click="handleAddFacility">新增</el-button>
@@ -195,7 +196,7 @@
 </template>
 
 <script>
-import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElUpload, ElTable, ElTableColumn,ElMessage } from "element-plus";
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElUpload, ElTable, ElTableColumn,ElMessage,ElMessageBox } from "element-plus";
 import axios from 'axios';
 
 export default {
@@ -208,7 +209,8 @@ export default {
     ElUpload,
     ElTable,
     ElTableColumn,
-    ElMessage
+    ElMessage,
+    ElMessageBox
   },
   data() {
     return {
@@ -218,6 +220,12 @@ export default {
       uploadedFileName_P: null,// 新增一个变量用于存储上传成功的图片文件名
       uploadedFileName_V: null,// 新增一个变量用于存储上传成功的视频文件名
       form: {
+        room_asset_id: '',
+        name: '',
+        description: '',
+        room_id: null
+      },
+      updateForm: {
         room_asset_id: '',
         name: '',
         description: '',
@@ -291,10 +299,29 @@ export default {
           }
         });
 
-        console.log('新增设施成功:', response.data);
-        this.dialogVisible = false;
-        this.resetForm(); // 清空表单数据
-        this.fetchData(); // 重新获取数据，刷新列表
+        console.log('走哪里了',response.data.msg);
+        console.log('走哪里了',response.data.code);
+        // 处理成功响应，例如重新加载病种列表
+        if (response.data && response.data.code === -1 ) {
+          // 如果返回了错误消息，显示消息提示
+          //this.$message.error(response.data.msg);
+          console.log('走');
+          ElMessage({
+            message: response.data.msg,
+            type: 'error',
+            duration: 3000
+          });
+        } else {
+          ElMessage({
+            message: response.data.msg,
+            type: 'success',
+            duration: 3000
+          });
+          console.log('新增设施成功:', response.data);
+          this.dialogVisible = false;
+          this.resetForm(); // 清空表单数据
+          this.fetchData(); // 重新获取数据，刷新列表
+        }
       } catch (error) {
         console.error('新增设施失败:', error);
       }
@@ -316,7 +343,11 @@ export default {
       }
       console.log('点了修改按钮2',this.selectedFacility);
       this.updateDialogVisible = true;
-      this.updateForm = { ...this.selectedFacility };
+      this.updateForm = {};
+      this.updateForm.name = this.selectedFacility.name;
+      this.updateForm.description = this.selectedFacility.description;
+      this.updateForm.room_asset_id = this.selectedFacility.room_asset_id;
+      this.updateForm.room_id = this.selectedFacility.room_id;
     },
     async handleUpdateFacility() {
       try {
@@ -333,11 +364,30 @@ export default {
           'Content-Type': 'application/json'
         }
       });
-      // 处理更新成功后的逻辑，比如关闭弹窗、刷新数据等
-      this.updateDialogVisible = false;
-      this.resetForm();
-      this.fetchData(); // 刷新数据
-      //this.$message.success('设施修改成功');
+      console.log('走哪里了',response.data.msg);
+      console.log('走哪里了',response.data.code);
+      // 处理成功响应，例如重新加载病种列表
+      if (response.data && response.data.code === -1 ) {
+        // 如果返回了错误消息，显示消息提示
+        //this.$message.error(response.data.msg);
+        console.log('走');
+        ElMessage({
+          message: response.data.msg,
+          type: 'error',
+          duration: 3000
+        });
+      } else {
+        ElMessage({
+          message: response.data.msg,
+          type: 'success',
+          duration: 3000
+        });
+        // 处理更新成功后的逻辑，比如关闭弹窗、刷新数据等
+        this.updateDialogVisible = false;
+        this.resetForm();
+        this.fetchData(); // 刷新数据
+        //this.$message.success('设施修改成功');
+      }
     } catch (error) {
       console.error('Error updating facility:', error);
       //this.$message.error('设施修改失败');
@@ -384,25 +434,39 @@ export default {
       }
     },
     async handleDeleteFacility() {
-      console.log('点到了');
-      
-      try {
-        const roomId = this.selectedFacility.room_asset_id;
-        const response = await axios.delete(`/api/room-assets/${roomId}`, {
-          withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json'
-          }
-        });
-        // 根据后端返回的响应来更新前端页面或重新加载数据
-        // 这里假设删除成功后，重新加载数据
-        this.fetchData();
-        console.log('删成功了');
-      } catch (error) {
-        console.error('Error deleting facility:', error);
-        this.$message.error('删除失败');
-      }
+      // 使用对话框询问用户是否确定删除操作
+      ElMessageBox.confirm('是否确定删除设施?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        // 用户点击了确定按钮，执行删除操作
+        console.log('点到了');
+        try {
+          const roomId = this.selectedFacility.room_asset_id;
+          const response = await axios.delete(`/api/room-assets/${roomId}`, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json'
+            }
+          });
+          // 根据后端返回的响应来更新前端页面或重新加载数据
+          // 这里假设删除成功后，重新加载数据
+          ElMessage({
+            message: response.data.msg,
+            type: 'success',
+            duration: 3000
+          });
+          this.fetchData();
+          console.log('删成功了');
+        } catch (error) {
+          console.error('Error deleting facility:', error);
+          this.$message.error('删除失败');
+        }
+      }).catch(() => {
+        // 用户点击了取消按钮，不执行任何操作
+      });
     },
     handlePreview(file) {
           

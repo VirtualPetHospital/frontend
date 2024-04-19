@@ -175,7 +175,7 @@
             <div class="container sectionHeight">
               <!-- 搜索栏 -->
               <el-input
-                v-model="searchText"
+                v-model.trim="searchText"
                 placeholder="输入疾病名进行搜索"
                 clearable
                 @clear="handleClearSearch"
@@ -193,6 +193,7 @@
                       :value="item.category_id"
                     ></el-option>
                   </el-select>
+                  <div style="margin-bottom: 20px;"></div>
                   <el-button type="primary" @click="handleAdd">新增</el-button>
                   <el-button type="danger" @click="handleDelete">删除</el-button>
                   <el-button type="success" @click="openModifyDialog">修改</el-button>
@@ -248,7 +249,7 @@
   <script>
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
-  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload ,  ElProgress, ElAlert, ElMessage} from "element-plus";
+  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload ,  ElProgress, ElAlert, ElMessage, ElMessageBox} from "element-plus";
   import axios from 'axios';
 
   export default {
@@ -268,6 +269,7 @@
       ElProgress,
       ElAlert,
       ElMessage,
+      ElMessageBox,
   },
     setup() {
       const store = useStore();
@@ -421,14 +423,31 @@
             
           })
           .then(response => {
-            // 处理成功响应
-            
-            console.log('新增疾病成功:', response.data);
-            // 关闭新增弹窗
-            this.dialogVisible = false;
-            // 清空表单数据
-            this.$refs.form.resetFields();
-            this.handleFilterChange();
+            console.log('走哪里了',response.data.msg);
+            console.log('走哪里了',response.data.code);
+            // 处理成功响应，例如重新加载病种列表
+            if (response.data && response.data.code === -1 ) {
+              // 如果返回了错误消息，显示消息提示
+              //this.$message.error(response.data.msg);
+              console.log('走');
+              ElMessage({
+                message: response.data.msg,
+                type: 'error',
+                duration: 3000
+              });
+            } else {
+                ElMessage({
+                  message: response.data.msg,
+                  type: 'success',
+                  duration: 3000
+                });
+                console.log('新增疾病成功:', response.data);
+                // 关闭新增弹窗
+                this.dialogVisible = false;
+                // 清空表单数据
+                this.$refs.form.resetFields();
+                this.handleFilterChange();
+            }
           })
           .catch(error => {
             // 处理失败响应
@@ -444,34 +463,49 @@
     },
     // 处理删除按钮点击事件
     handleDelete() {
-      if (this.selectedRow) {
-        // 发送 DELETE 请求将选中行的疾病删除
-        axios.delete(`api/diseases/${this.selectedRow.disease_id}`, {
-          withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json',
-          }
-        })
-        .then(response => {
-          // 处理成功响应
-          console.log('删除疾病成功:', response.data);
-          // 从列表中移除被删除的疾病
-          const index = this.cases.findIndex(item => item === this.selectedRow);
-          if (index !== -1) {
-            this.cases.splice(index, 1);
-            this.selectedRow = null;
-          }
-          // 删除成功后重新获取疾病列表并更新表格
-          this.handleFilterChange();
-        })
-        .catch(error => {
-          // 处理失败响应
-          console.error('删除疾病失败:', error);
-          // 提示用户
-          this.$message.error('删除疾病失败，请稍后重试！');
-        });
-      }
+      // 使用对话框询问用户是否确定删除操作
+      ElMessageBox.confirm('是否确定删除选中行的疾病?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 用户点击了确定按钮，执行删除操作
+        if (this.selectedRow) {
+          // 发送 DELETE 请求将选中行的疾病删除
+          axios.delete(`api/diseases/${this.selectedRow.disease_id}`, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+              'Content-Type': 'application/json',
+            }
+          })
+          .then(response => {
+            // 处理成功响应
+            ElMessage({
+              message: response.data.msg,
+              type: 'success',
+              duration: 3000
+            });
+            console.log('删除疾病成功:', response.data);
+            // 从列表中移除被删除的疾病
+            const index = this.cases.findIndex(item => item === this.selectedRow);
+            if (index !== -1) {
+              this.cases.splice(index, 1);
+              this.selectedRow = null;
+            }
+            // 删除成功后重新获取疾病列表并更新表格
+            this.handleFilterChange();
+          })
+          .catch(error => {
+            // 处理失败响应
+            console.error('删除疾病失败:', error);
+            // 提示用户
+            this.$message.error('删除疾病失败，请稍后重试！');
+          });
+        }
+      }).catch(() => {
+        // 用户点击了取消按钮，不执行任何操作
+      });
     },
 
     // 处理每页显示条数改变事件
@@ -553,14 +587,33 @@
             }
           })
           .then(response => {
-            // 处理成功响应
-            console.log('修改疾病成功:', response.data);
-            // 关闭修改弹窗
-            this.modifyDialogVisible = false;
-            // 清空表单数据
-            this.$refs.form.resetFields();
-            // 更新列表
-            this.handleFilterChange();
+            console.log('走哪里了',response.data.msg);
+            console.log('走哪里了',response.data.code);
+            // 处理成功响应，例如重新加载病种列表
+            if (response.data && response.data.code === -1 ) {
+              // 如果返回了错误消息，显示消息提示
+              //this.$message.error(response.data.msg);
+              console.log('走');
+              ElMessage({
+                message: response.data.msg,
+                type: 'error',
+                duration: 3000
+              });
+            } else {
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
+              // 处理成功响应
+              console.log('修改疾病成功:', response.data);
+              // 关闭修改弹窗
+              this.modifyDialogVisible = false;
+              // 清空表单数据
+              this.$refs.form.resetFields();
+              // 更新列表
+              this.handleFilterChange();
+            }
           })
           .catch(error => {
             // 处理失败响应
