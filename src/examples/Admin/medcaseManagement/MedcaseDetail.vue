@@ -1,7 +1,9 @@
 <template>
-  <div class="card p-4" >
-    <div class=" row">
+  <div class="card p-4" style="height:850px" >
+    <div class="row">
+      <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
       <div class="col-12">
+
       <h3>{{ medCase.name }}</h3>
         <div class="row">
         <div class="col-6">
@@ -23,7 +25,6 @@
                   </template>
                   {{medCase.diagnose_result}}
                 </el-descriptions-item>
-
               <el-descriptions-item labelStyle="white-space:nowrap;">
                 <template v-slot:label>
                   <i class="el-icon-location-outline"></i>
@@ -81,7 +82,7 @@
 </template>
 <script>
 import {useStore} from "vuex";
-import {onBeforeRouteLeave} from "vue-router";
+import {isNavigationFailure, NavigationFailureType, onBeforeRouteLeave} from "vue-router";
 import { videoPlayer } from 'vue-video-player'
 import 'video.js/dist/video-js.css'
 import * as echarts from 'echarts';
@@ -91,10 +92,6 @@ import {
   ElDescriptions,
   ElDescriptionsItem,
   ElImage,
-  ElPagination,
-  ElTable,
-  ElTableColumn,
-  ElTag
 } from "element-plus";
 import axios from "axios";
 export default{
@@ -103,6 +100,7 @@ export default{
   data(){
 
     return{
+      diseaseName:'',
       playerOptions: {
         playbackRates: [0.5, 1.0, 1.5, 2.0], // 可选的播放速度
         autoplay: false,  // 如果为true,浏览器准备好时开始回放
@@ -142,8 +140,6 @@ export default{
       xAxis:{
         type:"category",
         data:[
-            "白细胞",
-            "红细胞"
         ],
         axisLabel: {
           //坐标轴文字显示样式
@@ -152,6 +148,9 @@ export default{
           rotate: 45, //文字旋转角度，0不旋转
         },
       },
+      medData:[],
+      lowData:[],
+      highData:[]
 
     }
   },
@@ -166,11 +165,16 @@ export default{
   mounted() {
     // 从路由参数中获取medcaseId，这里假设您使用的是vue-router
     const medcaseId = this.$route.params.medcaseId;
+    this.diseaseName=this.$route.params.diseaseName;
     // 调用fetchMedCase方法获取病例数据
     this.fetchMedCase(medcaseId);
 
   },
   methods:{
+    backto(){
+      console.log("router"+this.$router.options.routes);
+      this.$router.push({path: '/Category'});
+;    },
     myEcharts(){
       // 基于准备好的dom，初始化echarts实例
       var myChart = echarts.init(document.getElementById('main'));
@@ -192,7 +196,7 @@ export default{
           {
           name: '最低值',
           type: 'bar',
-          data:[0.6,0.5],
+          data:this.lowData,
           itemStyle:{
             color:'#FF9314',
           },
@@ -204,7 +208,7 @@ export default{
           {
             name: '最高值',
             type: 'bar',
-            data:[0.7,0.8],
+            data:this.highData,
             itemStyle:{
               color:'#1492FF',
             },
@@ -216,7 +220,7 @@ export default{
           {
             name: '病例值',
             type: 'bar',
-            data:[0.3,0.2],
+            data:this.medData,
             itemStyle:{
               color:'#a81818',
             },
@@ -231,6 +235,42 @@ export default{
 
       // 使用刚指定的配置项和数据显示图表。
       myChart.setOption(option);
+    },
+    async handleChart(inspections) {
+      this.lowData = [];
+      this.highData = [];
+      this.xAxis.data = [];
+
+      const requests = inspections.map(inspection => {
+        const inspId = inspection.inspection_id;
+        const value = inspection.value;
+        this.medData.push(value);
+        console.log(inspId + '添加病例值' + value);
+        return axios.get(`/api/inspections/${inspId}`, {
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          },
+        }).then(res => {
+          const data = res.data.data;
+          const low = data.low;
+          const high = data.high;
+          const name = data.name;
+          this.highData.push(high);
+          this.lowData.push(low);
+          this.xAxis.data.push(name);
+          console.log(inspId + " low " + low + " high " + high + " name " + name);
+        });
+      });
+
+      await Promise.all(requests);
+
+      console.log('lowData:', this.lowData);
+      console.log('highData:', this.highData);
+      console.log('xAxis.data:', this.xAxis.data);
+
+      this.myEcharts();
     },
     goToOperationPage() {
       // 获取当前病例的 operation_id
@@ -271,13 +311,14 @@ export default{
       this.medCase.price = data.price;
       this.medCase.disease_id = data.disease_id;
       this.medCase.info_description = data.info_description;
-      this.medCase.info_photo ="http://47.103.131.161:10010/files/"+ data.info_photo;
+      this.medCase.info_photo = "http://47.103.131.161:10010/files/"+data.info_photo;
+      console.log(this.medCase.info_photo);
       this.medCase.info_video = "http://47.103.131.161:10010/files/"+data.info_video;
       this.medCase.operation_id = data.operation_id;
       this.medCase.inspections = data.inspections;
+      this.handleChart(this.medCase.inspections);
       this.playerOptions.sources[0].src=this.medCase.info_video;
       this.medCase.medicines = data.medicines;
-      this.myEcharts();
     },
     async fetchMedCaseMock(medcaseId) {
       try {
