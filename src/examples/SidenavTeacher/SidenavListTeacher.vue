@@ -75,20 +75,10 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
         <sidenav-item
-            to="/profile2"
-            :class="getRoute() === 'profile2' ? 'active' : ''"
-            :navText="isRTL ? 'profile2' : '个人主页'"
-        >
-          <template v-slot:icon>
-            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
-          </template>
-        </sidenav-item>
-      </li>
-      <li class="nav-item">
-        <sidenav-item
-            to="/signin"
-            :class="getRoute() === 'signin' ? 'active' : ''"
-            :navText="isRTL ? 'signin' : '退出登录'"
+
+            to="/profile"
+            :class="getRoute() === 'profile' ? 'active' : ''"
+            :navText="isRTL ? 'profile' : '个人主页'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>

@@ -155,6 +155,20 @@
     </div>
   </transition>
 
+  <transition name="modal">
+    <div class="modal-mask" v-if="showPageWarning" @click="closePageWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p v-if="totalPages">跳转页码范围应在1-{{ totalPages }}之间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closePageWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -202,6 +216,7 @@ export default {
       isHoveredAll: false, // 控制全部按钮鼠标悬停状态
       searchKeyword: '', // 搜索关键词
       showSearchWarning:false,
+      showPageWarning:false,
     };
   },
   created() {
@@ -437,6 +452,11 @@ export default {
       }
     },
     gotoSpecifiedPage() {
+      if(!/^\d+$/.test(this.gotoPageNumber) || this.gotoPageNumber < 1 || this.gotoPageNumber > this.totalPages)
+      {
+        this.showPageWarning = true;
+        return ;
+      }
     const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
       // 如果输入的是一个有效的页码，则跳转到该页
@@ -626,6 +646,10 @@ export default {
       this.searchKeyword = '';
       this.searchProblems();
     },
+  closePageWarning()
+  {
+    this.showPageWarning = false;
+  },
   },
   components: {
     ArgonBadge,
@@ -792,5 +816,9 @@ margin-bottom: 10px;
   height: 40px; /* 设置输入框高度为 30px */
   max-width: 200px; /* 设置输入框的最大宽度为 200px */
   width: 50%; /* 设置输入框宽度为父元素宽度的 50% */
+}
+.btn:hover {
+  background-color: #5e72e4;
+  color: #ffffff;
 }
 </style>

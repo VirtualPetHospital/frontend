@@ -271,6 +271,20 @@
       </div>
     </div>
   </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showPageWarning" @click="closePageWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p v-if="totalPages">跳转页码范围应在1-{{ totalPages }}之间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closePageWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
   </div>
 </template>
 
@@ -320,6 +334,7 @@ export default {
       // showCategorySelect: false,
       // selectedCategory: null,
       // showInput: false, // 是否显示输入框
+      showPageWarning:false,
     };
   },
   computed: {
@@ -468,6 +483,7 @@ confirmDelete() {
       }
     },
 deleteProblem() {
+  this.closeDeleteConfirmModal();
   const selectedProblems = this.problems.filter(problem => problem.checked);
   // const selectedProblems = [];
   this.allproblems.forEach(problem => {
@@ -489,28 +505,53 @@ deleteProblem() {
         if(response.data.msg == "删除失败，被其他表引用")
         {
           this.showDeleteWarning4 = true;
+          this.selectedProblemsMap.clear(); // 清空选中题目的 Map
+          this.selectedCount = 0;
+          this.fetchProblems();
+          return ;
         }
         console.log(response.msg);
         // 删除成功后从前端数据中移除已删除的题目
-        const index = this.problems.findIndex(u => u.id === problemId);
-        if (index !== -1) {
-          this.problems.splice(index, 1);
-          console.log('已删除题目:', problem);
-        }
+
+        // const index = this.problems.findIndex(u => u.id === problemId);
+        // if (index !== -1) {
+        //   this.problems.splice(index, 1);
+        //   console.log('已删除题目:', problem);
+        // }
+      this.selectedProblemsMap.clear(); // 清空选中题目的 Map
+      this.selectedCount = 0;
+      this.showDeleteWarning = false; // 重置删除警告状态
+      // this.fetchProblems();
+
+      if(response.data.msg == "操作成功")
+      {
+        alert("成功删除该题目!");
+      this.totalProblems = this.totalProblems-1;
+            const totalPages = Math.ceil(this.totalProblems / this.pageSize);
+      // const lastPage = totalPages === 0 ? 1 : totalPages;
+      // 如果新增题目所在页码不是当前页码，则跳转到最后一页
+      if (totalPages != this.currentPage) {
+        this.currentPage = totalPages;
+        this.fetchProblems();
+      } 
+      else{
+        this.fetchProblems();
+      }
+    }
       }).catch(error => {
         console.error('Error deleting problem:', error);
       });
     });
     // 使用 Promise.all 等待所有删除操作完成
-    Promise.all(promises).then(() => {
-      console.log('所有选中的题目已删除');
-      this.selectedProblemsMap.clear(); // 清空选中题目的 Map
-      this.selectedCount = 0;
-      this.showDeleteWarning = false; // 重置删除警告状态
-      this.closeDeleteConfirmModal();
-      this.fetchProblems();
-      alert("成功删除该题目!");
-    });
+    // Promise.all(promises).then(() => {
+    //   console.log('所有选中的题目已删除');
+    //   this.selectedProblemsMap.clear(); // 清空选中题目的 Map
+    //   this.selectedCount = 0;
+    //   this.showDeleteWarning = false; // 重置删除警告状态
+    //   this.closeDeleteConfirmModal();
+    //   this.fetchProblems();
+    //   alert("成功删除该题目!");
+    // });
   } else {
     console.log('请至少选择一个要删除的题目');
     this.showDeleteWarning = true;
@@ -545,6 +586,10 @@ deleteProblem() {
     closeDeleteConfirmModal() {
       // 关闭确认删除模态框
       this.showDeleteConfirmModal = false;
+    },
+    closePageWarning()
+    {
+      this.showPageWarning = false;
     },
     toggleEditMode() {
       this.editMode = !this.editMode; // 切换编辑模式
@@ -794,6 +839,11 @@ deleteProblem() {
       }
     },
     gotoSpecifiedPage() {
+      if(!/^\d+$/.test(this.gotoPageNumber) || this.gotoPageNumber < 1 || this.gotoPageNumber > this.totalPages)
+      {
+        this.showPageWarning = true;
+        return ;
+      }
     const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
       // 如果输入的是一个有效的页码，则跳转到该页

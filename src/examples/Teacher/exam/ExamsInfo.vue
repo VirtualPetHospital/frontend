@@ -80,6 +80,21 @@
       </div>
     </div>
   </div>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showNoStudent" @click="closeNoStudent">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>没有学生完成该考试，请返回</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeNoStudent">返回</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
 </template>
 <script>
 import { defineComponent, ref, reactive} from 'vue'
@@ -114,6 +129,7 @@ export default{
       allanswers:[],
       tempanswer:'',
       tempscore:0,
+      showNoStudent:false,
     }
   },
   computed: {
@@ -207,6 +223,11 @@ export default{
           console.error('获取题目失败', error);
         });
     },
+    closeNoStudent()
+    {
+      this.showNoStudent = false;
+      this.goBack();
+    },
   },
   components:{
     ElRadio,
@@ -250,6 +271,10 @@ export default{
   }).then(response => {
     this.allanswersheets=response.data.data;
     // 在这里处理获取的试卷数据，例如将试题信息存储到组件的数据中
+    if(response.data.msg == "暂无学生提交答题卡") 
+    {
+      this.showNoStudent = true;
+    }
     console.log(this.allanswersheets);
   }).catch(error => {
     console.error('获取答题卡失败', error);
@@ -415,5 +440,55 @@ export default{
       background: #ff7676;
       border-radius: 50%;
       cursor: pointer;
+}
+/* 弹出窗口样式 */
+.modal-mask {
+position: fixed;
+z-index: 9998;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.5);
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.modal-wrapper {
+width: 100%;
+}
+
+.modal-container {
+padding: 20px;
+background-color: #ffffff;
+border-radius: 5px;
+box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+width: 40%; /* 设置弹窗宽度 */
+left: 20%; /* 设置弹窗左侧距离为页面宽度的40% */
+}
+
+.modal-container h3 {
+margin-bottom: 15px;
+}
+
+.modal-container label {
+display: block;
+margin-bottom: 10px;
+}
+
+.modal-container input {
+width: calc(100% - 10px);
+margin-bottom: 10px;
+}
+.modal-container .button-container {
+  display: flex;
+  justify-content: center; /* 让按钮居中 */
+  width: 100%; /* 让容器宽度和弹窗一样 */
+  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
+}
+
+.modal-container .button-container button {
+  margin: 0 10%; /* 调整按钮之间的间距 */
 }
 </style>

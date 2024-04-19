@@ -27,7 +27,7 @@
               </div>
             </span>
             </div>
-            <div class="button-container" style="height: 100%;">
+            <div class="button-container2" style="height: 100%;">
             <button @click="upPaper()" class="btn btn-lg btn-block btn-warning" style="height: 100%;">确定试卷</button>
             </div>
               </th>
@@ -107,6 +107,21 @@
       </div>
     </div>
   </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showPageWarning" @click="closePageWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p v-if="totalPages">跳转页码范围应在1-{{ totalPages }}之间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closePageWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -158,6 +173,7 @@ export default {
       gotoPageNumber: '', // 用于存储跳转的页码
       searchflag:'',//管理搜索关键词
       showSearchWarning:false,
+      showPageWarning:false,
     };
   },
   created() {
@@ -416,6 +432,11 @@ export default {
       }
     },
     gotoSpecifiedPage() {
+      if(!/^\d+$/.test(this.gotoPageNumber) || this.gotoPageNumber < 1 || this.gotoPageNumber > this.totalPages)
+      {
+        this.showPageWarning = true;
+        return ;
+      }
     const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
       // 如果输入的是一个有效的页码，则跳转到该页
@@ -430,6 +451,10 @@ export default {
   closeSearchWarning()
   {
     this.showSearchWarning = false;
+  },
+  closePageWarning()
+  {
+    this.showPageWarning = false;
   },
   },
   components: {
@@ -522,7 +547,12 @@ margin-bottom: 10px;
   width: 100%; /* 让容器宽度和弹窗一样 */
   box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
 }
-
+.button-container2{
+  display: flex;
+  /* justify-content: center; 让按钮居中 */
+  width: 100%; /* 让容器宽度和弹窗一样 */
+  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
+}
 .modal-container .button-container button {
   margin: 0 10%; /* 调整按钮之间的间距 */
 }
