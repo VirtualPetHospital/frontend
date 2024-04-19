@@ -173,7 +173,7 @@ export default{
   methods:{
     backto(){
       console.log("router"+this.$router.options.routes);
-      this.$router.push({path: '/Category'});
+      this.$router.go(-1); // 返回上一层页面
 ;    },
     myEcharts(){
       // 基于准备好的dom，初始化echarts实例
