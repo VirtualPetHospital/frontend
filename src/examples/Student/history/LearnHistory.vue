@@ -4,7 +4,7 @@
       <div class="col-12">
         <h3>学习历史</h3>
         <el-table :data="pageRecords" stripe style="margin-top: 20px" >
-          <el-table-column prop="medcase_id" label="病例ID"></el-table-column>
+          <el-table-column prop="medcase_id" label="病例ID" sortable></el-table-column>
           <el-table-column prop="name" label="病例名称"></el-table-column>
           <el-table-column tooltip-effect=“dark” id="mycol" prop="info_description" label="信息描述" ></el-table-column>
           <el-table-column label="查看病例详情">
@@ -81,7 +81,7 @@ export default{
 
       },
     jumpToMedcase(medcaseId){
-      this.$router.push({name:'Medcase',params:{medcaseId:medcaseId}});
+      this.$router.push({name:'HistoryMedcase',params:{medcaseId:medcaseId}});
     },
       fetchLearnHistoryMock()
       {

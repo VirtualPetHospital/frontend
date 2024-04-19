@@ -75,6 +75,7 @@ const getRoute = () => {
       </li>
       <li class="nav-item">
         <sidenav-item
+
             to="/profile"
             :class="getRoute() === 'profile' ? 'active' : ''"
             :navText="isRTL ? 'profile' : '个人主页'"

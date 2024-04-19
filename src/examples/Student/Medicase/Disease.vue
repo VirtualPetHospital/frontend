@@ -2,6 +2,7 @@
   <div class="card p-4" >
     <div class=" row">
       <div class="col-12">
+        <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
         <h3 style="margin-top: 20px">{{diseaseName}}详情</h3>
         <el-card class="custom-elcard">
           <h4>疾病信息</h4>
@@ -14,7 +15,7 @@
 
                 <el-card class="custom-elcard">
                   <h5>疾病图示</h5>
-                  <el-image :src="photo">
+                  <el-image :src="this.photo">
                     <div slot="error" class="image-slot">
                       <i class="el-icon-picture-outline"></i>
                     </div>
@@ -38,7 +39,7 @@
           <div class="row">
             <h4>病例列表</h4>
             <el-input
-                v-model="ruleForm.searchText"
+                v-model.trim="ruleForm.searchText"
                 placeholder="请输入搜索内容"
                 style="width: 270px; cursor: pointer"
                 @keyup.enter.native="searchEnterFun"
@@ -50,7 +51,7 @@
           </div>
 
           <el-table :data="pageMedCases" stripe style="margin-top: 20px">
-            <el-table-column prop="medcase_id" label="病例ID" width="100"></el-table-column>
+            <el-table-column prop="medcase_id" label="病例ID" width="100" sortable></el-table-column>
             <el-table-column prop="name" label="病例名称"></el-table-column>
             <el-table-column prop="info_description" label="病例简介"></el-table-column>
             <el-table-column label="查看病例详情">
@@ -154,8 +155,11 @@ export default{
     return {};
   },
   methods: {
+    backto(){
+      this.$router.go(-1);
+    },
     jumpToMedcase(medcaseId){
-      this.$router.push({name:'Medcase',params:{medcaseId:medcaseId}});
+      this.$router.push({name:'Medcase',params:{medcaseId:medcaseId,diseaseName:this.diseaseName}});
     },
     handleSearch(){
       console.log(this.ruleForm.searchText);
@@ -189,25 +193,11 @@ export default{
       console.log(response.data.data);
       const data = response.data.data;
       this.description = data.description;
-      axios.get('/api/files/download',
-          {
-            params:{
-              file_name:"medcase_video_2024-03-31-16-16-02.mp4"
-            },
-            withCredentials : true,
-            headers:{
-              'Session':sessionStorage.getItem('sessionId'),
-              'Content-Type': 'application/json',},
-          }
-      ).then(response=>{
-          const vn="";
-          console.log("vn",vn);
-          if(vn){
-            this.playerOptions.sources[0].src=vn;
-          }
-      });
+
       this.video = data.video;
-      this.photo=data.photo;
+        this.playerOptions.sources[0].src="http://47.103.131.161:10010/files/"+this.video;
+        console.log("xhsdsddsd"+this.playerOptions.sources[0].src);
+
       }
       catch(error){
         console.error('获取疾病信息失败',error);
@@ -262,14 +252,12 @@ export default{
       try {
         // 构建请求参数对象
         const params = {
-          page_size: this.pageSize,
-          page_num: this.pageNum,
           info_keyword: this.infoKeyword,
           name_keyword: this.nameKeyword,
-          disease_name: this.$route.query.diseaseName // 使用疾病名参数
+          disease_name: this.diseaseName // 使用疾病名参数
         };
         let that = this;
-
+        console.log(this.diseaseName);
         axios.get(
             '/api/medcases',
             {
@@ -278,7 +266,7 @@ export default{
                 'Session': sessionStorage.getItem('sessionId'),
                 'Content-Type': 'application/json',
               },
-              data:params
+              params:params
             }
         ).then(response => {
           const data = response.data.data;

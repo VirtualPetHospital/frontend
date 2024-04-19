@@ -12,15 +12,15 @@ const store = useStore();
             :class="store.state.isRTL ? 'text-lg-end' : 'text-lg-start'"
           >
             ©
-            {{ new Date().getFullYear() }}, made with
-            <i class="fa fa-heart"></i> by
+            {{ new Date().getFullYear() }}
+            <i class="fa fa-heart"></i> 来自
             <a
-              href="https://www.creative-tim.com"
+              href="https://github.com/VirtualPetHospital"
               class="font-weight-bold"
               target="_blank"
-              >Creative Tim</a
+              >VPH</a
             >
-            for a better web.
+            为了更先进的宠物医疗
           </div>
         </div>
         <div class="col-lg-6">
@@ -29,34 +29,26 @@ const store = useStore();
           >
             <li class="nav-item">
               <a
-                href="https://www.creative-tim.com"
+                href="https://github.com/VirtualPetHospital"
                 class="nav-link text-muted"
                 target="_blank"
-                >Creative Tim</a
+                >VPH</a
               >
             </li>
             <li class="nav-item">
               <a
-                href="https://www.creative-tim.com/presentation"
+                href="https://github.com/VirtualPetHospital"
                 class="nav-link text-muted"
                 target="_blank"
-                >About Us</a
+                >关于我们</a
               >
             </li>
             <li class="nav-item">
               <a
-                href="https://www.creative-tim.com/blog"
+                href="https://github.com/VirtualPetHospital"
                 class="nav-link text-muted"
                 target="_blank"
                 >Blog</a
-              >
-            </li>
-            <li class="nav-item">
-              <a
-                href="https://www.creative-tim.com/license"
-                class="nav-link pe-0 text-muted"
-                target="_blank"
-                >License</a
               >
             </li>
           </ul>
