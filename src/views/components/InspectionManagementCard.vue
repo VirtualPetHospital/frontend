@@ -226,6 +226,9 @@ export default {
         callback();
       }
     },
+    handleAdd(){
+      this.dialogVisible=true;
+    },
     // 处理弹窗确定按钮点击事件
     handleConfirm() {
       // 表单验证

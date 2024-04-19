@@ -18,8 +18,7 @@
           multiple
           filterable
           placeholder="请选择检查项目"
-          clearable
-          
+          clearable          
         >
           <el-option
             v-for="item in inspectionValues"
@@ -132,36 +131,41 @@
       <el-form-item label="病例描述" prop="info_description">
         <el-input v-model="form.info_description" placeholder="请输入病例描述"></el-input>
       </el-form-item>
-      <el-form-item label="病例图片" prop="info_photo">
+
+      <el-form-item label="图片" >
         <el-upload
           class="upload-demo"
-          action="https://jsonplaceholder.typicode.com/posts/"
-          drag
-          multiple
-          :limit="3"
-          :on-exceed="handleExceed"
-          :file-list="fileList"
-          :auto-upload="false"
-        >
-          <i class="el-icon-upload"></i>
-          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-          <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+          action="api/files/upload"
+          :on-preview="handlePreview"
+          :on-remove="handleRemove" 
+          :on-success="handleSuccess"
+          :file-list="form.photo"
+          :data="{ file: this.form.photo, location: 'medcase' }"
+          :before-upload="beforeUpload"
+          :headers="headerObj"
+          :with-credentials="true"
+          accept="image/jpeg,image/png">
+          <el-button size="small" type="primary">点击上传</el-button>
+          <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
         </el-upload>
       </el-form-item>
 
-      <el-form-item label="病例视频" prop="info_video">
+      <el-form-item label="病例视频" >
         <el-upload
           class="upload-demo"
-          action="https://jsonplaceholder.typicode.com/posts/"
-          drag
-          :limit="1"
-          :on-exceed="handleExceed"
-          :file-list="videoList"
-          :auto-upload="false"
+          action="/api/files/upload"
+          :on-preview="handlePreview"
+          :on-remove="handleRemove"
+          :on-success="handleSuccess_V"
+          :file-list="form.video"
+          :data="{ file: this.form.video, location: 'medcase' }"
+          :before-upload="beforeUpload_V"
+          :headers="headerObj"
+          :with-credentials="true"
+          accept="video/*"
         >
-          <i class="el-icon-upload"></i>
-          <div class="el-upload__text">将视频文件拖到此处，或<em>点击上传</em></div>
-          <div class="el-upload__tip" slot="tip">只能上传mp4文件，且不超过10MB</div>
+          <el-button size="small" type="primary">点击上传</el-button>
+          <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
         </el-upload>
       </el-form-item>
 
@@ -311,36 +315,41 @@
         <el-input v-model="modifyForm.info_description" placeholder="请输入病例描述"></el-input>
       </el-form-item>
 
-      <el-form-item label="病例图片" prop="info_photo">
+      <el-form-item label="病例图片">
         <el-upload
           class="upload-demo"
-          action="https://jsonplaceholder.typicode.com/posts/"
-          drag
-          multiple
-          :limit="3"
-          :on-exceed="handleExceed"
-          :file-list="modifyFileList"
-          :auto-upload="false"
+          action="api/files/upload"
+          :on-preview="handlePreview"
+          :on-remove="handleRemove" 
+          :on-success="handleSuccess"
+          :file-list="form.photo"
+          :data="{ file: this.form.photo, location: 'medcase' }"
+          :before-upload="beforeUpload"
+          :headers="headerObj"
+          :with-credentials="true"
+          accept="image/jpeg,image/png"
         >
-          <i class="el-icon-upload"></i>
-          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-          <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+          <el-button size="small" type="primary">点击上传</el-button>
+          <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
         </el-upload>
       </el-form-item>
 
       <el-form-item label="病例视频" prop="info_video">
         <el-upload
           class="upload-demo"
-          action="https://jsonplaceholder.typicode.com/posts/"
-          drag
-          :limit="1"
-          :on-exceed="handleExceed"
-          :file-list="modifyVideoList"
-          :auto-upload="false"
+          action="/api/files/upload"
+          :on-preview="handlePreview"
+          :on-remove="handleRemove"
+          :on-success="handleSuccess_V"
+          :file-list="form.video"
+          :data="{ file: this.form.video, location: 'medcase' }"
+          :before-upload="beforeUpload_V"
+          :headers="headerObj"
+          :with-credentials="true"
+          accept="video/*"
         >
-          <i class="el-icon-upload"></i>
-          <div class="el-upload__text">将视频文件拖到此处，或<em>点击上传</em></div>
-          <div class="el-upload__tip" slot="tip">只能上传mp4文件，且不超过10MB</div>
+          <el-button size="small" type="primary">点击上传</el-button>
+          <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
         </el-upload>
       </el-form-item>
     </el-form>
@@ -391,7 +400,13 @@
                     >
                       <el-table-column prop="medcase_id" label="病例id"></el-table-column>
                       <el-table-column prop="name" label="病例名"></el-table-column>
+                      <el-table-column prop="price" label="价格"></el-table-column>
                       <el-table-column prop="info_description" label="病例描述"></el-table-column>
+                      <el-table-column label="操作">
+                      <template v-slot="{row}">
+                        <el-link type="primary" @click="showMedcaseDetails(row)">病例详情</el-link>
+                      </template>
+                    </el-table-column>
                     </el-table>
                   </div>
                 </div>
@@ -420,7 +435,7 @@
   <script>
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
-  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer ,ElMessageBox } from "element-plus";
+  import { ElLink, ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload, ElRow, ElCol, ElTransfer ,ElMessageBox } from "element-plus";
 
   import axios from "axios"; 
   
@@ -442,6 +457,7 @@
       ElCol,
       ElTransfer,
       ElMessageBox,
+      ElLink,
     },
     setup() {
       const store = useStore();
@@ -467,6 +483,8 @@
         modifyMedicineQuantities: [], // 修改药品数量
         modifyFileList: [], // 修改病例图片文件列表
         modifyVideoList: [], // 修改病例视频文件列表
+        uploadedFileName_P: null,// 新增一个变量用于存储上传成功的图片文件名
+        uploadedFileName_V: null,// 新增一个变量用于存储上传成功的视频文件名
         form: {
           name: '',
           price: null,
@@ -502,7 +520,11 @@
         fileList: [], // 存储病例图片文件列表
         videoList: [], // 存储病例视频文件列表
         // 当前的筛选器
-        filters: {}
+        filters: {},
+        headerObj: {
+          'Session': sessionStorage.getItem('sessionId'),
+          //'Content-Type': 'application/json'
+        },
       };
     },
     computed: {
@@ -563,7 +585,7 @@
               //console.log("检查项目111", this.inspectionValues);
 
               // 在控制台打印穿梭框加载的数据
-              console.log("穿梭框加载的数据222:", this.inspectionValues);
+              //console.log("穿梭框加载的数据222:", this.inspectionValues);
             } else {
               console.error("Error fetching inspections:", response.data.message);
             }
@@ -667,19 +689,20 @@
         if (this.selectedRow) {
           console.log('选择中的数据',this.selectedRow);
           // 将选中行的数据赋值给表单字段
-          this.form.operation_id = this.selectedRow.operation_id;
-          this.form.name = this.selectedRow.name;
-          this.form.price = this.selectedRow.price;
-          this.form.treatment_description = this.selectedRow.treatment_description;
-          this.form.diagnose_result = this.selectedRow.diagnose_result;
-          this.form.category_id = this.selectedRow.category_id;
-          this.form.disease_id = this.selectedRow.disease_id;
-          this.form.info_description = this.selectedRow.info_description;
-          this.form.info_photo = this.selectedRow.info_photo;
-          this.form.info_video = this.selectedRow.info_video;
+          this.modifyForm.name = this.selectedRow.name;
+          this.modifyForm.diagnose_result = this.selectedRow.diagnose_result;
+          //this.modifyForm.disease_id = this.selectedRow.disease_id;
+          this.modifyForm.operation_id = this.selectedRow.operation_id;
+          this.modifyForm.treatment_description = this.selectedRow.treatment_description;
+          //this.form.category_id = this.selectedRow.category_id;
+          //this.form.disease_id = this.selectedRow.disease_id;
+          this.modifyForm.info_description = this.selectedRow.info_description;
+          this.modifyForm.info_photo = null;
+          this.modifyForm.info_video = null;
           // 清空已上传的图片文件列表和视频文件列表
           this.fileList = [];
           this.videoList = [];
+          console.log('选择中的数据2',this.modifyForm);
           this.modifyDialogVisible = true; // 打开修改弹窗
         } else {
           console.log('No row selected');
@@ -740,7 +763,7 @@
       // 发送请求获取病例列表数据
       fetchCases() {
         const params = {
-          page_size: 50,
+          page_size: 200,
           page_num: this.currentPage,
           //info_keyword: this.searchText,
         };
@@ -757,6 +780,7 @@
           }
         })
         .then(response => {
+          console.log('后端的数据有这些',response);
           if (response.data.code === 0) {
             const data = response.data.data;
             if (data && Array.isArray(data.records)) {
@@ -764,6 +788,11 @@
                 medcase_id: record.medcase_id,
                 name: record.name,
                 info_description: record.info_description,
+                diagnose_result: record.diagnose_result,
+                disease_id: record.disease_id,
+                operation_id: record.operation_id,
+                price: record.price,
+                treatment_description: record.treatment_description
                 // 其他属性依次添加
               }));
 
@@ -906,8 +935,8 @@
           diagnose_result: this.form.diagnose_result,
           disease_id: this.form.disease_id,
           info_description: this.form.info_description || null,
-          info_photo: this.form.info_photo || null,
-          info_video: this.form.info_video || null,
+          info_photo: this.uploadedFileName_P,
+          info_video: this.uploadedFileName_V,
           operation_id: this.form.operation_id,
           inspections: this.selectedInspections.map((inspection, index) => ({
             inspection_id: inspection__Id[index],
@@ -915,17 +944,18 @@
             value: Number(this.inspectionValues[index].value) // 转换为数字
           })),
           medicines: this.selectedMedicines.map((medicine, index) => ({
-            medcine_id: medicine__Id[index],
+            medicine_id: medicine__Id[index],
             //num: this.medicineQuantities[index] // 获取对应的药品数量
             num: parseInt(this.medicineQuantities[index], 10) // 转换为整数
           }))
         };
 
-        // console.log('检查项目是什么', this.inspectionValues);
-        // console.log('检查项目是什么啊是什么', this.selectedInspections);
-        // console.log('药品是什么', this.medicineQuantities);
-        // console.log('药品是什么啊是什么', this.selectedMedicines);
-        // console.log('具体的提交:', formData);
+        console.log('检查项目是什么', this.inspectionValues);
+        console.log('检查项目是什么啊是什么', this.selectedInspections);
+        console.log('药品是什么', this.medicineQuantities);
+        console.log('药品是什么啊是什么', this.selectedMedicines);
+        //console.log('药品id', this.formData.medicines);
+        console.log('具体的提交:', formData);
         //在这里提交所有表单数据到后端
         axios.post('api/medcases', formData, {
           withCredentials: true,
@@ -1070,13 +1100,13 @@
           const [medicineId, medicineName] = selectedMedicine.split('-');
           return parseInt(medicineId, 10); // 将检查项目 ID 转换为整数形式
         });
-        console.log('药品的id',medicine__Id);
-        console.log('开始4');
-        console.log('modifyForm 的值为:', this.modifyForm);
+        // console.log('药品的id',medicine__Id);
+        // console.log('开始4');
+        // console.log('modifyForm 的值为:', this.modifyForm);
 
 
-        console.log('modifyInspectionValues 的值为:', this.modifyInspectionValues);
-        console.log('modifyMedicineQuantities 的值为:', this.modifyMedicineQuantities);
+        // console.log('modifyInspectionValues 的值为:', this.modifyInspectionValues);
+        // console.log('modifyMedicineQuantities 的值为:', this.modifyMedicineQuantities);
         // 将选中的检查项目和药品的 ID 提交到后端
         const formData = {
           name: this.modifyForm.name,
@@ -1085,8 +1115,8 @@
           diagnose_result: this.modifyForm.diagnose_result,
           disease_id: this.modifyForm.disease_id,
           info_description: this.modifyForm.info_description || null,
-          info_photo: this.modifyForm.info_photo || null,
-          info_video: this.modifyForm.info_video || null,
+          info_photo: this.uploadedFileName_P,
+          info_video: this.uploadedFileName_V,
           operation_id: this.modifyForm.operation_id,
           inspections: this.modifySelectedInspections.map((inspection, index) => ({
             medcase_id: this.selectedRow.medcase_id,
@@ -1096,17 +1126,17 @@
           })),
           medicines: this.modifySelectedMedicines.map((medicine, index) => ({
             medcase_id: this.selectedRow.medcase_id,
-            medcine_id: medicine__Id[index],
+            medicine_id: medicine__Id[index],
             //num: this.modifyMedicineQuantities[index] // 获取对应的药品数量
             num: parseInt(this.medicineQuantities[index], 10) // 转换为整数
           }))
         };
 
-        console.log('2检查项目是什么', this.inspectionValues);
-        console.log('2检查项目是什么啊是什么', this.modifySelectedInspections);
-        console.log('2药品是什么', this.medicineQuantities);
-        console.log('2药品是什么啊是什么', this.modifySelectedMedicines);
-        console.log('2具体的提交:', formData);
+        // console.log('2检查项目是什么', this.inspectionValues);
+        // console.log('2检查项目是什么啊是什么', this.modifySelectedInspections);
+        // console.log('2药品是什么', this.medicineQuantities);
+        // console.log('2药品是什么啊是什么', this.modifySelectedMedicines);
+        // console.log('2具体的提交:', formData);
 
         axios.put(`api/medcases/${medcaseId}`, formData, {
           withCredentials: true,
@@ -1140,7 +1170,55 @@
       handleModifyCategoryChange(categoryId) {
         // 发送请求获取指定病种下的疾病列表数据
         this.fetchDiseases(categoryId);
-      }
+      },
+      handlePreview(file) {
+      
+      },
+      handleRemove(file, fileList) {
+      // 这里可以根据需要添加移除文件的逻辑，例如从列表中移除文件等
+      console.log('remove', file, fileList);
+    },
+    handleSuccess(response) {
+      // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
+      console.log('上传是不是真的成功:', response);
+      // 假设上传成功后后端返回的文件名字段为fileName
+      //this.form.photo = response.data.file_name;
+      this.uploadedFileName_P = response.data.file_name;
+      console.log('上传文件名:', this.uploadedFileName_P);
+    },
+    beforeUpload(file) {
+      console.log('上传的文件对象:', file);
+      this.form.photo = [file];
+      console.log('上传的文件对象真的是吗:', this.form.photo);
+      return true; // 确保继续上传过程
+    },
+    handleSuccess_V(response) {
+      // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
+      console.log('上传视频是不是真的成功:', response);
+      // 假设上传成功后后端返回的文件名字段为fileName
+      //this.form.photo = response.data.file_name;
+      this.uploadedFileName_V = response.data.file_name;
+      console.log('上传视频文件名:', this.uploadedFileName_V);
+    },
+    beforeUpload_V(file) {
+      console.log('上传的视频文件对象:', file);
+      this.form.video = [file];
+      console.log('上传的视频文件对象真的是吗:', this.form.video);
+      return true; // 确保继续上传过程
+    },
+    showMedcaseDetails(row) {
+      // 在这里处理点击设施详情按钮后的逻辑
+      console.log("显示病例详情:", row);
+      // 构建动态路由路径，并传递科室ID和科室名称参数
+      const medcaseDetailsRoute = {
+        name: '病例情况-管理员',
+        params: { id: row.medcase_id} // 此处传递 row.room_id 和 row.name 作为参数
+      };
+      console.log("跳转到病例设施详情页面，参数：", medcaseDetailsRoute); // 添加日志来检查传递的参数
+      // 导航到相应的详情页面
+      this.$router.push(medcaseDetailsRoute);
+    },
+
 
 
       

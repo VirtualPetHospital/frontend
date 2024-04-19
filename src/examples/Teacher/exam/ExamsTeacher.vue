@@ -1,14 +1,30 @@
+
 <template>
   <div>
     <!-- 按钮容器 -->
     <div class="buttons-container">
       <button @click="openAddModal" class="btn btn-success" style="margin-left: 2%;">新增考试</button>
       <div  class="input-group" style="margin-bottom: 10px;">
-      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
+      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入考试名关键词搜索" style="margin-left: 2%;">
       <button @click="searchExams" class="btn btn-primary">搜索</button>
       </div>
-      <button @click="deleteExam" class="btn btn-danger" style="margin-right: 2%;">删除考试</button>
+      <button @click="confirmDelete" class="btn btn-danger" style="margin-right: 2%;">删除考试</button>
     </div>
+    <div class="biaoge ps-3" style="margin-top: 10px;">
+  <table class="table" bgcolor="#ffffff">
+    <tbody>
+      <tr class="text-center">
+        <td v-for="(level, index) in alllevel" :key="index">
+          <button @click="searchExams2(level)" class="btn" :class="{ 'btn-secondary': !level.isSelected, 'btn-primary': level.isSelected }" style="margin-bottom: 5px;" @mouseover="level.isHovered = true" @mouseleave="level.isHovered = false">{{level.num}}{{ "级考试" }}</button>
+          <!-- <button @click="searchProblems2(category)" class="btn" :class="{ 'btn-secondary': !category.isSelected, 'btn-primary': category.isSelected }" style="margin-bottom: 5px;" @mouseover="category.isHovered = true" @mouseleave="category.isHovered = false">{{ category.name }}</button> -->
+        </td>
+        <td>
+          <button @click="searchExams3()" class="btn" :class="{ 'btn-secondary': !isHoveredAll, 'btn-primary': isHoveredAll }" style="margin-bottom: 5px;" @mouseover="isHoveredAll = true" @mouseleave="isHoveredAll = false">{{ "全部等级" }}</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
     <!-- 表格容器 -->
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
@@ -37,10 +53,12 @@
         <tbody>
           <!-- 遍历每个考试项 -->
           <tr v-for="(exam, index) in paginatedExams" :key="index">
-        <td class="text-center"><input type="checkbox" v-model="exam.checked"></td>
+            <td class="text-center">
+              <input type="checkbox" v-model="exam.checked" @change="handleExamSelection(exam)">
+            </td>
         <td class="text-center ">{{ exam.id }}</td>
         <td class="text-center " style="word-break: break-word;">{{ exam.name }}</td>
-        <td class="text-center ">{{ exam.level }}</td>
+        <td class="text-center ">{{ exam.level }}{{"级"}}</td>
         <td class="text-center ">{{ exam.duration }}分钟</td>
         <td class="text-center " style="word-break: break-word;">{{ exam.starttime}}</td>
         <td class="text-center " style="word-break: break-word;">{{ exam.endtime}}</td>
@@ -54,20 +72,40 @@
         </tbody>
       </table>
     </div>
- <!-- 分页控件 -->
- <nav aria-label="Page navigation example">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
-        </li>
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
-        </li>
-      </ul>
-    </nav>
+   <!-- 分页控件 -->
+   <nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <!-- 上一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+      <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
+    </li>
+
+    <!-- 仅显示当前页码和前后一个页码 -->
+    <li class="page-item" v-for="page in visiblePages" :key="page" :class="{ active: page === currentPage }">
+      <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
+    </li>
+
+    <!-- 下一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+      <button class="btn btn-primary" @click="nextPage">下一页</button>
+    </li>
+    <li>
+      <span class="input-group-text">页数: {{ currentPage }}/{{ totalPages }}</span>
+    </li>
+  </ul>
+</nav>
+  <!-- 使用网格系统将跳转框固定在最右侧 -->
+  <div class="row" style="margin-top: -6.12%;">
+  <div class="col-md-6 ml-auto" style="margin-left: 75%;">
+    <div class="input-group" style="margin-bottom: 10px;">
+      <input type="text" class="form-control small-input" v-model="gotoPageNumber" placeholder="输入页码">
+      <div class="input-group-append">
+        <button @click="gotoSpecifiedPage" class="btn btn-primary">跳转</button>
+        <!-- 将"页数"文本内容放置在跳转按钮的附加内容中 -->
+      </div>
+    </div>
+  </div>
+</div>
 <!-- 弹出窗口 -->
 <transition name="modal">
   <div class="modal-mask" v-if="showEditModal" @click="closeEditModal">
@@ -110,7 +148,7 @@
             <button type="button" class="btn btn-secondary" @click="selectPaper(newExam)">选择试卷</button>
           </div>
           <div class="button-container">
-            <button type="submit" class="btn btn-lg btn-block btn-info">{{'添加'}}</button>
+            <!-- <button type="submit" class="btn btn-lg btn-block btn-info">{{'添加'}}</button> -->
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeEditModal">取消</button>
           </div>
         </form>
@@ -231,6 +269,119 @@
     </div>
   </div>
 </transition>
+
+<transition name="modal">
+    <div class="modal-mask" v-if="showAddExam" @click="showAddExam">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>该考试名已存在，请更换考试名称</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeAddExam">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</transition>
+
+<transition name="modal">
+    <div class="modal-mask" v-if="showSelectExam2" @click="closeSelectExam2">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>考试等级应为1-5之间的整数</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSelectExam2">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showSelectExam3" @click="closeSelectExam3">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>考试时长应在1-300分钟之间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSelectExam3">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showSelectExam4" @click="closeSelectExam4">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>考试终止时间与起始时间之差与考试时长不符，请检查</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSelectExam4">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+      <div class="modal-mask" v-if="showDeleteConfirmModal" @click="closeDeleteConfirmModal">
+        <div class="modal-wrapper" @click.stop>
+          <div class="modal-container">
+            <h3>确认删除</h3>
+            <p>您是否确定删除选中的考试？</p>
+            <div class="button-container">
+              <button type="button" class="btn btn-lg btn-block btn-info" @click="deleteExam">确定</button>
+              <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteConfirmModal">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="modal">
+    <div class="modal-mask" v-if="showDeleteWarning5" @click="closeDeleteWarning5">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>请不要一次选中多场想要删除的考试</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning5">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showDeleteWarning4" @click="closeDeleteWarning4">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>该考试已被其他表引用，无法删除</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning4">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+  
+  <transition name="modal">
+    <div class="modal-mask" v-if="showSearchWarning" @click="closeSearchWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>未搜索到满足条件的考试</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSearchWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
   </div>
 </template>
 
@@ -268,6 +419,48 @@ export default {
       currentPage:1,
       totalExams:0,
       searchKeyword: '', // 搜索关键词
+      gotoPageNumber: '', // 用于存储跳转的页码
+      allexams:[],
+      selectedExamsMap: new Map(),
+      name_keyword:'',//搜索关键词
+      searchlevel:'',//存放搜索时要搜的level
+      alllevel:[
+        {
+          num:1,
+          isHovered:false,
+          isSelected:false,
+        },
+        {
+          num:2,
+          isHovered:false,
+          isSelected:false,
+        },
+        {
+          num:3,
+          isHovered:false,
+          isSelected:false,
+        },
+        {
+          num:4,
+          isHovered:false,
+          isSelected:false,
+        },
+        {
+          num:5,
+          isHovered:false,
+          isSelected:false,
+        },
+      ],
+      isHoveredAll: false, // 控制全部按钮鼠标悬停状态
+      showAddExam:false,
+      showSelectExam2:false,
+      showSelectExam3:false,
+      showSelectExam4:false,
+      showDeleteConfirmModal:false,
+      selectedCount: 0,
+      showDeleteWarning5:false,
+      showDeleteWarning4:false,
+      showSearchWarning:false,
     };
   },
   created() {
@@ -297,11 +490,22 @@ export default {
     totalPages() {
       return Math.ceil(this.totalExams / this.pageSize);
     },
+    visiblePages() {
+      const pages = [this.currentPage];
+      if (this.currentPage > 1) {
+        pages.unshift(this.currentPage - 1); // 前一个页码
+      }
+      if (this.currentPage < this.totalPages) {
+        pages.push(this.currentPage + 1); // 后一个页码
+      }
+      return pages;
+    },
   },
   mounted() {
     // 组件加载完成后立即获取题目列表数据
     this.fetchExams();
     this.fetchAllPapers();
+    this.fetchAllExams();
   },
   methods: {
     openEditModal(exam) {
@@ -346,20 +550,49 @@ export default {
       console.log('新增考试信息:', this.newExam);
       this.closeEditModal();
     },
+    confirmDelete() {
+      // 首先检查是否有选中的题目
+      const selectedExams2 = [];
+      this.allexams.forEach(exam => {
+        if (this.selectedExamsMap.get(exam.id)) {
+          selectedExams2.push(exam.id);
+        }
+      });
+      if (selectedExams2.length > 0) {
+        // 如果有选中的题目，则显示确认删除模态框
+        this.showDeleteConfirmModal = true;
+      } else {
+        // 如果没有选中的题目，则显示删除警告
+        console.log('请至少选择一个要删除的考试');
+        this.showDeleteWarning = true;
+      }
+    },
     deleteExam() {
-      const selectedExams = this.exams.filter(exam => exam.checked);//
+      // const selectedExams = this.exams.filter(exam => exam.checked);//
+      const selectedExams = [];
+    this.allexams.forEach(exam => {
+      if (this.selectedExamsMap.get(exam.id)) {
+        selectedExams.push(exam.id);
+      }
+    });
+    console.log(selectedExams);
       if (selectedExams.length > 0) {
-        const promises = selectedExams.map(exam => {
+        const promises = selectedExams.map(examId => {
           // 发送 DELETE 请求到后端删除试题
-          return axios.delete(`/api/exams/${exam.id}`, {
+          return axios.delete(`/api/exams/${examId}`, {
             withCredentials: true,
               headers: {
                 'Session': sessionStorage.getItem('sessionId'),
                 'Content-Type': 'application/json',
               }
           }).then(response => {
+            if(response.data.msg == "删除失败，被其他表引用")
+            {
+              this.showDeleteWarning4 = true;
+            }//
+            console.log(response.msg);
             // 删除成功后从前端数据中移除已删除的题目
-            const index = this.exams.findIndex(u => u.id === exam.id);
+            const index = this.exams.findIndex(u => u.id === examId);
             if (index !== -1) {
               this.exams.splice(index, 1);
               console.log('已删除试卷:', exam);
@@ -368,10 +601,14 @@ export default {
             console.error('Error deleting exam:', error);
           });
         });
-
         // 使用 Promise.all 等待所有删除操作完成
         Promise.all(promises).then(() => {
           console.log('所有选中的考试已删除');
+          this.selectedExamsMap.clear(); // 清空选中题目的 Map
+          this.showDeleteWarning = false; // 重置删除警告状态
+          this.closeDeleteConfirmModal();
+          this.fetchExams();
+          alert("成功删除该场考试!");
         });
       } else {
         console.log('请至少选择一场要删除的考试');
@@ -392,6 +629,37 @@ export default {
           const temppaperid = selectedPaper.id; // 获取试卷的ID
           // 在这里执行保存操作，将选中的试卷ID传递给后端或进行其他处理
           const index = this.selectedExam.id;
+          if(this.selectedExam.level == '' || this.selectedExam.name== '' || this.selectedExam.starttime== '' || this.selectedExam.endtime== '' ||this.selectedExam.duration=='')
+          {
+            this.showSelectExam  = true;
+            return ;
+          }
+          const isNameDuplicate = this.allexams.some(exam => exam.name === this.selectedExam.name);
+          if (isNameDuplicate) {
+            // 如果试卷名称重复，则弹出提示框
+            // console.error('试卷名称重复，请修改试卷名称');
+            this.showAddExam = true;
+            return;
+          }
+          if (this.selectedExam.level > "5" || this.selectedExam.level < "1") {
+            // 如果题目数量超过40，则弹出提示框
+            this.showSelectExam2 = true;
+            return;
+          }
+          if(this.selectedExam.duration > 300 || this.selectedExam.duration < 1 ){
+            this.showSelectExam3 = true;
+            return ;
+          }
+          // 计算考试的时间差值（单位：分钟）
+          const startTime = new Date(this.selectedExam.starttime);
+          const endTime = new Date(this.selectedExam.endtime);
+          const duration = (endTime - startTime) / (1000 * 60); // 转换为分钟
+          if (duration != this.selectedExam.duration) {
+          // 如果时间差值与设置的考试时长不符，则弹出提示框
+          console.error('考试时间设置有误，请检查考试时长');
+          this.showSelectExam4 = true;
+          return ;
+          }
         try {
       const response = await axios.put(`/api/exams/${index}`,  {
         name: this.selectedExam.name,
@@ -409,13 +677,16 @@ export default {
       });
       const responseData = response.data;
       // 处理响应数据
-      if (responseData.code === 200) {
+      if (responseData.msg == "操作成功") {
         // 成功更新题目信息
         console.log('考试信息更新成功:', responseData.data);
+        alert("考试信息修改成功!");
+        this.fetchExams();
         // 你可能还需要更新本地的题目列表数据或其他相关操作
       } else {
         // 更新失败，处理错误信息
         console.error('考试信息更新失败:', responseData.msg);
+        alert("考试信息修改失败:",responseData.msg);
       }
     } catch (error) {
       console.error('考试信息更新失败:', error);
@@ -439,18 +710,118 @@ export default {
     //   }
     // }
   selectPaper(newExam) {
-  if (newExam.level !='' && newExam.name!='' && newExam.starttime!=''&& newExam.endtime!=''&&newExam.duration!='') {
+    if(newExam.level == '' || newExam.name== '' || newExam.starttime== '' || newExam.endtime== '' ||newExam.duration=='')
+    {
+      this.showSelectExam  = true;
+      return ;
+    }
+    const isNameDuplicate = this.allexams.some(exam => exam.name === newExam.name);
+    if (isNameDuplicate) {
+      // 如果试卷名称重复，则弹出提示框
+      // console.error('试卷名称重复，请修改试卷名称');
+      this.showAddExam = true;
+      return;
+    }
+    if (newExam.level > "5" || newExam.level < "1") {
+      // 如果题目数量超过40，则弹出提示框
+      this.showSelectExam2 = true;
+      return;
+    }
+    if(newExam.duration > 300 || newExam.duration < 1 ){
+      this.showSelectExam3 = true;
+      return ;
+    }
+    // 计算考试的时间差值（单位：分钟）
+    const startTime = new Date(newExam.starttime);
+    const endTime = new Date(newExam.endtime);
+    const duration = (endTime - startTime) / (1000 * 60); // 转换为分钟
+    if (duration != newExam.duration) {
+    // 如果时间差值与设置的考试时长不符，则弹出提示框
+    console.error('考试时间设置有误，请检查考试时长');
+    this.showSelectExam4 = true;
+    return ;
+    }
     this.showEditModal = false; // 关闭编辑窗口
     this.editMode = false; // 重置编辑模式
     this.$router.push({ name: '选择试卷', params: { tempname: newExam.name, templevel:newExam.level, tempduration:newExam.duration,tempstarttime:newExam.starttime, tempendtime:newExam.endtime} });
     // console.log(newExam);
-  } else {
-    console.error(`试卷基本信息填写不完整`);
-    this.showSelectExam = true;
+  },
+  selectQuestions(newPaper) {
+  // if (newPaper.problemcount !='' && newPaper.name!='') {
+  //   this.showEditModal = false; // 关闭编辑窗口
+  //   this.editMode = false; // 重置编辑模式
+  //   this.$router.push({ name: '选择试题', params: { tempname: newPaper.name, tempproblemcount:newPaper.problemcount} });
+  //   // console.log(newPaper);
+  // } 
+  // 确保 newPaper 对象中包含 name 属性，如果不存在则初始化为空字符串
+  // if (!newPaper.hasOwnProperty('name')) {
+  //   newPaper.name = '';
+  // }
+  // 确保 newPaper 对象中包含 problemcount 属性，如果不存在则初始化为空字符串
+  // if (!newPaper.hasOwnProperty('problemcount')) {
+  //   newPaper.problemcount = '';
+  // }
+  if (!newPaper.name || !newPaper.problemcount) {
+    // 如果试卷基本信息不完整，则弹出提示框
+    console.error('试卷基本信息填写不完整');
+    this.showSelectPaper = true;
+    return;
   }
+   // 检查新试卷名称是否与已有试卷重复
+  const isNameDuplicate = this.allpapers.some(paper => paper.name === newPaper.name);
+  if (isNameDuplicate) {
+    // 如果试卷名称重复，则弹出提示框
+    // console.error('试卷名称重复，请修改试卷名称');
+    this.showAddPaper = true;
+    return;
+  }
+  if (newPaper.problemcount > 40) {
+    // 如果题目数量超过40，则弹出提示框
+    this.showSelectPaper2 = true;
+    return;
+  }
+
+  // 跳转到选择试题页面
+  this.showEditModal = false; // 关闭编辑窗口
+  this.editMode = false; // 重置编辑模式
+  this.$router.push({ name: '选择试题', params: { tempname: newPaper.name, tempproblemcount: newPaper.problemcount } });
   },
   closeSelectExam() {
       this.showSelectExam = false; // 关闭删除提示窗口
+    },
+  closeAddExam()
+  {
+    this.showAddExam = false;
+  },
+  closeSelectExam2()
+  {
+    this.showSelectExam2 = false;
+  },
+  closeSelectExam3()
+  {
+    this.showSelectExam3 = false;
+  },
+  closeSelectExam4()
+  {
+    this.showSelectExam4 = false;
+  },
+  closeDeleteConfirmModal()
+  {
+    this.showDeleteConfirmModal = false;
+  },
+  closeDeleteWarning5()
+  {
+    this.showDeleteWarning5 = false;
+  },
+  closeDeleteWarning4()
+  {
+    this.showDeleteWarning4 = false;
+  },
+  closeSearchWarning()
+    {
+      this.showSearchWarning = false; // 关闭搜索提示窗口
+      this.searchKeyword = '';
+      this.searchExams();
     },
   async fetchExams() {
   try {
@@ -458,8 +829,8 @@ export default {
       params: {
         page_size: this.pageSize,
         page_num: this.currentPage,
-        name_keyword: '', // 添加名称参数
-        level:'',
+        name_keyword: this.name_keyword, // 添加名称参数
+        level:this.searchlevel,
         sort_by_start_time:2,
         participated:'',
       },
@@ -479,7 +850,8 @@ export default {
         level:record.level,
         paper:record.paper,//内含对应的一张paper的所有信息
         participated:record.participated,//是否参加？
-        checked:false,
+        // checked:false,
+        checked: this.selectedExamsMap.get(record.exam_id) || false,
       }));
       this.$forceUpdate();
       this.totalExams = response.data.data.total;
@@ -544,11 +916,46 @@ export default {
           }
     });
     // 处理返回的响应数据
+    if(response.data.msg == "操作成功")
+    {
+    // 处理返回的响应数据
+      // 如果保存成功，更新本地数据并关闭编辑窗口
+      const exam1 = {
+        id: response.data.data.exam_id,
+        name: response.data.data.name,
+        starttime:  response.data.data.start_time,
+        endtime: response.data.data.end_time,
+        duration:response.data.data.duration,
+        level:response.data.data.level,
+        paper:response.data.data.paper,
+        participated:response.data.data.participated,
+        checked: false,
+      };
     console.log('考试添加成功：', response.data);
+     this.exams.push(exam1);
+     this.allexams.push(exam1);
+     this.selectedExamsMap.set(exam1.id, exam1.checked);
     // 关闭编辑窗口
     this.closeEditModal();
     // 重新获取试卷数据
     this.fetchExams();
+    // this.totalExams += 1;
+    //   // 计算新题目所在页码
+    //   const totalPages = Math.ceil(this.totalExams / this.pageSize);
+    //   const lastPage = totalPages === 0 ? 1 : totalPages;  
+    //   if (lastPage !== this.currentPage) {
+    //     this.currentPage = lastPage;
+    //     this.fetchExams();
+    //   } else {
+    //     window.scrollTo(0, document.body.scrollHeight);
+    //   }
+      alert("新增考试成功!");
+    }
+    else if(response.data.msg == "考试名称已存在")
+    {
+      this.closeEditModal();
+      this.showAddExam = true;
+    }
   } catch (error) {
     console.error('添加考试失败：', error);
   }
@@ -566,9 +973,12 @@ async fetchAllPapers() {
     try {
       const response = await axios.get('/api/papers', {
         params: {
-          page_size: 200, // 获取所有题目数据
-          page_num: 1, // 获取第一页数据
-          name: '', // 添加名称参数
+          page_size: 200,
+        page_num: 1,
+        name_keyword: '', // 添加名称参数
+        level:'',
+        sort_by_start_time:2,
+        participated:'',
         },
         withCredentials: true,
         headers: {
@@ -591,12 +1001,13 @@ async fetchAllPapers() {
       },
     async searchExams() {
     try {
+      this.name_keyword=this.searchKeyword;
     const response = await axios.get('/api/exams', {
       params: {
         page_size: this.pageSize,
-        page_num: this.currentPage,
-        name_keyword: this.searchKeyword, // 添加名称参数
-        level:'',
+        page_num: 1,
+        name_keyword: this.name_keyword, // 添加名称参数
+        level:this.searchlevel,
         sort_by_start_time:2,
         participated:'',
       },
@@ -616,16 +1027,262 @@ async fetchAllPapers() {
         level:record.level,
         paper:record.paper,//内含对应的一张paper的所有信息
         participated:record.participated,//是否参加？
-        checked:false,
+        // checked:false,
+        checked: this.selectedExamsMap.get(record.exam_id) || false,
       }));
           this.totalExams = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedExams = this.exams;
-          console.log(this.papers);
+          console.log(this.exams);
+          if(this.exams == '')
+          {
+            this.showSearchWarning = true;
+          }
+          else if(this.name_keyword == '')
+          {
+            alert(`显示全部列表，共有 ${this.totalExams} 条结果`);
+          }
+          else
+          {
+            alert(`搜索成功，共有 ${this.totalExams} 条结果`);
+          }
         }
       } catch (error) {
         console.error('Error fetching exams:', error);
       }
     },
+    async searchExams2(level) {
+      this.searchlevel=level.num;
+      this.alllevel.forEach(cat => {
+        cat.isSelected = cat === level;
+      });
+      try {
+        const response = await axios.get('/api/exams', {
+        params: {
+        page_size: this.pageSize,
+        page_num: 1,
+        name_keyword: this.name_keyword, // 添加名称参数
+        level:this.searchlevel,
+        sort_by_start_time:2,
+        participated:'',
+      },
+      withCredentials: true,
+      headers: {
+        'Session': sessionStorage.getItem('sessionId'),
+        'Content-Type': 'application/json',
+      }
+    });
+    if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+      this.exams = response.data.data.records.map(record => ({
+        id: record.exam_id, // 修改属性名为 paper_id
+        name: record.name, // 添加试卷名
+        starttime:record.start_time,//开始时间
+        endtime:record.end_time,//结束时间
+        duration:record.duration,//考试时长
+        level:record.level,
+        paper:record.paper,//内含对应的一张paper的所有信息
+        participated:record.participated,//是否参加？
+        // checked:false,
+        checked: this.selectedExamsMap.get(record.exam_id) || false,
+      }));
+          this.totalExams = response.data.data.total;
+          this.gotoPage(1);
+          this.paginatedExams = this.exams;
+          if(this.exams == '')
+          {
+            this.showSearchWarning = true;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    async searchExams3() {
+      this.searchlevel='';
+      this.isHoveredAll = true;
+      this.alllevel.forEach(level => {
+           level.isSelected = false;
+      });
+      try {
+        const response = await axios.get('/api/exams', {
+        params: {
+        page_size: this.pageSize,
+        page_num: 1,
+        name_keyword: this.name_keyword, // 添加名称参数
+        level:this.searchlevel,
+        sort_by_start_time:2,
+        participated:'',
+      },
+      withCredentials: true,
+      headers: {
+        'Session': sessionStorage.getItem('sessionId'),
+        'Content-Type': 'application/json',
+      }
+    });
+    if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+      this.exams = response.data.data.records.map(record => ({
+        id: record.exam_id, // 修改属性名为 paper_id
+        name: record.name, // 添加试卷名
+        starttime:record.start_time,//开始时间
+        endtime:record.end_time,//结束时间
+        duration:record.duration,//考试时长
+        level:record.level,
+        paper:record.paper,//内含对应的一张paper的所有信息
+        participated:record.participated,//是否参加？
+        // checked:false,
+        checked: this.selectedExamsMap.get(record.exam_id) || false,
+      }));
+          this.totalExams = response.data.data.total;
+          this.gotoPage(1);
+          this.paginatedExams = this.exams;
+          // if(this.exams == '')
+          // {
+          //   this.showSearchWarning = true;
+          // }
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    async searchProblems2(category) {
+      this.category_keyword=category.name;
+      try {
+        const response = await axios.get('/api/questions', {
+          params: {
+            page_size: this.pageSize,
+            page_num: 1,
+            category_keyword: this.category_keyword,
+            description_keyword: this.description_keyword,
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.problems = response.data.data.records.map(record => ({
+            id: record.question_id,
+            description: record.description,
+            answer: record.answer,
+            choiceA: record.a,
+            choiceB: record.b,
+            choiceC: record.c,
+            choiceD: record.d,
+            category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
+            // checked: false,
+            checked: this.selectedProblemsMap.get(record.question_id) || false,
+          }));
+          this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
+          this.paginatedProblems = this.problems;
+          if(this.problems == '')
+          {
+            this.showSearchWarning = true;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    async searchProblems3() {
+      this.category_keyword='';
+      try {
+        const response = await axios.get('/api/questions', {
+          params: {
+            page_size: this.pageSize,
+            page_num: 1,
+            category_keyword: this.category_keyword,
+            description_keyword: this.searchKeyword, // 使用搜索关键词
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.problems = response.data.data.records.map(record => ({
+            id: record.question_id,
+            description: record.description,
+            answer: record.answer,
+            choiceA: record.a,
+            choiceB: record.b,
+            choiceC: record.c,
+            choiceD: record.d,
+            category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
+            // checked: false,
+            checked: this.selectedProblemsMap.get(record.question_id) || false,
+          }));
+          this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
+          this.paginatedProblems = this.problems;
+          // console.log(this.problems);
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    async fetchAllExams() {
+    try {
+      const response = await axios.get('/api/exams', {
+        params: {
+        page_size: 200,
+        page_num: 1,
+        name_keyword: '', // 添加名称参数
+        level:'',
+        sort_by_start_time:2,
+        participated:'',
+      },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+        this.allexams = response.data.data.records.map(record => ({
+        id: record.exam_id, // 修改属性名为 paper_id
+        name: record.name, // 添加试卷名
+        starttime:record.start_time,//开始时间
+        endtime:record.end_time,//结束时间
+        duration:record.duration,//考试时长
+        level:record.level,
+        paper:record.paper,//内含对应的一张paper的所有信息
+        participated:record.participated,//是否参加？
+        checked: this.selectedExamsMap.get(record.exam_id) || false,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
+    gotoSpecifiedPage() {
+    const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
+      // 如果输入的是一个有效的页码，则跳转到该页
+      this.gotoPage(pageNumber);
+    } else {
+      // 如果输入的页码无效，则给出提示或者不执行任何操作，根据需求决定
+      console.error('Invalid page number');
+    }
+    // 清空输入框内容
+    this.gotoPageNumber = '';
+  },
+  handleExamSelection(exam) {
+    this.selectedCount += exam.checked ? 1 : -1;
+      // 如果已选试题数量达到上限，则取消当前选中的复选框并弹出提示
+      if (this.selectedCount > 1 && exam.checked) {
+        exam.checked = false;
+        // alert('请不要选择多个试卷');
+        this.selectedCount--;
+        this.showDeleteWarning5=true;
+        return ;
+      }
+      this.selectedExamsMap.set(exam.id, exam.checked);
+  },
   },
   components: {
     ArgonBadge,
@@ -724,20 +1381,19 @@ margin-bottom: 10px;
   margin: 0 10%; /* 调整按钮之间的间距 */
 }
 /* 纵向分隔线样式 */
-.table td,
+/* .table td,
 .table th {
-  border-right: 1px solid #dee2e6; /* 添加纵向分隔线 */
-}
+  border-right: 1px solid #dee2e6; 
+} */
 
 .table th:last-child,
 .table td:last-child {
   border-right: none; /* 最后一列去除右侧分隔线 */
 }
 
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  /* border-left: 1px solid #dee2e6; */
-}
+/* .table tbody tr:last-child td:not(:last-child) {
+  border-right: 1px solid #dee2e6; 
+} */
 .table td {
   white-space: pre-wrap;
 }
@@ -782,5 +1438,9 @@ margin-bottom: 10px;
   width: auto; /* 让按钮宽度自适应内容 */
   padding: 0 15px; 
   white-space: nowrap; /* 防止按钮文字换行 */
+}
+.btn:hover {
+  background-color: #5e72e4;
+  color: #ffffff;
 }
 </style>

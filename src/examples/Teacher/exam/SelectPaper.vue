@@ -1,8 +1,9 @@
+
 <template>
   <div>
     <div class="buttons-container">
       <div  class="input-group" style="margin-bottom: 10px;">
-      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
+      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入试卷名关键词搜索" style="margin-left: 2%;">
       <button @click="searchPapers" class="btn btn-primary">搜索</button>
       </div>
     </div>
@@ -10,11 +11,11 @@
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
-          <col style="width: 5%">
           <col style="width: 7%">
-          <col style="width: 70%">
-          <col style="width: 7%">
-          <col style="width: 11%">
+          <col style="width: 10%">
+          <col style="width: 73%">
+          <col style="width: 10%">
+          <!-- <col style="width: 11%"> -->
         </colgroup>
         <thead>
           <tr>
@@ -36,7 +37,7 @@
             <th scope="col" class="text-center">试卷ID</th>
             <th scope="col" class="text-center" style="word-break: break-word;">试卷名</th>
             <th scope="col" class="text-center" >题目数量</th>
-            <th scope="col" class="text-center rounded-top-right">试卷详情</th>
+            <!-- <th scope="col" class="text-center rounded-top-right">试卷详情</th> -->
           </tr>
         </thead>
         <tbody>
@@ -48,30 +49,64 @@
             <td class="text-center ">{{ paper.id }}</td>
         <td class="text-center " style="word-break: break-word;">{{ paper.name }}</td>
         <td class="text-center " >{{ paper.problemcount }}</td>
-        <td class="text-center ">
+        <!-- <td class="text-center "> -->
           <!-- 查看按钮 -->
           <!-- <button @click="openPaperDetails(paper)"  class="btn btn-primary">查看详情</button> -->
-          <button @click="myWatch(paper.id)" class="btn btn-primary">查看详情</button>
+          <!-- <button @click="myWatch(paper.id)" class="btn btn-primary">查看详情</button> -->
           <!-- <button @click="myWatch(paper.id)" class="btn btn-primary" style="margin-left: 5px;">修改试卷</button> -->
-        </td>
+        <!-- </td> -->
       </tr>
         </tbody>
       </table>
     </div>
-     <!-- 分页控件 -->
-     <nav aria-label="Page navigation example">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
-        </li>
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="btn btn-primary" @click="nextPage"  >下一页</button>
-        </li>
-      </ul>
-    </nav>
+    <!-- 分页控件 -->
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <!-- 上一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+      <button class="btn btn-primary" @click="prevPage" style="margin-left: -5%;">上一页</button>
+    </li>
+
+    <!-- 仅显示当前页码和前后一个页码 -->
+    <li class="page-item" v-for="page in visiblePages" :key="page" :class="{ active: page === currentPage }">
+      <button class="page-link" @click="gotoPage(page)">{{ page }}</button>
+    </li>
+
+    <!-- 下一页按钮 -->
+    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+      <button class="btn btn-primary" @click="nextPage">下一页</button>
+    </li>
+    <li>
+      <span class="input-group-text">页数: {{ currentPage }}/{{ totalPages }}</span>
+    </li>
+    
+  </ul>
+</nav>
+  <!-- 使用网格系统将跳转框固定在最右侧 -->
+  <div class="row" style="margin-top: -6.12%;">
+  <div class="col-md-6 ml-auto" style="margin-left: 75%;">
+    <div class="input-group" style="margin-bottom: 10px;">
+      <input type="text" class="form-control small-input" v-model="gotoPageNumber" placeholder="输入页码">
+      <div class="input-group-append">
+        <button @click="gotoSpecifiedPage" class="btn btn-primary">跳转</button>
+        <!-- 将"页数"文本内容放置在跳转按钮的附加内容中 -->
+      </div>
+    </div>
+  </div>
+</div>
+<transition name="modal">
+    <div class="modal-mask" v-if="showSearchWarning" @click="closeSearchWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>未搜索到满足条件的试卷</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSearchWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
   </div>
 </template>
 
@@ -105,7 +140,7 @@ export default {
       selectedPaper: { id: '', name: '', problemcount: '',problems:[]},
       temppaper:0,
       temppapername:'',
-      pageSize:7,
+      pageSize:8,
       currentPage:1,
       totalPapers:0,
       selectedPapersMap: new Map(),
@@ -120,6 +155,9 @@ export default {
       tempselepaperid:0,
       tempselepapername:'',
       searchKeyword: '', // 搜索关键词
+      gotoPageNumber: '', // 用于存储跳转的页码
+      searchflag:'',//管理搜索关键词
+      showSearchWarning:false,
     };
   },
   created() {
@@ -141,6 +179,16 @@ export default {
   computed: {
     totalPages() {
       return Math.ceil(this.totalPapers / this.pageSize);
+    },
+    visiblePages() {
+      const pages = [this.currentPage];
+      if (this.currentPage > 1) {
+        pages.unshift(this.currentPage - 1); // 前一个页码
+      }
+      if (this.currentPage < this.totalPages) {
+        pages.push(this.currentPage + 1); // 后一个页码
+      }
+      return pages;
     },
   },
   setup() {
@@ -242,7 +290,7 @@ export default {
         params: {
           page_size: this.pageSize,
           page_num: this.currentPage,
-          name: '', // 添加名称参数
+          name: this.searchflag, // 添加名称参数
         },
         withCredentials: true,
         headers: {
@@ -323,12 +371,13 @@ export default {
     }
   },
   async searchPapers() {
-    try {
+        this.searchflag = this.searchKeyword;
+        try {
       const response = await axios.get('/api/papers', {
         params: {
           page_size: this.pageSize,
-          page_num: this.currentPage,
-          name: this.searchKeyword, // 添加名称参数
+          page_num: 1,
+          name: this.searchflag, // 添加名称参数
         },
         withCredentials: true,
         headers: {
@@ -341,17 +390,47 @@ export default {
           id: record.paper_id, // 修改属性名为 paper_id
           name: record.name, // 添加试卷名
           problemcount: record.question_num, // 需要前端提供的题目数
+          // checked: false,
           checked: this.selectedPapersMap.get(record.paper_id) || false,
           problems:[],
         }));
           this.totalPapers = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedPapers = this.papers;
           console.log(this.papers);
+          if(this.papers == '')
+          {
+            this.showSearchWarning = true;
+          }
+          else if(this.searchflag == '')
+          {
+            alert(`显示全部列表，共有 ${this.totalPapers} 条结果`);
+          }
+          else
+          {
+            alert(`搜索成功，共有 ${this.totalPapers} 条结果`);
+          }
         }
       } catch (error) {
         console.error('Error fetching papers:', error);
       }
     },
+    gotoSpecifiedPage() {
+    const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
+      // 如果输入的是一个有效的页码，则跳转到该页
+      this.gotoPage(pageNumber);
+    } else {
+      // 如果输入的页码无效，则给出提示或者不执行任何操作，根据需求决定
+      console.error('Invalid page number');
+    }
+    // 清空输入框内容
+    this.gotoPageNumber = '';
+  },
+  closeSearchWarning()
+  {
+    this.showSearchWarning = false;
+  },
   },
   components: {
     ArgonBadge,
@@ -448,20 +527,19 @@ margin-bottom: 10px;
   margin: 0 10%; /* 调整按钮之间的间距 */
 }
 /* 纵向分隔线样式 */
-.table td,
+/* .table td,
 .table th {
-  border-right: 1px solid #dee2e6; /* 添加纵向分隔线 */
-}
+  border-right: 1px solid #dee2e6; 
+} */
 
 .table th:last-child,
 .table td:last-child {
   border-right: none; /* 最后一列去除右侧分隔线 */
 }
-
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  /* border-left: 1px solid #dee2e6; */
-}
+/* 右侧边框线 */
+/* .table tbody tr:last-child td:not(:last-child) {
+  border-right: 1px solid #dee2e6; 
+} */
 .table td {
   white-space: pre-wrap;
 }
