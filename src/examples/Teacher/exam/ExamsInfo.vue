@@ -42,14 +42,14 @@
                 </div>
                 </div>
               </div>
-              <!-- <div class="oneItem">
+              <div class="oneItem">
                 <div class="fl">
                   <div class="fs14">学生成绩</div>
                   <div ><i class="fs28">{{this.tempscore}}</i>
                     <i class="fs12 co333">分</i>
                   </div>
                 </div>
-              </div> -->
+              </div>
             </div>
           </el-aside>
           <el-main style="padding:5px">

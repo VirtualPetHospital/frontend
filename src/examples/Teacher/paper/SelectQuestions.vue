@@ -384,7 +384,7 @@ export default {
         const response = await axios.get('/api/questions', {
           params: {
             page_size: this.pageSize,
-            page_num: this.currentPage,
+            page_num: 1,
             category_keyword: this.category_keyword,
             description_keyword: this.searchKeyword, // 使用搜索关键词
           },
@@ -409,8 +409,17 @@ export default {
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
           this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedProblems = this.problems;
           console.log(this.problems);
+          if(this.problems == '')
+          {
+            this.showSearchWarning = true;
+          }
+          else 
+          {
+            alert(`搜索成功，共有 ${this.totalProblems} 条结果`);
+          }
         }
       } catch (error) {
         console.error('Error fetching questions:', error);
@@ -422,7 +431,7 @@ export default {
         const response = await axios.get('/api/questions', {
           params: {
             page_size: this.pageSize,
-            page_num: this.currentPage,
+            page_num: 1,
             category_keyword: this.category_keyword,
             description_keyword: this.description_keyword,
           },
@@ -447,7 +456,12 @@ export default {
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
           this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedProblems = this.problems;
+          if(this.problems == '')
+          {
+            this.showSearchWarning = true;
+          }
         }
       } catch (error) {
         console.error('Error fetching questions:', error);
@@ -459,7 +473,7 @@ export default {
         const response = await axios.get('/api/questions', {
           params: {
             page_size: this.pageSize,
-            page_num: this.currentPage,
+            page_num: 1,
             category_keyword: this.category_keyword,
             description_keyword: this.searchKeyword, // 使用搜索关键词
           },
@@ -484,6 +498,7 @@ export default {
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
           this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedProblems = this.problems;
           // console.log(this.problems);
         }

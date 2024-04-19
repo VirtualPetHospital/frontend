@@ -8,7 +8,7 @@
       <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入题目描述关键词搜索" style="margin-left: 2%;">
       <button @click="searchProblems" class="btn btn-primary">搜索</button>
       </div>
-      <button @click="deleteProblem" class="btn btn-danger" style="margin-right: 2%;">删除题目</button>
+      <button @click="confirmDelete" class="btn btn-danger" style="margin-right: 2%;">删除题目</button>
     </div>
     <!-- <button @click="toggleSelectCategory" class="btn btn-primary" style="margin-left: 2%;">选择分类</button>
         <select v-model="selectedCategory" v-if="showCategorySelect" @change="searchProblems2" class="form-control">
@@ -17,19 +17,19 @@
         </select> -->
     <!-- 表格容器 -->
     <div class="biaoge ps-3" style="margin-top: 10px;">
-  <table class="table" bgcolor="#ffffff">
-    <tbody>
-      <tr>
-        <td v-for="(category, index) in allcategory" :key="index">
-          <button @click="searchProblems2(category)" class="btn" :class="{ 'btn-secondary': !category.isHovered, 'btn-primary': category.isHovered }" style="margin-bottom: 5px;" @mouseover="category.isHovered = true" @mouseleave="category.isHovered = false">{{ category.name }}</button>
-        </td>
-        <td>
-          <button @click="searchProblems3()" class="btn" :class="{ 'btn-secondary': !isHoveredAll, 'btn-primary': isHoveredAll }" style="margin-bottom: 5px;" @mouseover="isHoveredAll = true" @mouseleave="isHoveredAll = false">{{ "全部" }}</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+      <table class="table" bgcolor="#ffffff">
+        <tbody>
+          <tr>
+            <td v-for="(category, index) in allcategory" :key="index">
+              <button @click="searchProblems2(category)" class="btn" :class="{ 'btn-secondary': !category.isSelected, 'btn-primary': category.isSelected }" style="margin-bottom: 5px;" @mouseover="category.isHovered = true" @mouseleave="category.isHovered = false">{{ category.name }}</button>
+            </td>
+            <td>
+              <button @click="searchProblems3()" class="btn" :class="{ 'btn-secondary': !isHoveredAll, 'btn-primary': isHoveredAll }" style="margin-bottom: 5px;" @mouseover="isHoveredAll = true" @mouseleave="isHoveredAll = false">{{ "全部" }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
@@ -178,7 +178,7 @@
       <div class="modal-wrapper" @click.stop>
         <div class="modal-container">
           <h3>提示</h3>
-          <p>请至少选择一个要删除的题目</p>
+          <p>请先选择一个要删除的题目</p>
           <div class="button-container">
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning">关闭</button>
           </div>
@@ -214,6 +214,63 @@
       </div>
     </div>
   </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showSearchWarning" @click="closeSearchWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>未搜索到满足条件的题目</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSearchWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+      <div class="modal-mask" v-if="showDeleteConfirmModal" @click="closeDeleteConfirmModal">
+        <div class="modal-wrapper" @click.stop>
+          <div class="modal-container">
+            <h3>确认删除</h3>
+            <p>您是否确定删除选中的题目？</p>
+            <div class="button-container">
+              <button type="button" class="btn btn-lg btn-block btn-info" @click="deleteProblem">确定</button>
+              <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteConfirmModal">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="modal">
+    <div class="modal-mask" v-if="showDeleteWarning4" @click="closeDeleteWarning4">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>该题目已被发布的试卷使用，无法删除</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning4">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showDeleteWarning5" @click="closeDeleteWarning5">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>请不要一次选中多个想要删除的试题</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning5">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
   </div>
 </template>
 
@@ -238,8 +295,12 @@ export default {
       editing: null,
       showEditModal: false, // 控制编辑窗口显示与隐藏
       showDeleteWarning: false, // 控制删除提示窗口的显示与隐藏
-      showDeleteWarning2: false, // 控制删除提示窗口的显示与隐藏
-      showDeleteWarning3: false, // 控制删除提示窗口的显示与隐藏
+      showDeleteWarning2: false, // 控制题目关键信息为空的窗口的显示与隐藏
+      showDeleteWarning3: false, // 控制题目关键信息为空的显示与隐藏
+      showSearchWarning: false,//搜索结果为空时报错
+      showDeleteConfirmModal: false, // 控制确认删除模态框的显示与隐藏
+      showDeleteWarning4: false,//控制删除时是否有相关表关联
+      showDeleteWarning5: false,
       editMode: false, // 是否为编辑模式
       newProblem: { id: '', category: '', description: '',choiceA:'',choiceB:'',choiceC:'',choiceD:'',answer:'',categoryname:''},// 新增题目的初始信息
       showProblemDetails: false,
@@ -254,7 +315,8 @@ export default {
       allcategory:[],
       category_keyword: '',
       description_keyword: '', // 使用搜索关键词
-    isHoveredAll: false, // 控制全部按钮鼠标悬停状态
+      isHoveredAll: false, // 控制全部按钮鼠标悬停状态
+      selectedCount: 0,
       // showCategorySelect: false,
       // selectedCategory: null,
       // showInput: false, // 是否显示输入框
@@ -377,6 +439,9 @@ export default {
         window.scrollTo(0, document.body.scrollHeight);
       }
       this.closeEditModal();
+      this.allproblems.push(newQuestion);
+      this.selectedProblemsMap.set(newQuestion.id, newQuestion.checked);
+      alert("新增题目成功!");
     } else {
       console.error('Error saving new problem:', response.data.msg);
     }
@@ -385,9 +450,26 @@ export default {
     console.error('Error saving new problem:', error);
   });
 },
+confirmDelete() {
+      // 首先检查是否有选中的题目
+      const selectedProblems = [];
+      this.allproblems.forEach(problem => {
+        if (this.selectedProblemsMap.get(problem.id)) {
+          selectedProblems.push(problem.id);
+        }
+      });
+      if (selectedProblems.length > 0) {
+        // 如果有选中的题目，则显示确认删除模态框
+        this.showDeleteConfirmModal = true;
+      } else {
+        // 如果没有选中的题目，则显示删除警告
+        console.log('请至少选择一个要删除的题目');
+        this.showDeleteWarning = true;
+      }
+    },
 deleteProblem() {
-  // const selectedProblems = this.problems.filter(problem => problem.checked);
-  const selectedProblems = [];
+  const selectedProblems = this.problems.filter(problem => problem.checked);
+  // const selectedProblems = [];
   this.allproblems.forEach(problem => {
       if (this.selectedProblemsMap.get(problem.id)) {
         selectedProblems.push(problem.id);
@@ -404,6 +486,11 @@ deleteProblem() {
             'Content-Type': 'application/json',
           }
       }).then(response => {
+        if(response.data.msg == "删除失败，被其他表引用")
+        {
+          this.showDeleteWarning4 = true;
+        }
+        console.log(response.msg);
         // 删除成功后从前端数据中移除已删除的题目
         const index = this.problems.findIndex(u => u.id === problemId);
         if (index !== -1) {
@@ -418,8 +505,11 @@ deleteProblem() {
     Promise.all(promises).then(() => {
       console.log('所有选中的题目已删除');
       this.selectedProblemsMap.clear(); // 清空选中题目的 Map
+      this.selectedCount = 0;
       this.showDeleteWarning = false; // 重置删除警告状态
+      this.closeDeleteConfirmModal();
       this.fetchProblems();
+      alert("成功删除该题目!");
     });
   } else {
     console.log('请至少选择一个要删除的题目');
@@ -437,6 +527,24 @@ deleteProblem() {
     closeDeleteWarning3()
     {
       this.showDeleteWarning3 = false; // 关闭删除提示窗口
+    },
+    closeDeleteWarning4()
+    {
+      this.showDeleteWarning4 = false; // 关闭删除提示窗口
+    },
+    closeDeleteWarning5()
+    {
+      this.showDeleteWarning5 = false; // 关闭删除提示窗口
+    },
+    closeSearchWarning()
+    {
+      this.showSearchWarning = false; // 关闭搜索提示窗口
+      this.searchKeyword = '';
+      this.searchProblems();
+    },
+    closeDeleteConfirmModal() {
+      // 关闭确认删除模态框
+      this.showDeleteConfirmModal = false;
     },
     toggleEditMode() {
       this.editMode = !this.editMode; // 切换编辑模式
@@ -472,9 +580,10 @@ deleteProblem() {
       });
       const responseData = response.data;
       // 处理响应数据
-      if (responseData.code === 200) {
+      if (responseData.msg == "操作成功") {
         // 成功更新题目信息
         console.log('题目信息更新成功:', responseData.data);
+        alert("题目信息修改成功!");
         // 你可能还需要更新本地的题目列表数据或其他相关操作
       } else {
         // 更新失败，处理错误信息
@@ -551,9 +660,9 @@ deleteProblem() {
         const response = await axios.get('/api/questions', {
           params: {
             page_size: this.pageSize,
-            page_num: this.currentPage,
+            page_num: 1,
             category_keyword: this.category_keyword,
-            description_keyword: this.searchKeyword, // 使用搜索关键词
+            description_keyword: this.description_keyword, // 使用搜索关键词
           },
           withCredentials: true,
           headers: {
@@ -576,8 +685,21 @@ deleteProblem() {
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
           this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedProblems = this.problems;
           console.log(this.problems);
+          if(this.problems == '')
+          {
+            this.showSearchWarning = true;
+          }
+          else if(this.description_keyword == '')
+          {
+            alert(`显示全部列表，共有 ${this.totalProblems} 条结果`);
+          }
+          else
+          {
+            alert(`搜索成功，共有 ${this.totalProblems} 条结果`);
+          }
         }
       } catch (error) {
         console.error('Error fetching questions:', error);
@@ -585,11 +707,14 @@ deleteProblem() {
     },
     async searchProblems2(category) {
       this.category_keyword=category.name;
+      this.allcategory.forEach(cat => {
+        cat.isSelected = cat === category;
+      });
       try {
         const response = await axios.get('/api/questions', {
           params: {
             page_size: this.pageSize,
-            page_num: this.currentPage,
+            page_num: 1,
             category_keyword: this.category_keyword,
             description_keyword: this.description_keyword,
           },
@@ -614,7 +739,12 @@ deleteProblem() {
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
           this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedProblems = this.problems;
+          if(this.problems == '')
+          {
+            this.showSearchWarning = true;
+          }
         }
       } catch (error) {
         console.error('Error fetching questions:', error);
@@ -622,11 +752,15 @@ deleteProblem() {
     },
     async searchProblems3() {
       this.category_keyword='';
+      this.isHoveredAll = true;
+      this.allcategory.forEach(category => {
+        category.isSelected = false;
+      });
       try {
         const response = await axios.get('/api/questions', {
           params: {
             page_size: this.pageSize,
-            page_num: this.currentPage,
+            page_num: 1,
             category_keyword: this.category_keyword,
             description_keyword: this.searchKeyword, // 使用搜索关键词
           },
@@ -651,6 +785,7 @@ deleteProblem() {
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
           this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedProblems = this.problems;
           // console.log(this.problems);
         }
@@ -671,6 +806,15 @@ deleteProblem() {
     this.gotoPageNumber = '';
   },
   handleProblemSelection(problem) {
+    this.selectedCount += problem.checked ? 1 : -1;
+      // 如果已选试题数量达到上限，则取消当前选中的复选框并弹出提示
+      if (this.selectedCount > 1 && problem.checked) {
+        problem.checked = false;
+        // alert('请不要选择多个试卷');
+        this.selectedCount--;
+        this.showDeleteWarning5=true;
+        return ;
+      }
       this.selectedProblemsMap.set(problem.id, problem.checked);
   },
   async fetchAllProblems() {
@@ -724,6 +868,7 @@ deleteProblem() {
           id: record.category_id,
           name:record.name,
           isHovered:false,
+          isSelected:false,
         }));
         console.log(this.allcategory);
       }
@@ -888,5 +1033,9 @@ margin-bottom: 10px;
   width: auto; /* 让按钮宽度自适应内容 */
   padding: 0 15px; 
   white-space: nowrap; /* 防止按钮文字换行 */
+}
+.btn:hover {
+  background-color: #5e72e4;
+  color: #ffffff;
 }
 </style>

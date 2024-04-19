@@ -1,4 +1,4 @@
-@ -1,700 +1,805 @@
+
 <template>
   <div>
     <!-- 按钮容器 -->
@@ -8,7 +8,7 @@
       <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
       <button @click="searchPapers" class="btn btn-primary">搜索</button>
       </div>
-      <button @click="deletePaper" class="btn btn-danger" style="margin-right: 2%;">删除试卷</button>
+      <button @click="confirmDelete" class="btn btn-danger" style="margin-right: 2%;">删除试卷</button>
     </div>
     <!-- 表格容器 -->
     <div class="biaoge ps-3">
@@ -189,6 +189,77 @@
     </div>
   </transition>
 
+  <transition name="modal">
+    <div class="modal-mask" v-if="showSelectPaper2" @click="closeSelectPaper2">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>题目数量应为1-40之间的整数</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSelectPaper2">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showAddPaper" @click="showAddPaper">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>该试卷名已存在，请更换试卷名称</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeAddPaper">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showDeleteWarning5" @click="closeDeleteWarning5">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>请不要一次选中多个想要删除的试卷</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning5">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showDeleteWarning4" @click="closeDeleteWarning4">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>该试卷已被发布的考试使用，无法删除</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning4">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+      <div class="modal-mask" v-if="showDeleteConfirmModal" @click="closeDeleteConfirmModal">
+        <div class="modal-wrapper" @click.stop>
+          <div class="modal-container">
+            <h3>确认删除</h3>
+            <p>您是否确定删除选中的试卷？</p>
+            <div class="button-container">
+              <button type="button" class="btn btn-lg btn-block btn-info" @click="deletePaper">确定</button>
+              <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteConfirmModal">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   <!-- 弹出窗口 ,控制选择完试题后返回时弹出的窗口-->
   <transition name="modal">
   <div class="modal-mask" v-if="flag1" @click="closeEditModal">
@@ -228,6 +299,21 @@
     </div>
   </div>
 </transition>
+
+<transition name="modal">
+    <div class="modal-mask" v-if="showSearchWarning" @click="closeSearchWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>未搜索到满足条件的试卷</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSearchWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -266,6 +352,8 @@ export default {
       newPaper: { id: '', name: '', problemcount: '',problems:[]},// 新增题目的初始信息
       showPaperDetails: false,
       showSelectPaper: false,
+      showSelectPaper2: false,
+      showAddPaper:false,
       selectedPaper: { id: '', name: '', problemcount: '',problems:[]},
       pageSize:7,
       currentPage:1,
@@ -275,6 +363,11 @@ export default {
       allpapers:[],
       selectedPapersMap: new Map(),
       searchflag:'',//管理搜索关键词
+      selectedCount: 0,
+      showDeleteWarning4:false,
+      showDeleteWarning5:false,
+      showDeleteConfirmModal:false,
+      showSearchWarning:false,
     //   newPaper2: {
     //     id: '',
     //     name: this.tempname1, // 使用 props 中的 tempname1 值
@@ -374,6 +467,23 @@ export default {
       this.closeEditModal();
       this.flag1=false;
     },
+    confirmDelete() {
+      // 首先检查是否有选中的题目
+      const selectedPapers2 = [];
+      this.allpapers.forEach(paper => {
+        if (this.selectedPapersMap.get(paper.id)) {
+          selectedPapers2.push(paper.id);
+        }
+      });
+      if (selectedPapers2.length > 0) {
+        // 如果有选中的题目，则显示确认删除模态框
+        this.showDeleteConfirmModal = true;
+      } else {
+        // 如果没有选中的题目，则显示删除警告
+        console.log('请至少选择一个要删除的试卷');
+        this.showDeleteWarning = true;
+      }
+    },
     deletePaper() {
       const selectedPapers = [];
       this.allpapers.forEach(paper => {
@@ -392,11 +502,16 @@ export default {
                 'Content-Type': 'application/json',
               }
           }).then(response => {
+            if(response.data.msg == "删除失败，被其他表引用")
+            {
+              this.showDeleteWarning4 = true;
+            }
+            console.log(response.msg);
             // 删除成功后从前端数据中移除已删除的题目
             const index = this.papers.findIndex(u => u.id === paperId);
             if (index !== -1) {
               this.papers.splice(index, 1);
-              console.log('已删除试卷:', paper);
+              // console.log('已删除试卷:', paper);
             }
           }).catch(error => {
             console.error('Error deleting paper:', error);
@@ -407,15 +522,79 @@ export default {
           console.log('所有选中的试卷已删除');
           this.selectedPapersMap.clear(); // 清空选中题目的 Map
           this.showDeleteWarning = false; // 重置删除警告状态
+          this.closeDeleteConfirmModal();
           this.fetchPapers();
+          alert("成功删除该试卷!");
         });
       } else {
         console.log('请至少选择一个要删除的试卷');
         this.showDeleteWarning = true;
       }
     },
+    deleteProblem() {
+  const selectedProblems = this.problems.filter(problem => problem.checked);
+  // const selectedProblems = [];
+  this.allproblems.forEach(problem => {
+      if (this.selectedProblemsMap.get(problem.id)) {
+        selectedProblems.push(problem.id);
+      }
+    });
+    console.log(selectedProblems);
+  if (selectedProblems.length > 0) {
+    const promises = selectedProblems.map(problemId => {
+      // 发送 DELETE 请求到后端删除试题
+      return axios.delete(`/api/questions/${problemId}`, {
+        withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+      }).then(response => {
+        if(response.data.msg == "删除失败，被其他表引用")
+        {
+          this.showDeleteWarning4 = true;
+        }
+        console.log(response.msg);
+        // 删除成功后从前端数据中移除已删除的题目
+        const index = this.problems.findIndex(u => u.id === problemId);
+        if (index !== -1) {
+          this.problems.splice(index, 1);
+          console.log('已删除题目:', problem);
+        }
+      }).catch(error => {
+        console.error('Error deleting problem:', error);
+      });
+    });
+    // 使用 Promise.all 等待所有删除操作完成
+    Promise.all(promises).then(() => {
+      console.log('所有选中的题目已删除');
+      this.selectedProblemsMap.clear(); // 清空选中题目的 Map
+      this.selectedCount = 0;
+      this.showDeleteWarning = false; // 重置删除警告状态
+      this.closeDeleteConfirmModal();
+      this.fetchProblems();
+    });
+  } else {
+    console.log('请至少选择一个要删除的题目');
+    this.showDeleteWarning = true;
+  }
+
+},
     closeDeleteWarning() {
       this.showDeleteWarning = false; // 关闭删除提示窗口
+    },
+    closeDeleteWarning4() {
+      this.showDeleteWarning4 = false; // 关闭删除提示窗口
+    },
+    closeDeleteWarning5() {
+      this.showDeleteWarning5 = false; // 关闭删除提示窗口
+    },
+    closeSearchWarning(){
+      this.showSearchWarning = false;
+    },
+    closeDeleteConfirmModal() {
+      // 关闭确认删除模态框
+      this.showDeleteConfirmModal = false;
     },
     toggleEditMode() {
       this.editMode = !this.editMode; // 切换编辑模式
@@ -454,19 +633,55 @@ export default {
     //   }
     // }
   selectQuestions(newPaper) {
-  if (newPaper.problemcount !='' && newPaper.name!='') {
-    this.showEditModal = false; // 关闭编辑窗口
-    this.editMode = false; // 重置编辑模式
-    this.$router.push({ name: '选择试题', params: { tempname: newPaper.name, tempproblemcount:newPaper.problemcount} });
-    // console.log(newPaper);
-  } else {
-    console.error(`试卷基本信息填写不完整`);
+  // if (newPaper.problemcount !='' && newPaper.name!='') {
+  //   this.showEditModal = false; // 关闭编辑窗口
+  //   this.editMode = false; // 重置编辑模式
+  //   this.$router.push({ name: '选择试题', params: { tempname: newPaper.name, tempproblemcount:newPaper.problemcount} });
+  //   // console.log(newPaper);
+  // } 
+  // 确保 newPaper 对象中包含 name 属性，如果不存在则初始化为空字符串
+  // if (!newPaper.hasOwnProperty('name')) {
+  //   newPaper.name = '';
+  // }
+  // 确保 newPaper 对象中包含 problemcount 属性，如果不存在则初始化为空字符串
+  // if (!newPaper.hasOwnProperty('problemcount')) {
+  //   newPaper.problemcount = '';
+  // }
+  if (!newPaper.name || !newPaper.problemcount) {
+    // 如果试卷基本信息不完整，则弹出提示框
+    console.error('试卷基本信息填写不完整');
     this.showSelectPaper = true;
+    return;
   }
+   // 检查新试卷名称是否与已有试卷重复
+  const isNameDuplicate = this.allpapers.some(paper => paper.name === newPaper.name);
+  if (isNameDuplicate) {
+    // 如果试卷名称重复，则弹出提示框
+    // console.error('试卷名称重复，请修改试卷名称');
+    this.showAddPaper = true;
+    return;
+  }
+  if (newPaper.problemcount > 40) {
+    // 如果题目数量超过40，则弹出提示框
+    this.showSelectPaper2 = true;
+    return;
+  }
+
+  // 跳转到选择试题页面
+  this.showEditModal = false; // 关闭编辑窗口
+  this.editMode = false; // 重置编辑模式
+  this.$router.push({ name: '选择试题', params: { tempname: newPaper.name, tempproblemcount: newPaper.problemcount } });
   },
   closeSelectPaper() {
-      this.showSelectPaper = false; // 关闭删除提示窗口
+      this.showSelectPaper = false; // 关闭选题提示窗口
     },
+  closeSelectPaper2() {
+      this.showSelectPaper2 = false; // 关闭选题提示窗口
+    },
+  closeAddPaper()
+  {
+    this.showAddPaper = false;
+  },
   async fetchPapers() {
     try {
       const response = await axios.get('/api/papers', {
@@ -532,7 +747,6 @@ export default {
       });
       return response.data.data; // 返回题目信息对象
     });
-
     // 等待所有题目信息请求完成
     const problems = await Promise.all(problemsPromises);
     console.log(problems);
@@ -542,6 +756,12 @@ export default {
       question_num: newPaper.problemcount,
       questions: problems
     };
+    // const paper1 = {
+    //   name: newPaper.name,
+    //   question_num: newPaper.problemcount,
+    //   questions: problems,
+    //   checked:false,
+    // }
     // 发送试卷信息给后端的 /papers 接口
     const response = await axios.post('/api/papers', paper, {
       withCredentials: true,
@@ -550,8 +770,21 @@ export default {
             'Content-Type': 'application/json',
           }
     });
+    if(response.data.msg == "操作成功")
+    {
     // 处理返回的响应数据
+      // 如果保存成功，更新本地数据并关闭编辑窗口
+      const paper1 = {
+        id: response.data.data.paper_id,
+        name: response.data.data.name,
+        problemcount:  response.data.data.question_num,
+        problems: response.data.data.questions,
+        checked: false,
+      };
     console.log('试卷添加成功：', response.data);
+     this.papers.push(paper1);
+     this.allpapers.push(paper1);
+     this.selectedPapersMap.set(paper1.id, paper1.checked);
     // 关闭编辑窗口
     this.closeEditModal();
     // 重新获取试卷数据
@@ -559,8 +792,7 @@ export default {
     this.totalPapers += 1;
       // 计算新题目所在页码
       const totalPages = Math.ceil(this.totalPapers / this.pageSize);
-      const lastPage = totalPages === 0 ? 1 : totalPages;
-      
+      const lastPage = totalPages === 0 ? 1 : totalPages;  
       // 如果新增题目所在页码不是当前页码，则跳转到最后一页
       if (lastPage !== this.currentPage) {
         this.currentPage = lastPage;
@@ -569,17 +801,24 @@ export default {
         // 否则，滚动到最后一页
         window.scrollTo(0, document.body.scrollHeight);
       }
+      alert("新增试卷成功!");
+    }
+    else if(response.data.msg == "试卷名称已存在")
+    {
+      this.closeEditModal();
+      this.showAddPaper = true;
+    }
   } catch (error) {
     console.error('添加试卷失败：', error);
   }
-      },
+},
       async searchPapers() {
         this.searchflag = this.searchKeyword;
         try {
       const response = await axios.get('/api/papers', {
         params: {
           page_size: this.pageSize,
-          page_num: this.currentPage,
+          page_num: 1,
           name: this.searchflag, // 添加名称参数
         },
         withCredentials: true,
@@ -598,13 +837,77 @@ export default {
           problems:[],
         }));
           this.totalPapers = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedPapers = this.papers;
           console.log(this.papers);
+          if(this.papers == '')
+          {
+            this.showSearchWarning = true;
+          }
+          else if(this.searchflag == '')
+          {
+            alert(`显示全部列表，共有 ${this.totalPapers} 条结果`);
+          }
+          else
+          {
+            alert(`搜索成功，共有 ${this.totalPapers} 条结果`);
+          }
         }
       } catch (error) {
         console.error('Error fetching papers:', error);
       }
     },
+    // async searchProblems() {
+    //   this.description_keyword=this.searchKeyword;
+    //   try {
+    //     const response = await axios.get('/api/questions', {
+    //       params: {
+    //         page_size: this.pageSize,
+    //         page_num: 1,
+    //         category_keyword: this.category_keyword,
+    //         description_keyword: this.description_keyword, // 使用搜索关键词
+    //       },
+    //       withCredentials: true,
+    //       headers: {
+    //         'Session': sessionStorage.getItem('sessionId'),
+    //         'Content-Type': 'application/json',
+    //       }
+    //     });
+    //     if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+    //       this.problems = response.data.data.records.map(record => ({
+    //         id: record.question_id,
+    //         description: record.description,
+    //         answer: record.answer,
+    //         choiceA: record.a,
+    //         choiceB: record.b,
+    //         choiceC: record.c,
+    //         choiceD: record.d,
+    //         category: record.category_id,
+    //         categoryname:this.getCategoryName(record.category_id),
+    //         // checked: false,
+    //         checked: this.selectedProblemsMap.get(record.question_id) || false,
+    //       }));
+    //       this.totalProblems = response.data.data.total;
+    //       this.gotoPage(1);
+    //       this.paginatedProblems = this.problems;
+    //       console.log(this.problems);
+    //       if(this.problems == '')
+    //       {
+    //         this.showSearchWarning = true;
+    //       }
+    //       else if(this.description_keyword == '')
+    //       {
+    //         alert(`显示全部列表，共有 ${this.totalProblems} 条结果`);
+    //       }
+    //       else
+    //       {
+    //         alert(`搜索成功，共有 ${this.totalProblems} 条结果`);
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching questions:', error);
+    //   }
+    // },
     gotoSpecifiedPage() {
     const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
@@ -646,6 +949,15 @@ export default {
     }
   },
   handlePaperSelection(paper) {
+    this.selectedCount += paper.checked ? 1 : -1;
+      // 如果已选试题数量达到上限，则取消当前选中的复选框并弹出提示
+      if (this.selectedCount > 1 && paper.checked) {
+        paper.checked = false;
+        // alert('请不要选择多个试卷');
+        this.selectedCount--;
+        this.showDeleteWarning5=true;
+        return ;
+      }
       this.selectedPapersMap.set(paper.id, paper.checked);
   },
   },

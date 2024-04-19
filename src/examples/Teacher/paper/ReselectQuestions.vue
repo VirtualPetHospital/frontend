@@ -1,6 +1,26 @@
 
 <template>
   <div>
+    <div class="buttons-container">
+      <div  class="input-group" style="margin-bottom: 10px;">
+      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入题目描述关键词搜索" style="margin-left: 2%;">
+      <button @click="searchProblems" class="btn btn-primary">搜索</button>
+      </div>
+    </div>
+    <div class="biaoge ps-3" style="margin-top: 10px;">
+      <table class="table" bgcolor="#ffffff">
+        <tbody>
+          <tr>
+            <td v-for="(category, index) in allcategory" :key="index">
+              <button @click="searchProblems2(category)" class="btn" :class="{ 'btn-secondary': !category.isSelected, 'btn-primary': category.isSelected }" style="margin-bottom: 5px;" @mouseover="category.isHovered = true" @mouseleave="category.isHovered = false">{{ category.name }}</button>
+            </td>
+            <td>
+              <button @click="searchProblems3()" class="btn" :class="{ 'btn-secondary': !isHoveredAll, 'btn-primary': isHoveredAll }" style="margin-bottom: 5px;" @mouseover="isHoveredAll = true" @mouseleave="isHoveredAll = false">{{ "全部" }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
@@ -35,14 +55,14 @@
         </thead>
         <tbody>
           <!-- 遍历每个考试项 -->
-          <tr v-for="(problem, index) in paginatedProblems" :key="index">
-            <td class="text-center">
+            <tr v-for="(problem, index) in paginatedProblems" :key="index">
+              <td class="text-center">
               <input type="checkbox" v-model="problem.checked" @change="handleProblemSelection(problem)">
             </td>
-            <td class="text-center ">{{ problem.id }}</td>
-            <td class="text-center ">{{ problem.category }}</td>
-            <td class="text-center " style="word-break: break-word;">{{ problem.description }}</td>
-          <td class="text-center ">
+        <td class="text-center ">{{ problem.id }}</td>
+        <td class="text-center ">{{ problem.categoryname }}</td>
+        <td class="text-center " style="word-break: break-word;">{{ problem.description }}</td>
+        <td class="text-center ">
           <!-- 查看按钮 -->
           <button @click="openProblemDetails(problem)"  class="btn btn-primary">查看详情</button>
         </td>
@@ -98,7 +118,7 @@
             <label>题目ID：</label>
             <input type="text" class="form-control" v-model="selectedProblem.id" disabled><br>
             <label>分类：</label>
-            <input type="text" class="form-control" v-model="selectedProblem.category" :disabled="!editMode"><br>
+            <input type="text" class="form-control" v-model="selectedProblem.categoryname" :disabled="!editMode"><br>
             <label>题目描述：</label>
             <textarea class="form-control auto-height" v-model="selectedProblem.description" :disabled="!editMode"></textarea><br>
             <label>A：</label>
@@ -120,6 +140,21 @@
       </div>
     </div>
   </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showSearchWarning" @click="closeSearchWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>未搜索到满足条件的题目</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSearchWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -146,9 +181,9 @@ export default {
       showEditModal: false, // 控制编辑窗口显示与隐藏
       showDeleteWarning: false, // 控制删除提示窗口的显示与隐藏
       editMode: false, // 是否为编辑模式
-      newProblem: { id: '', category: '', description: '',choiceA:'',choiceB:'',choiceC:'',choiceD:'',answer:''},// 新增题目的初始信息
+      newProblem: { id: '', category: '', description: '',choiceA:'',choiceB:'',choiceC:'',choiceD:'',answer:'',categoryname:''},// 新增题目的初始信息
       showProblemDetails: false,
-      selectedProblem: { id: '', category: '', description: '', choiceA: '', choiceB: '', choiceC: '', choiceD: '', answer: '' },
+      selectedProblem: { id: '', category: '', description: '',choiceA:'',choiceB:'',choiceC:'',choiceD:'',answer:'',categoryname:''},
       selectedCount: 0, // 已选试题数量
       progressWidth: '0%', // 动态进度条宽度
       problemmax:0, 
@@ -160,7 +195,13 @@ export default {
       currentPage:1,
       totalProblems:0,
       selectedProblemsMap: new Map(),
-      gotoPageNumber: '' // 用于存储跳转的页码
+      gotoPageNumber: '', // 用于存储跳转的页码
+      allcategory:[],
+      category_keyword: '',
+      description_keyword: '', // 使用搜索关键词
+      isHoveredAll: false, // 控制全部按钮鼠标悬停状态
+      searchKeyword: '', // 搜索关键词
+      showSearchWarning:false,
     };
   },
   created() {
@@ -207,6 +248,7 @@ export default {
    },
    mounted() {
     // 组件加载完成后立即获取题目列表数据
+    this.fetchCategories();
     this.fetchProblems();
     this.fetchAllProblems();
   },
@@ -308,8 +350,8 @@ export default {
           params: {
             page_size: this.pageSize,
             page_num: this.currentPage,
-            category_keyword: '',
-            description_keyword: '',
+            category_keyword: this.category_keyword,
+            description_keyword: this.description_keyword,
           },
           withCredentials: true,
           headers: {
@@ -328,6 +370,7 @@ export default {
             choiceC: record.c,
             choiceD: record.d,
             category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
             // checked: false,
             checked: this.selectedProblemsMap.get(record.question_id) || false,
           }));
@@ -366,6 +409,7 @@ export default {
           choiceC: record.c,
           choiceD: record.d,
           category: record.category_id,
+          categoryname:this.getCategoryName(record.category_id),
           checked: this.selectedProblemsMap.get(record.question_id) || false,
         }));
         console.log(this.allproblems);
@@ -404,6 +448,184 @@ export default {
     // 清空输入框内容
     this.gotoPageNumber = '';
   },
+  async searchProblems() {
+      this.description_keyword=this.searchKeyword;
+      try {
+        const response = await axios.get('/api/questions', {
+          params: {
+            page_size: this.pageSize,
+            page_num: 1,
+            category_keyword: this.category_keyword,
+            description_keyword: this.description_keyword, // 使用搜索关键词
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.problems = response.data.data.records.map(record => ({
+            id: record.question_id,
+            description: record.description,
+            answer: record.answer,
+            choiceA: record.a,
+            choiceB: record.b,
+            choiceC: record.c,
+            choiceD: record.d,
+            category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
+            // checked: false,
+            checked: this.selectedProblemsMap.get(record.question_id) || false,
+          }));
+          this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
+          this.paginatedProblems = this.problems;
+          console.log(this.problems);
+          if(this.problems == '')
+          {
+            this.showSearchWarning = true;
+          }
+          else if(this.description_keyword == '')
+          {
+            alert(`显示全部列表，共有 ${this.totalProblems} 条结果`);
+          }
+          else
+          {
+            alert(`搜索成功，共有 ${this.totalProblems} 条结果`);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    async searchProblems2(category) {
+      this.category_keyword=category.name;
+      this.allcategory.forEach(cat => {
+        cat.isSelected = cat === category;
+      });
+      try {
+        const response = await axios.get('/api/questions', {
+          params: {
+            page_size: this.pageSize,
+            page_num: 1,
+            category_keyword: this.category_keyword,
+            description_keyword: this.description_keyword,
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.problems = response.data.data.records.map(record => ({
+            id: record.question_id,
+            description: record.description,
+            answer: record.answer,
+            choiceA: record.a,
+            choiceB: record.b,
+            choiceC: record.c,
+            choiceD: record.d,
+            category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
+            // checked: false,
+            checked: this.selectedProblemsMap.get(record.question_id) || false,
+          }));
+          this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
+          this.paginatedProblems = this.problems;
+          if(this.problems == '')
+          {
+            this.showSearchWarning = true;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    async searchProblems3() {
+      this.category_keyword='';
+      this.isHoveredAll = true;
+      this.allcategory.forEach(category => {
+        category.isSelected = false;
+      });
+      try {
+        const response = await axios.get('/api/questions', {
+          params: {
+            page_size: this.pageSize,
+            page_num: 1,
+            category_keyword: this.category_keyword,
+            description_keyword: this.searchKeyword, // 使用搜索关键词
+          },
+          withCredentials: true,
+          headers: {
+            'Session': sessionStorage.getItem('sessionId'),
+            'Content-Type': 'application/json',
+          }
+        });
+        if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+          this.problems = response.data.data.records.map(record => ({
+            id: record.question_id,
+            description: record.description,
+            answer: record.answer,
+            choiceA: record.a,
+            choiceB: record.b,
+            choiceC: record.c,
+            choiceD: record.d,
+            category: record.category_id,
+            categoryname:this.getCategoryName(record.category_id),
+            // checked: false,
+            checked: this.selectedProblemsMap.get(record.question_id) || false,
+          }));
+          this.totalProblems = response.data.data.total;
+          this.gotoPage(1);
+          this.paginatedProblems = this.problems;
+          // console.log(this.problems);
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      }
+    },
+    async fetchCategories() {
+    try {
+      const response = await axios.get('/api/categories', {
+        params: {
+        name_keyword:'',
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      });
+      if (response.data && response.data.data ) {
+        this.allcategory = response.data.data.map(record => ({
+          id: record.category_id,
+          name:record.name,
+          isHovered:false,
+          isSelected:false,
+        }));
+        console.log(this.allcategory);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  },
+  getCategoryName(categoryId) {
+    const category = this.allcategory.find(cat => cat.id === categoryId);
+    return category ? category.name : '未知分类';
+  },
+  getCategoryId(categoryname) {
+    const category2 = this.allcategory.find(cat => cat.name === categoryname);
+    return category2 ? category2.id : 0 ;
+  },
+  closeSearchWarning()
+    {
+      this.showSearchWarning = false; // 关闭搜索提示窗口
+      this.searchKeyword = '';
+      this.searchProblems();
+    },
   },
   components: {
     ArgonBadge,
@@ -493,20 +715,19 @@ margin-bottom: 10px;
   margin: 0 10%; /* 调整按钮之间的间距 */
 }
 /* 纵向分隔线样式 */
-.table td,
+/* .table td,
 .table th {
-  border-right: 1px solid #dee2e6; /* 添加纵向分隔线 */
-}
+  border-right: 1px solid #dee2e6;
+} */
 
 .table th:last-child,
 .table td:last-child {
   border-right: none; /* 最后一列去除右侧分隔线 */
 }
-
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  /* border-left: 1px solid #dee2e6; */
-}
+ /* 右侧边框线 */
+/* .table tbody tr:last-child td:not(:last-child) {
+  border-right: 1px solid #dee2e6; 
+} */
 .table td {
   white-space: pre-wrap;
 }
@@ -560,6 +781,7 @@ margin-bottom: 10px;
 }
 .btn-success,
 .btn-primary,
+.btn-secondary,
 .btn-danger {
   height: 40px; /* 设置按钮高度为 40px */
   width: auto; /* 让按钮宽度自适应内容 */
