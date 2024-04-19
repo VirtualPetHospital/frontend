@@ -11,7 +11,7 @@
         />
 
         <el-card class="box-card">
-          <div slot="header" class="card-header">注册</div>
+          <h3 style="margin-left: 150px;margin-bottom: 20px">注册</h3>
         <el-form :model="ruleForm" label-position="left" status-icon :rules="rules" ref="ruleForm"  class="demo-ruleForm">
           <el-form-item prop="nickname">
             <el-input type="nickname" v-model="ruleForm.nickname" placeholder="用户名" autocomplete="off"></el-input>
@@ -157,7 +157,7 @@ export default {
               method: 'post',
               url: '/api/users',
               headers: {
-                'Session': '{{session}}',
+                'Session': sessionStorage,
                 'Content-Type': 'application/json',
               },
               data: data
@@ -182,7 +182,7 @@ export default {
           method:'post',
           url:'/api/users/captcha',
           headers: {
-            'Session': sessionStorage,
+            'Session': sessionStorage.getItem('sessionId'),
             'Content-Type': 'application/json',
           },
           data : data
@@ -210,7 +210,7 @@ export default {
         method:'get',
         url:'/api/users/email',
         headers: {
-          'Session': '{{session}}',
+          'Session':  sessionStorage.getItem('sessionId'),
           'Content-Type': 'application/json',
         },
         data : data

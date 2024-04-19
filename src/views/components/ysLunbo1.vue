@@ -32,7 +32,7 @@
           </div>
           <div
             class="carousel-item h-100"
-            :style="{backgroundImage: 'url(' + require('@/assets/img/wujun2.jpg') + ')',
+            :style="{backgroundImage: 'url(' + require('@/assets/img/passageway.jpg') + ')',
         backgroundSize: 'cover'}"
           >
             <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
@@ -43,7 +43,7 @@
           </div>
           <div
             class="carousel-item h-100"
-            :style="{backgroundImage: 'url(' + require('@/assets/img/wujun3.jpg') + ')',
+            :style="{backgroundImage: 'url(' + require('@/assets/img/passageway.jpg') + ')',
         backgroundSize: 'cover'}"
           >
             <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">

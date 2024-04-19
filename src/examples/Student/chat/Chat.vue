@@ -27,7 +27,7 @@
           </div>
       </div>
         <div class="bottom">
-          <el-input v-model="sendData" placeholder="请输入" style="height: 20px"/>
+          <el-input v-model="sendData" placeholder="请输入" style="height: 40px"/>
           <el-button size="large" :disabled="sendFlag" type="primary" v-on:click="sendMessage(sendData, 'visitor')">发送
           </el-button>
         </div>

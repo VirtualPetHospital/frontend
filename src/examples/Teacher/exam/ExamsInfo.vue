@@ -27,6 +27,7 @@
                 <div class="box-list">
                   <div
                       class="box normal-box question_cbox"
+                      style="padding-left: 0px"
                       v-for="(answer,index) in this.allanswers"
                       :key="index"
                   >

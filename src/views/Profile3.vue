@@ -15,7 +15,7 @@ const body = document.getElementsByTagName("body")[0];
 
 const store = useStore();
 export default{
-  name:"Profile",
+  name:"Profile3",
   components:{
     ElTabs,
     ElAvatar,
@@ -61,10 +61,10 @@ export default{
     const store = useStore();
 
     // 在组件被挂载后，设置 showSidenavStudent 为 true
-    store.commit('setShowSidenavStudent', true);
+    store.commit('setShowSidenavAdmin', true);
     onBeforeRouteLeave((to, from, next) => {
       // 在离开此页前关闭sidenavadmin
-      store.commit('setShowSidenavStudent', false);
+      store.commit('setShowSidenavAdmin', false);
       next();
     });
     return {};

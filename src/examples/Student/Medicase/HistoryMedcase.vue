@@ -173,8 +173,8 @@ export default{
   methods:{
     backto(){
       console.log("router"+this.$router.options.routes);
-      this.$router.push({path: '/Category'});
-;    },
+      this.$router.back();
+    },
     myEcharts(){
       // 基于准备好的dom，初始化echarts实例
       var myChart = echarts.init(document.getElementById('main'));
@@ -311,9 +311,8 @@ export default{
       this.medCase.price = data.price;
       this.medCase.disease_id = data.disease_id;
       this.medCase.info_description = data.info_description;
-      this.medCase.info_photo = "http://47.103.131.161:10010/files/"+data.info_photo;
-      console.log(this.medCase.info_photo);
-      this.medCase.info_video = "http://47.103.131.161:10010/files/"+data.info_video;
+      this.medCase.info_photo = data.info_photo;
+      this.medCase.info_video = data.info_video;
       this.medCase.operation_id = data.operation_id;
       this.medCase.inspections = data.inspections;
       this.handleChart(this.medCase.inspections);

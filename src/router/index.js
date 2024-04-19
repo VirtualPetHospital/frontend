@@ -1,6 +1,9 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory  } from 'vue-router'
+
 import Dashboard from "../views/Dashboard.vue";
 import Profile from "../views/Profile.vue";
+import Profile2 from "../views/Profile2.vue";
+import Profile3 from "../views/Profile3.vue";
 import Signup from "../views/Signup.vue";
 import Signin from "../views/Signin.vue";
 import Cosplay from "../examples/Student/cosplay/Cosplay.vue";
@@ -44,6 +47,7 @@ import OperationManagement from "../examples/Admin/operationManagement/Operation
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
 import ExamsInfo from  "../examples/Teacher/exam/ExamsInfo.vue"
 import ReselectQuestions from "../examples/Teacher/paper/ReselectQuestions.vue";
+import HistoryMedcase from "@/examples/Student/Medicase/HistoryMedcase.vue";
 const routes = [
   {
     path: "/",
@@ -94,6 +98,16 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: Profile,
+  },
+  {
+    path: "/profile2",
+    name: "Profile2",
+    component: Profile2,
+  },
+  {
+    path: "/profile3",
+    name: "Profile3",
+    component: Profile3,
   },
   {
     path: '/?diseaseName/medcases',
@@ -160,6 +174,11 @@ const routes = [
     path:"/medcase/:medcaseId",
     name:"Medcase",
     component:Medcase,
+  },
+  {
+    path:"/medcase/:medcaseId",
+    name:"HistoryMedcase",
+    component:HistoryMedcase,
   },
   {
     path:"/:medcaseId/medicines",
@@ -285,6 +304,7 @@ const routes = [
     name:"答题情况",
     component:ExamsInfo,
   },
+
   {
     path:"/ReselectQuestions/:tempid/:tempname/:tempproblemcount",
     name:"重选试题",
@@ -292,10 +312,13 @@ const routes = [
   }
 ];
 
+
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
   linkActiveClass: "active",
 });
+
+
 
 export default router;

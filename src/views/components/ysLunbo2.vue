@@ -22,33 +22,33 @@
         <div class="carousel-inner border-radius-lg h-100">
           <div
             class="carousel-item h-100 active"
-            :style="{backgroundImage: 'url(' + require('@/assets/img/shoushu1.jpg') + ')',
+            :style="{backgroundImage: 'url(' + require('@/assets/img/passageway.jpg') + ')',
         backgroundSize: 'cover'}"
           >
             <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-              <h5 class="text-white mb-1">切开组织和止血</h5>
+              <h5 class="text-white mb-1">e</h5>
             </div>
             
           </div>
           <div
             class="carousel-item h-100"
-            :style="{backgroundImage: 'url(' + require('@/assets/img/shoushu2.jpg') + ')',
+            :style="{backgroundImage: 'url(' + require('@/assets/img/passageway.jpg') + ')',
         backgroundSize: 'cover'}"
           >
             <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
               
-              <h5 class="text-white mb-1">手术中的关键步骤</h5>
+              <h5 class="text-white mb-1">e</h5>
     
             </div>
           </div>
           <div
             class="carousel-item h-100"
-            :style="{backgroundImage: 'url(' + require('@/assets/img/shoushu3.jpg') + ')',
+            :style="{backgroundImage: 'url(' + require('@/assets/img/passageway.jpg') + ')',
         backgroundSize: 'cover'}"
           >
             <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
              
-              <h5 class="text-white mb-1">手术情况控制</h5>
+              <h5 class="text-white mb-1">制</h5>
              
             </div>
         

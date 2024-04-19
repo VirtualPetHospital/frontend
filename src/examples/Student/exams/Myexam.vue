@@ -4,12 +4,12 @@
       <div class="col-12">
         <h3>我的考试</h3>
         <el-table :data="pageExams" stripe style="margin-top: 20px" >
-          <el-table-column prop="exam_id" label="考试ID"></el-table-column>
+          <el-table-column prop="exam_id" label="考试ID" sortable></el-table-column>
           <el-table-column prop="name" label="考试名称"></el-table-column>
-          <el-table-column prop="start_time" label="考试开始时间"></el-table-column>
-          <el-table-column prop="end_time" label="考试结束时间"></el-table-column>
-          <el-table-column prop="duration" label="考试时长"></el-table-column>
-          <el-table-column prop="level" label="考试等级"></el-table-column>
+          <el-table-column prop="start_time" label="考试开始时间" sortable></el-table-column>
+          <el-table-column prop="end_time" label="考试结束时间" sortable></el-table-column>
+          <el-table-column prop="duration" label="考试时长" sortable></el-table-column>
+          <el-table-column prop="level" label="考试等级" sortable></el-table-column>
           <el-table-column
               fixed="right"
               align="center"
@@ -46,6 +46,8 @@ export default{
   data(){
     return{
       exams:[],
+      pageSize:10,
+      pageNum:1,
       pageExams:[],
       total:null,
     }
@@ -76,10 +78,14 @@ export default{
               'Session':sessionStorage.getItem('sessionId'),
               'Content-Type': 'application/json',
 
+            },
+            params:{
+              page_size:9999,
+              page_num:0
             }
           }).then(response=>{
             const data=response.data.data;
-            this.total=data.total;
+            this.total=data.records.length;
             this.exams=data.records;
             console.log(this.exams);
             this.fetchPageExams();
@@ -87,13 +93,13 @@ export default{
     })
     },
     participate(row){
-      const examId = row.exam_id;
+      const exam_id = row.exam_id;
 
       // 发起报名请求
-      axios.post(`/api/exams/enroll/${examId}`,
-          {examId:examId
-          },
+      axios.post(`/api/exams/enroll/${exam_id}`,
+          {exam_id:exam_id},
           {
+            method:"POST",
             withCredentials : true,
             headers:{
               'Session':sessionStorage.getItem('sessionId'),
@@ -101,7 +107,9 @@ export default{
 
             }})
           .then(response => {
-            console.log('报名成功');
+            if(response.data.code=='2003'){
+              alert('您等级过低无法报名考试')
+            }
             this.refresh();
           })
           .catch(error => {

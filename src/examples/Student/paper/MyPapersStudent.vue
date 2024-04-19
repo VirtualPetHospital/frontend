@@ -4,9 +4,9 @@
       <div class="col-12">
         <h3>我的试卷</h3>
         <el-table :data="pagePapers" stripe style="margin-top: 20px" >
-          <el-table-column prop="paper.paper_id" label="试卷ID"></el-table-column>
+          <el-table-column prop="paper.paper_id" label="试卷ID" sortable></el-table-column>
           <el-table-column prop="paper.name" label="试卷名称"></el-table-column>
-          <el-table-column prop="paper.question_num" label="题目数量"></el-table-column>
+          <el-table-column prop="paper.question_num" label="题目数量" sortable></el-table-column>
           <el-table-column prop="paper.correct_num" label="正确率">
             <template #header>
               <span class="column-header">正确率</span>
@@ -15,8 +15,7 @@
               <el-progress
                   v-if="!isNaN(parseInt(scope.row.paper.correct_num))"
                   :percentage="scope.row.paper.correct_num "
-                  :indeterminate="true"
-                  :duration="5"
+                  
                   color="success"
                   :stroke-width="18"
                   :show-text="false"
@@ -75,8 +74,8 @@ export default{
     fetchPapers(){
       axios.get('/api/exams',{
         params:{
-          page_size:this.pageSize,
-          page_num:this.pageNum,
+          page_size:9999,
+          page_num:0,
         },
         withCredentials : true,
         headers:{
@@ -87,6 +86,7 @@ export default{
       }).then(async response => {
         this.responseData = response.data;
         if (this.responseData && this.responseData.data && this.responseData.data.records.length > 0) {
+          console.log("mypaperlen"+this.responseData.data.records.length);
           // 使用 map 方法遍历所有记录并提取 paper 字段
           for (let i = 0; i < this.responseData.data.records.length; i++) {
             let tmpPaper = this.responseData.data.records[i].paper;
@@ -99,7 +99,7 @@ export default{
             console.log(paperInfo);
           }
 
-          this.total = this.responseData.data.total;
+          this.total =this.responseData.data.records.length;
 
         } else {
           console.error('No data found or records array is empty.');

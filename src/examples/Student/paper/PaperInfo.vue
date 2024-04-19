@@ -21,6 +21,7 @@
                 <div class="box-list" v-if="showBoxlist">
                   <div
                       class="box normal-box question_cbox"
+                      style="padding-left: 0px"
                       v-for="(answer,index) in this.answerInfo"
                       :key="index"
                   >
@@ -344,7 +345,7 @@ export default{
 .box-list {
   padding-bottom: 0;
   position: relative;
-  left: -5px;
+  left: -10px;
   font-size: 0;
   margin-right: -15px;
   .box {
@@ -361,6 +362,7 @@ export default{
       border: 1px solid #dcdfe6;
       color: #008025;
       width: 27px;
+      margin-left: 0px;
       height: 27px;
       text-align: center;
       display: inline-block;
