@@ -5,7 +5,7 @@
    <div class="buttons-container">
       <button @click="openAddModal" class="btn btn-success" style="margin-left: 2%;">新增试卷</button>
       <div  class="input-group" style="margin-bottom: 10px;">
-      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
+      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入试卷名关键词搜索" style="margin-left: 2%;">
       <button @click="searchPapers" class="btn btn-primary">搜索</button>
       </div>
       <button @click="confirmDelete" class="btn btn-danger" style="margin-right: 2%;">删除试卷</button>
@@ -96,7 +96,7 @@
           <input type="text" class="form-control" :value="editMode ? editingPaper.name : newPaper.name" @input="editMode ? editingPaper.name = $event.target.value : newPaper.name = $event.target.value"><br>
           <div style="display: flex; justify-content: space-between;">
             <div style="width: 100%;">
-              <label>题目个数：</label>
+              <label>题目个数：(请输入1-40间的整数)</label>
               <input type="text" class="form-control" :value="editMode ? editingPaper.problemcount : newPaper.problemcount" @input="editMode ? editingPaper.problemcount = $event.target.value : newPaper.problemcount= $event.target.value"><br>
             </div>
             <!-- <div style="width: 100%;"> -->
@@ -236,7 +236,7 @@
       <div class="modal-wrapper" @click.stop>
         <div class="modal-container">
           <h3>警告</h3>
-          <p>该试卷已被发布的考试使用，无法删除</p>
+          <p>试卷已被选入考试中，无法删除</p>
           <div class="button-container">
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning4">关闭</button>
           </div>
@@ -314,6 +314,20 @@
     </div>
   </transition>
 
+  <transition name="modal">
+    <div class="modal-mask" v-if="showPageWarning" @click="closePageWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p v-if="totalPages">跳转页码范围应在1-{{ totalPages }}之间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closePageWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -325,7 +339,7 @@ import ArgonButton from "@/components/ArgonButton.vue";
 import Modal from "@/components/Modal.vue";
 import { ref, Vue } from 'vue';
 import {useStore} from "vuex";
-import {onBeforeRouteLeave} from "vue-router"; // 导入Vue
+import {onBeforeRouteLeave,beforeRouteUpdate } from "vue-router"; // 导入Vue
 import {ElButton, ElPagination, ElProgress, ElTable, ElTableColumn} from "element-plus";
 import axios from 'axios';
 const API_URL = `/api/paper`
@@ -368,6 +382,7 @@ export default {
       showDeleteWarning5:false,
       showDeleteConfirmModal:false,
       showSearchWarning:false,
+      showPageWarning:false,
     //   newPaper2: {
     //     id: '',
     //     name: this.tempname1, // 使用 props 中的 tempname1 值
@@ -389,8 +404,25 @@ export default {
     // this.newPaper.time.mins = this.$route.params.tempmins1;
     this.newPaper.problems=this.$route.params.tempproblems;
     this.flag1=this.$route.params.flag;
+    // this.$router.replace({ path: this.$route.path });
     console.log(this.newPaper);
   },
+  // beforeRouteLeave(to, from, next) {
+  //   // 在离开当前路由时，清空路由参数
+  //   this.newPaper.name = '';
+  //   this.newPaper.problemcount = '';
+  //   this.newPaper.problems = [];
+  //   this.flag1 = false;
+  //   next();
+  // },
+  // beforeRouteUpdate(to, from, next) {
+  //   // 在路由更新前清除路由参数
+  //   this.newPaper.name = '';
+  //   this.newPaper.problemcount = '';
+  //   this.newPaper.problems = [];
+  //   this.flag1 = false;
+  //   next();
+  // },
   computed: {
     totalPages() {
       return Math.ceil(this.totalPapers / this.pageSize);
@@ -411,15 +443,16 @@ export default {
      const store = useStore();
      // 在组件被挂载后，设置 showSidenavStudent 为 true
      store.commit('setShowSidenavTeacher', true);
-     onBeforeRouteLeave((to, from, next) => {
-       // 在离开此页前关闭sidenavadmin
-       store.commit('setShowSidenavTeacher', false);
-       next();
-     });
+    //  onBeforeRouteLeave((to, from, next) => {
+    //    // 在离开此页前关闭sidenavadmin
+    //    store.commit('setShowSidenavTeacher', false);
+    //    next();
+    //  });
      return {};
    },
    mounted() {
     // 组件加载完成后立即获取题目列表数据
+    this.$router.replace({ path: '/PapersTeacher' });
     this.fetchPapers();
     this.fetchAllPapers();
   },
@@ -485,6 +518,7 @@ export default {
       }
     },
     deletePaper() {
+      this.closeDeleteConfirmModal();
       const selectedPapers = [];
       this.allpapers.forEach(paper => {
       if (this.selectedPapersMap.get(paper.id)) {
@@ -502,30 +536,55 @@ export default {
                 'Content-Type': 'application/json',
               }
           }).then(response => {
-            if(response.data.msg == "删除失败，被其他表引用")
+            if(response.data.msg == "试卷已被选入考试中，无法删除")
             {
               this.showDeleteWarning4 = true;
+              this.selectedPapersMap.clear(); // 清空选中题目的 Map
+              this.selectedCount = 0;
+              this.fetchPapers();
+              return ;
             }
             console.log(response.msg);
             // 删除成功后从前端数据中移除已删除的题目
-            const index = this.papers.findIndex(u => u.id === paperId);
-            if (index !== -1) {
-              this.papers.splice(index, 1);
-              // console.log('已删除试卷:', paper);
+            // const index = this.papers.findIndex(u => u.id === paperId);
+            // if (index !== -1) {
+            //   this.papers.splice(index, 1);
+            //   // console.log('已删除试卷:', paper);
+            // }
+
+           this.selectedPapersMap.clear(); // 清空选中题目的 Map
+           this.selectedCount = 0;
+          this.showDeleteWarning = false; // 重置删除警告状态
+          // this.fetchPapers();
+        
+          if(response.data.msg == "操作成功")
+            {
+              alert("成功删除该试卷!");
             }
+            this.totalPapers = this.totalPapers-1;
+            const totalPages = Math.ceil(this.totalPapers / this.pageSize);
+      // const lastPage = totalPages === 0 ? 1 : totalPages;
+      // 如果新增题目所在页码不是当前页码，则跳转到最后一页
+      if (totalPages != this.currentPage) {
+        this.currentPage = totalPages;
+        this.fetchPapers();
+      } 
+      else{
+        this.fetchPapers();
+      }
           }).catch(error => {
             console.error('Error deleting paper:', error);
           });
         });
         // 使用 Promise.all 等待所有删除操作完成
-        Promise.all(promises).then(() => {
-          console.log('所有选中的试卷已删除');
-          this.selectedPapersMap.clear(); // 清空选中题目的 Map
-          this.showDeleteWarning = false; // 重置删除警告状态
-          this.closeDeleteConfirmModal();
-          this.fetchPapers();
-          alert("成功删除该试卷!");
-        });
+        // Promise.all(promises).then(() => {
+        //   console.log('所有选中的试卷已删除');
+        //   this.selectedPapersMap.clear(); // 清空选中题目的 Map
+        //   this.showDeleteWarning = false; // 重置删除警告状态
+        //   this.closeDeleteConfirmModal();
+        //   this.fetchPapers();
+        //   alert("成功删除该试卷!");
+        // });
       } else {
         console.log('请至少选择一个要删除的试卷');
         this.showDeleteWarning = true;
@@ -591,6 +650,8 @@ export default {
     },
     closeSearchWarning(){
       this.showSearchWarning = false;
+      this.searchKeyword = '';
+      this.searchPapers();
     },
     closeDeleteConfirmModal() {
       // 关闭确认删除模态框
@@ -661,7 +722,7 @@ export default {
     this.showAddPaper = true;
     return;
   }
-  if (newPaper.problemcount > 40) {
+  if (!/^\d+$/.test(newPaper.problemcount) || newPaper.problemcount > 40 || newPaper.problemcount < 1) {
     // 如果题目数量超过40，则弹出提示框
     this.showSelectPaper2 = true;
     return;
@@ -681,6 +742,10 @@ export default {
   closeAddPaper()
   {
     this.showAddPaper = false;
+  },
+  closePageWarning()
+  {
+    this.showPageWarning  = false;
   },
   async fetchPapers() {
     try {
@@ -909,6 +974,11 @@ export default {
     //   }
     // },
     gotoSpecifiedPage() {
+      if(!/^\d+$/.test(this.gotoPageNumber) || this.gotoPageNumber < 1 || this.gotoPageNumber > this.totalPages)
+      {
+        this.showPageWarning = true;
+        return ;
+      }
     const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
       // 如果输入的是一个有效的页码，则跳转到该页

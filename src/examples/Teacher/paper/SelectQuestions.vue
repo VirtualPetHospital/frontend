@@ -8,19 +8,19 @@
       </div>
     </div>
     <div class="biaoge ps-3" style="margin-top: 10px;">
-  <table class="table" bgcolor="#ffffff">
-    <tbody>
-      <tr>
-        <td v-for="(category, index) in allcategory" :key="index">
-          <button @click="searchProblems2(category)" class="btn" :class="{ 'btn-secondary': !category.isHovered, 'btn-primary': category.isHovered }" style="margin-bottom: 5px;" @mouseover="category.isHovered = true" @mouseleave="category.isHovered = false">{{ category.name }}</button>
-        </td>
-        <td>
-          <button @click="searchProblems3()" class="btn" :class="{ 'btn-secondary': !isHoveredAll, 'btn-primary': isHoveredAll }" style="margin-bottom: 5px;" @mouseover="isHoveredAll = true" @mouseleave="isHoveredAll = false">{{ "全部" }}</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+      <table class="table" bgcolor="#ffffff">
+        <tbody>
+          <tr>
+            <td v-for="(category, index) in allcategory" :key="index">
+              <button @click="searchProblems2(category)" class="btn" :class="{ 'btn-secondary': !category.isSelected, 'btn-primary': category.isSelected }" style="margin-bottom: 5px;" @mouseover="category.isHovered = true" @mouseleave="category.isHovered = false">{{ category.name }}</button>
+            </td>
+            <td>
+              <button @click="searchProblems3()" class="btn" :class="{ 'btn-secondary': !isHoveredAll, 'btn-primary': isHoveredAll }" style="margin-bottom: 5px;" @mouseover="isHoveredAll = true" @mouseleave="isHoveredAll = false">{{ "全部" }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
@@ -40,7 +40,7 @@
               </div>
             </span>
             </div>
-            <div class="button-container" style="height: 100%;">
+            <div class="button-container2" style="height: 100%;">
             <button @click="upProblems()" class="btn btn-lg btn-block btn-warning" style="height: 100%;">确定选题</button>
             </div>
               </th>
@@ -138,6 +138,36 @@
       </div>
     </div>
   </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showSearchWarning" @click="closeSearchWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>未搜索到满足条件的题目</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSearchWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  
+  <transition name="modal">
+    <div class="modal-mask" v-if="showPageWarning" @click="closePageWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p v-if="totalPages">跳转页码范围应在1-{{ totalPages }}之间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closePageWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -184,6 +214,8 @@ export default {
       category_keyword: '',
       description_keyword: '', // 使用搜索关键词
       isHoveredAll: false, // 控制全部按钮鼠标悬停状态
+      showSearchWarning:false,
+      showPageWarning:false,
     };
   },
   created() {
@@ -386,7 +418,7 @@ export default {
             page_size: this.pageSize,
             page_num: 1,
             category_keyword: this.category_keyword,
-            description_keyword: this.searchKeyword, // 使用搜索关键词
+            description_keyword: this.description_keyword, // 使用搜索关键词
           },
           withCredentials: true,
           headers: {
@@ -416,7 +448,11 @@ export default {
           {
             this.showSearchWarning = true;
           }
-          else 
+          else if(this.description_keyword == '')
+          {
+            alert(`显示全部列表，共有 ${this.totalProblems} 条结果`);
+          }
+          else
           {
             alert(`搜索成功，共有 ${this.totalProblems} 条结果`);
           }
@@ -427,6 +463,9 @@ export default {
     },
     async searchProblems2(category) {
       this.category_keyword=category.name;
+      this.allcategory.forEach(cat => {
+        cat.isSelected = cat === category;
+      });
       try {
         const response = await axios.get('/api/questions', {
           params: {
@@ -469,6 +508,10 @@ export default {
     },
     async searchProblems3() {
       this.category_keyword='';
+      this.isHoveredAll = true;
+      this.allcategory.forEach(category => {
+        category.isSelected = false;
+      });
       try {
         const response = await axios.get('/api/questions', {
           params: {
@@ -507,6 +550,11 @@ export default {
       }
     },
     gotoSpecifiedPage() {
+      if(!/^\d+$/.test(this.gotoPageNumber) || this.gotoPageNumber < 1 || this.gotoPageNumber > this.totalPages)
+      {
+        this.showPageWarning = true;
+        return ;
+      }
     const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
       // 如果输入的是一个有效的页码，则跳转到该页
@@ -535,6 +583,7 @@ export default {
           id: record.category_id,
           name:record.name,
           isHovered:false,
+          isSelected:false,
         }));
         console.log(this.allcategory);
       }
@@ -550,6 +599,17 @@ export default {
     const category2 = this.allcategory.find(cat => cat.name === categoryname);
     return category2 ? category2.id : 0 ;
   },
+  closeSearchWarning()
+    {
+      this.showSearchWarning = false; // 关闭搜索提示窗口
+      this.searchKeyword = '';
+      this.searchProblems();
+    },
+  closePageWarning()
+  {
+    this.showPageWarning = false;
+  },
+
   },
   components: {
     ArgonBadge,
@@ -716,5 +776,15 @@ margin-bottom: 10px;
   width: auto; /* 让按钮宽度自适应内容 */
   padding: 0 15px; 
   white-space: nowrap; /* 防止按钮文字换行 */
+}
+.btn:hover {
+  background-color: #5e72e4;
+  color: #ffffff;
+}
+.button-container2{
+  display: flex;
+  /* justify-content: center; 让按钮居中 */
+  width: 100%; /* 让容器宽度和弹窗一样 */
+  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
 }
 </style>

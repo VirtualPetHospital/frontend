@@ -31,11 +31,12 @@
         <colgroup>
           <col style="width: 3%">
           <col style="width: 6%">
-          <col style="width: 34%">
+          <col style="width: 28%">
           <col style="width: 7%">
           <col style="width: 7%">
           <col style="width: 16%">
           <col style="width: 16%">
+          <col style="width: 6%">
           <col style="width: 11%">
         </colgroup>
         <thead>
@@ -47,6 +48,7 @@
             <th scope="col" class="text-center" >考试时长</th>
             <th scope="col" class="text-center" style="word-break: break-word;">开始时间</th>
             <th scope="col" class="text-center" style="word-break: break-word;">结束时间</th>
+            <th scope="col" class="text-center">考试状态</th> 
             <th scope="col" class="text-center rounded-top-right">考试详情</th>
           </tr>
         </thead>
@@ -62,11 +64,15 @@
         <td class="text-center ">{{ exam.duration }}分钟</td>
         <td class="text-center " style="word-break: break-word;">{{ exam.starttime}}</td>
         <td class="text-center " style="word-break: break-word;">{{ exam.endtime}}</td>
+        <td class="text-center">{{ getExamStatus(exam) }}</td> <!-- 考试情况 -->
         <td class="text-center ">
-          <!-- 查看按钮 -->
-          <!-- <button @click="openExamDetails(exam)"  class="btn btn-primary">查看详情</button> -->
-          <button @click="openExamDetails(exam)" class="btn btn-primary">查看详情</button>
-          <button @click="myWatch(exam.id)" class="btn btn-primary">答题情况</button>
+          <div v-if="getExamStatus(exam) === '已结束'">
+            <button @click="openExamDetails(exam)" class="btn btn-primary">查看详情</button>
+            <button @click="myWatch(exam.id)" class="btn btn-primary">答题情况</button>
+          </div>
+          <div v-else>
+            <button @click="openExamDetails(exam)" class="btn btn-primary">查看详情</button>
+          </div>
         </td>
       </tr>
         </tbody>
@@ -118,11 +124,11 @@
           <input type="text" class="form-control" :value="editMode ? editingExam.name : newExam.name" @input="editMode ? editingExam.name = $event.target.value : newExam.name = $event.target.value"><br>
           <div style="display: flex; justify-content: space-between;">
             <div style="width: 48%;">
-              <label>考试等级：</label>
+              <label>考试等级：(请输入1-5间的整数)</label>
               <input type="text" class="form-control" :value="editMode ? editingExam.level : newExam.level" @input="editMode ? editingExam.level = $event.target.value : newExam.level= $event.target.value"><br>
             </div>
             <div style="width: 48%;">
-              <label>考试时长：</label>
+              <label>考试时长：(请输入1-300间的整数)</label>
               <div style="display: flex; align-items: center;">
                 <input type="text" class="form-control" style="width: 100%;" :value="editMode ? editingExam.duration: newExam.duration" @input="editMode ? editingExam.duration = $event.target.value : newExam.duration = $event.target.value">
                 <span style="margin: 0 5px;">分钟</span>
@@ -360,9 +366,23 @@
       <div class="modal-wrapper" @click.stop>
         <div class="modal-container">
           <h3>警告</h3>
-          <p>该考试已被其他表引用，无法删除</p>
+          <p>该场考试时间已过，禁止删除！</p>
           <div class="button-container">
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning4">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showDeleteWarning6" @click="closeDeleteWarning6">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>该场考试已有学生报名，无法删除</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning6">关闭</button>
           </div>
         </div>
       </div>
@@ -382,6 +402,21 @@
       </div>
     </div>
   </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showPageWarning" @click="closePageWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p v-if="totalPages">跳转页码范围应在1-{{ totalPages }}之间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closePageWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -461,6 +496,8 @@ export default {
       showDeleteWarning5:false,
       showDeleteWarning4:false,
       showSearchWarning:false,
+      showPageWarning:false,
+      showDeleteWarning6:false,
     };
   },
   created() {
@@ -479,11 +516,11 @@ export default {
      const store = useStore();
      // 在组件被挂载后，设置 showSidenavStudent 为 true
      store.commit('setShowSidenavTeacher', true);
-     onBeforeRouteLeave((to, from, next) => {
-       // 在离开此页前关闭sidenavadmin
-       store.commit('setShowSidenavTeacher', false);
-       next();
-     });
+    //  onBeforeRouteLeave((to, from, next) => {
+    //    // 在离开此页前关闭sidenavadmin
+    //    store.commit('setShowSidenavTeacher', false);
+    //    next();
+    //  });
      return {};
    },
    computed: {
@@ -503,6 +540,7 @@ export default {
   },
   mounted() {
     // 组件加载完成后立即获取题目列表数据
+    this.$router.replace({ path: '/ExamsTeacher' });
     this.fetchExams();
     this.fetchAllPapers();
     this.fetchAllExams();
@@ -532,6 +570,18 @@ export default {
     closeExamDetails() {
       this.showExamDetails = false;
       this.selectedExam = { id: '', category: '', description: '', choiceA: '', choiceB: '', choiceC: '', choiceD: '', answer: '' };
+    },
+     getExamStatus(exam) {
+      const now = new Date(); // 当前时间
+      const startTime = new Date(exam.starttime); // 考试开始时间
+      const endTime = new Date(exam.endtime); // 考试结束时间
+      if (now < startTime) {
+        return "未开始";
+      } else if (now >= startTime && now <= endTime) {
+        return "进行中";
+      } else {
+        return "已结束";
+      }
     },
     saveExam() {
       // 更新编辑用户信息
@@ -568,6 +618,7 @@ export default {
       }
     },
     deleteExam() {
+      this.closeDeleteConfirmModal();
       // const selectedExams = this.exams.filter(exam => exam.checked);//
       const selectedExams = [];
     this.allexams.forEach(exam => {
@@ -586,30 +637,60 @@ export default {
                 'Content-Type': 'application/json',
               }
           }).then(response => {
-            if(response.data.msg == "删除失败，被其他表引用")
+            if(response.data.msg == "考试时间已过，禁止删除！")
             {
               this.showDeleteWarning4 = true;
+              this.selectedExamsMap.clear(); // 清空选中题目的 Map
+              this.selectedCount = 0;
+              this.fetchExams();
+              return ;
             }//
             console.log(response.msg);
+            if(response.data.msg == "已有用户报名当前考试！")
+            {
+              this.showDeleteWarning6 = true;
+              this.selectedExamsMap.clear(); // 清空选中题目的 Map
+              this.selectedCount = 0;
+              this.fetchExams();
+              return ;
+            }//
             // 删除成功后从前端数据中移除已删除的题目
-            const index = this.exams.findIndex(u => u.id === examId);
-            if (index !== -1) {
-              this.exams.splice(index, 1);
-              console.log('已删除试卷:', exam);
-            }
+            // const index = this.exams.findIndex(u => u.id === examId);
+            // if (index !== -1) {
+            //   this.exams.splice(index, 1);
+            //   console.log('已删除试卷:', exam);
+            // }
+          this.selectedExamsMap.clear(); // 清空选中题目的 Map
+          this.selectedCount = 0;
+          this.showDeleteWarning = false; // 重置删除警告状态
+          // this.fetchExams();
+          if(response.data.msg == "操作成功")
+            {
+              alert("成功删除该场考试!");
+            this.totalExams = this.totalExams-1;
+            const totalPages = Math.ceil(this.totalExams / this.pageSize);
+      // const lastPage = totalPages === 0 ? 1 : totalPages;
+      // 如果新增题目所在页码不是当前页码，则跳转到最后一页
+      if (totalPages != this.currentPage) {
+        this.currentPage = totalPages;
+        this.fetchExams();
+      } 
+      else{
+        this.fetchExams();
+      }
+    }
           }).catch(error => {
             console.error('Error deleting exam:', error);
           });
         });
         // 使用 Promise.all 等待所有删除操作完成
-        Promise.all(promises).then(() => {
-          console.log('所有选中的考试已删除');
-          this.selectedExamsMap.clear(); // 清空选中题目的 Map
-          this.showDeleteWarning = false; // 重置删除警告状态
-          this.closeDeleteConfirmModal();
-          this.fetchExams();
-          alert("成功删除该场考试!");
-        });
+        // Promise.all(promises).then(() => {
+        //   console.log('所有选中的考试已删除');
+        //   this.selectedExamsMap.clear(); // 清空选中题目的 Map
+        //   this.showDeleteWarning = false; // 重置删除警告状态
+        //   this.fetchExams();
+        //   alert("成功删除该场考试!");
+        // });
       } else {
         console.log('请至少选择一场要删除的考试');
         this.showDeleteWarning = true;
@@ -722,12 +803,12 @@ export default {
       this.showAddExam = true;
       return;
     }
-    if (newExam.level > "5" || newExam.level < "1") {
+    if (newExam.level > 5 || newExam.level < 1 ||!/^\d+$/.test(newExam.level) ) {
       // 如果题目数量超过40，则弹出提示框
       this.showSelectExam2 = true;
       return;
     }
-    if(newExam.duration > 300 || newExam.duration < 1 ){
+    if(newExam.duration > 300 || newExam.duration < 1 || !/^\d+$/.test(newExam.duration)){
       this.showSelectExam3 = true;
       return ;
     }
@@ -823,6 +904,14 @@ export default {
       this.searchKeyword = '';
       this.searchExams();
     },
+  closePageWarning()
+  {
+    this.showPageWarning = false;
+  },
+  closeDeleteWarning6()
+  {
+    this.showDeleteWarning6 = false;
+  },
   async fetchExams() {
   try {
     const response = await axios.get('/api/exams', {
@@ -1260,6 +1349,11 @@ async fetchAllPapers() {
     }
   },
     gotoSpecifiedPage() {
+      if(!/^\d+$/.test(this.gotoPageNumber) || this.gotoPageNumber < 1 || this.gotoPageNumber > this.totalPages)
+      {
+        this.showPageWarning = true;
+        return ;
+      }
     const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
       // 如果输入的是一个有效的页码，则跳转到该页
