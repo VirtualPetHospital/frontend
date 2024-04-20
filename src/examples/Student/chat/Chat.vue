@@ -140,10 +140,14 @@ export default{
         url:'https://api.fastgpt.in/api/v1/chat/completions',
         data:params,
         headers:{
-          'Authorization':'Bearer fastgpt-vc0XWQRcxNoNbLiknEtqAEAg0Cd7SuqfRqlobtar7fQ9Ha37Jhyqtmd6z5w5TBq22',
+          'Authorization':'Bearer fastgpt-Uphmn15fYbD4jn4Hk7wIGwkM7VOsMeHdsUsZZnqMbOmKKwZDcw06Br',
           'Content-Type': 'application/json',
         }
       }).then((response)=>{
+        if(response.data.code===500){
+          alert('网络故障请稍后再试');
+          this.$router.push('/Chat');
+        }
         this.messageList[this.messageList.length - 1].content = '';
         clearInterval(this.loadLoop);
         if (this.streamFlag) {

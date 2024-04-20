@@ -8,11 +8,11 @@
       <div class="trapezoid" style="position:absolute;top:11%;right:3%;z-index:5555"><h3 style="color: white; text-align: center;">退出</h3></div>
     </router-link>
     <div id = "show" style="z-index:55; position:absolute;bottom:18%;right:3%">
-      <div class="card " style="background-color: coral;">
+      <div class="card " style="background-color: #b3d4fc">
         <div class="row">
 
           <div class="col-6 text-start">
-            <argon-button color="danger" variant="gradient">
+            <argon-button variant="gradient">
               {{ this.item }}
             </argon-button>
           </div>
@@ -21,21 +21,21 @@
           <div class="row">
             <div class="col-4 ">
               <div
-                  class="card bg-primary card-body border card-plain border-radius-lg d-flex align-items-center flex-row" v-on:click="toggleFunc()">
+                  class="card card-body border card-plain border-radius-lg d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleFunc()">
                 <h5 class="mb-0 text-white">功能说明</h5>
               </div>
             </div>
 
             <div class="col-4">
               <div
-                  class="card bg-primary card-body border card-plain border-radius-lg d-flex align-items-center flex-row" v-on:click="toggleOperator()">
+                  class="card  card-body border card-plain border-radius-lg d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleOperator()">
                 <h5 class="mb-0 text-white">操作流程</h5>
               </div>
             </div>
 
             <div class="col-4">
               <div
-                  class="card bg-primary card-body border card-plain border-radius-lg d-flex align-items-center flex-row" v-on:click="toggleVideo()">
+                  class="card card-body border card-plain border-radius-lg d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleVideo()">
                 <h5 class="mb-0 text-white">演示动画</h5>
               </div>
             </div>
@@ -56,10 +56,10 @@
     </div>
 
     <div id = "show-card" class="card  bg-gradient-dark move-on-hover align-items-start mt-4 col-lg-4 col-md-4 mt-sm-0" style="z-index:55; position:absolute;left:5%; top:25%;
-  max-height:30%; overflow-y: scroll;" >0
+  max-height:30%; overflow-y: scroll;" >
       <div class="card-body">
-        <h5 class="mb-0 text-white">{{ this.cardTitle }}</h5>
-        <p class="text-sm text-white">{{ this.cardContent }}</p>
+        <h5 class="mb-0 text-black">{{ this.cardTitle }}</h5>
+        <p class="text-sm text-black">{{ this.cardContent }}</p>
         <div class="mt-5 d-flex">
         </div>
       </div>
@@ -106,56 +106,54 @@ export default {
       doctors: ["助理 兽医", "助理 兽医", "前台","兽医","助理 兽医","兽医","兽医","助理 兽医","助理 兽医","兽医","助理 兽医","助理 兽医","前台","住院兽医或助理兽医"],
       show:'',
       showVideo:'',
-      cardTitle:'',
+      cardTitle:'aa',
       cardContent:'',
-      // showFunc:'',
-      // showOperator:'',
       showCard:'',
       func:"bbb",
       operator:"aaa",
       video:"https://www.w3school.com.cn/example/html5/mov_bbb.mp4",
       imageArr: [
-        {
+        {//免疫室
           img: require('@/assets/img/archives.jpg'),
         },
-        {
-          img: require('@/assets/img/guahao2.jpg'),
+        {//化验
+          img: require('@/assets/img/check.jpg'),
         },
-        {
-          img: require('@/assets/img/home1.jpg'),
+        {//档案室
+          img: require('@/assets/img/archives.jpg'),
         },
-        {
-          img: require('@/assets/img/home2.jpeg'),
+        {//诊室
+          img: require('@/assets/img/clinic.jpg'),
         },
-        {
+        {//处置
           img: require('@/assets/img/surgery.jpg'),
         },
-        {
-          img: require('@/assets/img/passageway.jpg'),
+        {//手术
+          img: require('@/assets/img/operation.jpg'),
         },
-        {
-          img: require('@/assets/img/sickroom.jpg'),
+        {//病例刨析室
+          img: require('@/assets/img/research.jpg'),
         },
-        {
+        {//药房
+          img: require('@/assets/img/medicine.jpg'),
+        },
+        {//手术准备
           img: require('@/assets/img/precheck.jpg'),
         },
-        {
-          img: require('@/assets/img/precheck.jpg'),
+        {//专科检查
+          img: require('@/assets/img/checkroom.jpg'),
         },
-        {
-          img: require('@/assets/img/precheck.jpg'),
+        {//影像
+          img: require('@/assets/img/xrayroom.jpg'),
         },
-        {
-          img: require('@/assets/img/sickroom.jpg'),
+        {//注射
+          img: require('@/assets/img/injection.jpg'),
         },
-        {
+        {//前台
           img: require('@/assets/img/reception.png'),
         },
-        {
-          img: require('@/assets/img/reception.png'),
-        },
-        {
-          img: require('@/assets/img/passageway.jpg'),
+        {//住院部
+          img: require('@/assets/img/hospitalization.jpg'),
         },
 
       ],
@@ -167,7 +165,7 @@ export default {
             {
               id:'toHuayanshi',
               tooltip:'化验室',
-              html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
+              html: '<div><img src="https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
               longitude: 2.4,
               latitude: -0.31179146502439625,
               anchor: 'center right',
@@ -206,8 +204,8 @@ export default {
             {
               id:'toDangAnShi',
               tooltip:'档案室',
-              html: '<div><img src="https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 3.0719794134113996,
+              html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
+              longitude: 0.5,
               latitude: -0.5952505913905668,
               anchor: 'center right',
               jump: true,
@@ -215,10 +213,21 @@ export default {
               angle: -45,
             },
             {
-              id:'演示厅',
-              html: '<div class="bubble">演示厅</div>',
-              longitude: 0.3368927313172293,
-              latitude:  -0.1478313488770011,
+              id:'水槽',
+              html: '<div class="bubble">水槽</div>',
+              longitude: 1,
+              latitude:  -0.2,
+              anchor: 'center right',
+              jump: false,
+              video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
+              func:'演示厅是一种专门用于展示产品、服务、项目或理念的场所。企业、组织或个人可以在演示厅中展示他们的产品、技术或业务，以向客户、合作伙伴或投资者展示其优势和特点。演示厅通常配备了展示设施，如展示柜、展示板、投影设备、音响系统等，以便进行生动、直观的演示和展示。',
+              operator: '根据演示或展示的内容，确定活动的需求，包括活动的日期、时间、时长、预计参与人数等。同时，还需要了解演示厅的规模、设施、设备和其他资源情况，确保演示厅能够满足活动需求。',
+            },
+            {
+              id:'离心机',
+              html: '<div class="bubble">离心机</div>',
+              longitude: 5,
+              latitude:  -0.2,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -235,8 +244,8 @@ export default {
               id:'toZhenShi',
               tooltip:'诊室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 2.894242750658444,
-              latitude: -0.1967920356400481,
+              longitude: 4.9,
+              latitude: -0.5,
               anchor: 'center right',
               jump: true,
               target: 3,
@@ -245,7 +254,7 @@ export default {
             {
               id:'档案存放柜',
               html: '<div class="bubble">档案存放柜</div>',
-              longitude: 4.730593408331794,
+              longitude: 5.8,
               latitude: 0.0014482872080976428,
               anchor: 'center right',
               jump: false,
@@ -263,8 +272,8 @@ export default {
               id:'toYaoFang',
               tooltip:'药房',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 1.616805561414167,
-              latitude: -0.5443561915809694,
+              longitude: 0.6,
+              latitude: -0.5,
               anchor: 'center right',
               jump: true,
               target: 7,
@@ -273,8 +282,8 @@ export default {
             {
               id:'治疗台',
               html: '<div class="bubble">治疗台</div>',
-              longitude: 4.730593408331794,
-              latitude: 0.0014482872080976428,
+              longitude: 0.1,
+              latitude: 0.0015,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -284,7 +293,7 @@ export default {
             {
               id:'洗漱台',
               html: '<div class="bubble">洗漱台</div>',
-              longitude: 0.3368927313172293,
+              longitude: 8.3,
               latitude:  -0.1478313488770011,
               anchor: 'center right',
               jump: false,
@@ -302,8 +311,8 @@ export default {
               id:'toShoushuzhunbeishi',
               tooltip:'手术准备室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 1.8935064506049102,
-              latitude: -0.6590635409020509,
+              longitude:7,
+              latitude: -0.6,
               anchor: 'center right',
               jump: true,
               target: 8,
@@ -312,8 +321,8 @@ export default {
             {
               id:'处置台',
               html: '<div class="bubble">处置台</div>',
-              longitude: 0.3368927313172293,
-              latitude:  -0.1478313488770011,
+              longitude:5,
+              latitude:  -0.3,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -330,7 +339,7 @@ export default {
               id:'toChuZhiShi',
               tooltip:'处置室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 5.0,
+              longitude: 1,
               latitude: -0.6501577651944035,
               anchor: 'center right',
               jump: true,
@@ -340,8 +349,19 @@ export default {
             {
               id:'手术台',
               html: '<div class="bubble">手术台</div>',
-              longitude: 5.0,
-              latitude: 0.0014482872080976428,
+              longitude: 0,
+              latitude: -0.2,
+              anchor: 'center right',
+              jump: false,
+              video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
+              func:'手术台的功能和操作主要是为了提供一个稳固、可调节和清洁的工作平台，以方便医疗专业人员进行手术和其他医疗操作，并确保手术环境的安全和卫生。',
+              operator: '根据手术的类型和患者的需求，调整手术台的高度、角度和位置，以确保医疗专业人员的工作姿势舒适并符合手术操作的要求。在手术过程中，保持手术台的稳定和安全，确保患者在手术过程中的稳定和舒适。在手术前和手术后，对手术台进行清洁和消毒，以确保手术环境的安全和卫生，并遵循医疗机构的操作规程和卫生要求。',
+            },
+            {
+              id:'监护器',
+              html: '<div class="bubble">监护器</div>',
+              longitude: 5,
+              latitude: -0.2,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -351,8 +371,8 @@ export default {
             {
               id:'无影灯',
               html: '<div class="bubble">无影灯</div>',
-              longitude: 0.3368927313172293,
-              latitude:  -0.1478313488770011,
+              longitude: 0.8,
+              latitude:  0.4,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -369,8 +389,8 @@ export default {
               id:'toShouShushi',
               tooltip:'手术室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 4.810754475527069,
-              latitude: -0.24442274168799139,
+              longitude: 0.2,
+              latitude: -0.4,
               anchor: 'center right',
               jump: true,
               target: 5,
@@ -379,8 +399,8 @@ export default {
             {
               id:'病理整理柜',
               html: '<div class="bubble">病理整理柜</div>',
-              longitude: 0.3368927313172293,
-              latitude:  -0.1478313488770011,
+              longitude: 5.7,
+              latitude:  0.2,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -397,8 +417,8 @@ export default {
               id:'toBingLiPouJianshi',
               tooltip:'病理剖检室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 5.210802383821559,
-              latitude:  -0.2504494099374086,
+              longitude: 7,
+              latitude:  -0.5,
               anchor: 'center right',
               jump: true,
               target: 6,
@@ -407,7 +427,7 @@ export default {
             {
               id:'拿药处',
               html: '<div class="bubble">拿药处</div>',
-              longitude: 4.730593408331794,
+              longitude: 4,
               latitude: 0.0014482872080976428,
               anchor: 'center right',
               jump: false,
@@ -418,7 +438,7 @@ export default {
             {
               id:'药柜',
               html: '<div class="bubble">药柜</div>',
-              longitude: 0.3368927313172293,
+              longitude: 5.7,
               latitude:  -0.1478313488770011,
               anchor: 'center right',
               jump: false,
@@ -436,8 +456,8 @@ export default {
               id:'toZhuanke',
               tooltip:'专科检查室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude:  5.1254251914772775,
-              latitude:  -0.4389037447623556,
+              longitude:  7,
+              latitude:  -0.4,
               anchor: 'center right',
               jump: true,
               target: 9,
@@ -446,8 +466,8 @@ export default {
             {
               id:'换衣处',
               html: '<div class="bubble">换衣处</div>',
-              longitude: 4.730593408331794,
-              latitude: 0.0014482872080976428,
+              longitude:5.5,
+              latitude: 0,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -457,8 +477,8 @@ export default {
             {
               id:'消毒区',
               html: '<div class="bubble">消毒区</div>',
-              longitude: 0.3368927313172293,
-              latitude:  -0.1478313488770011,
+              longitude: 4,
+              latitude:  -0.2,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -475,8 +495,8 @@ export default {
               id:'toYingXiangShi',
               tooltip:'影像室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 4.27098193840307,
-              latitude: -0.5055666518834832,
+              longitude: 2,
+              latitude: -0.52,
               anchor: 'center right',
               jump: true,
               target: 10,
@@ -485,8 +505,8 @@ export default {
             {
               id:'检查台',
               html: '<div class="bubble">检查台</div>',
-              longitude: 0.3368927313172293,
-              latitude:  -0.1478313488770011,
+              longitude: 0.4,
+              latitude:  -0.4,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -503,8 +523,8 @@ export default {
               id:'toZhuSheshi',
               tooltip:'注射室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 1.7173087302840833,
-              latitude: -0.5885113663972787,
+              longitude: 3.2,
+              latitude: -0.6,
               anchor: 'center right',
               jump: true,
               target: 11,
@@ -513,8 +533,8 @@ export default {
             {
               id:'影像台',
               html: '<div class="bubble">影像台</div>',
-              longitude: 0.3368927313172293,
-              latitude:  -0.1478313488770011,
+              longitude: 0.7,
+              latitude:  0,
               anchor: 'center right',
               jump: false,
               video: 'https://prod-streaming-video-msn-com.akamaized.net/b7014b7e-b38f-4a64-bd95-4a28a8ef6dee/113a2bf3-3a5f-45d4-8b6f-e40ce8559da3.mp4',
@@ -559,7 +579,7 @@ export default {
               id:'toZhuYuanBu',
               tooltip:'住院部',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude:  4.791479477954955 ,
+              longitude:  8.5 ,
               latitude: -0.848180399122811,
               anchor: 'center right',
               jump: true,
@@ -569,7 +589,7 @@ export default {
             {
               id:'接待台',
               html: '<div class="bubble">接待台</div>',
-              longitude: 4.730593408331794,
+              longitude: 6.4,
               latitude: 0.0014482872080976428,
               anchor: 'center right',
               jump: false,
@@ -587,7 +607,7 @@ export default {
               id:'toQianTai',
               tooltip:'前台',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 1.641628825999798,
+              longitude: 6.5,
               latitude: -0.4750037687323192,
               anchor: 'center right',
               jump: true,
@@ -597,7 +617,7 @@ export default {
             {
               id:'指示灯',
               html: '<div class="bubble">指示灯</div>',
-              longitude: 4.730593408331794,
+              longitude: 6.5,
               latitude: 0.0014482872080976428,
               anchor: 'center right',
               jump: false,
@@ -658,9 +678,9 @@ export default {
               this.func = marker.config.func;
               this.operator = marker.config.operator;
               this.show.style.display = "block";
-              this.showVideo.style.display = "none";
+               this.showVideo.style.display = "none";
               // this.showFunc.style.display = "none";
-              // this.showOperator.style.display= "none";
+              //this.showOperator.style.display= "none";
             }
             }
         )
@@ -670,7 +690,7 @@ export default {
         this.showVideo.style.display = "none";
         this.showCard.style.display = "none";
         // this.showFunc.style.display = "none";
-        // this.showO perator.style.display= "none";
+        // this.showOperator.style.display= "none";
         console.log(`unClicked on marker ${marker.config.id}`);
       });
     },
@@ -695,6 +715,7 @@ export default {
 
     toggleOperator(){
       this.cardTitle="操作流程";
+
       this.cardContent = this.operator;
       this.showVideo.style.display = "none";
       this.showCard.style.display = "block";
@@ -722,9 +743,6 @@ export default {
 
 
 }
-//     function changeColor(element) {
-//   element.classList.toggle('clicked');
-// }
 
 
 
@@ -754,7 +772,7 @@ export default {
 
 
 .bubble:hover {
-  background-color: orange;
+  background-color: #b9cbff;
   cursor: pointer;
 }
 .bubble:hover::before {
@@ -764,7 +782,7 @@ export default {
   height: 0;
   border-style: solid;
   border-width: 10px 10px 0 10px;
-  border-color: orange transparent transparent transparent;
+  border-color: #4b7cff transparent transparent transparent;
   bottom: -10px;
   left: calc(50% - 10px);
 }
@@ -789,7 +807,7 @@ export default {
 .itemfunc{
   display: inline-block;
   padding: 3px 30px;
-  background-color: rgb(255, 149, 0);
+  background-color: rgb(179, 201, 255);
   opacity: 0.86;
   position: relative;
 }
