@@ -2,7 +2,9 @@
   <div class="card p-4" >
     <div class=" row">
       <div class="col-12">
+        <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
         <h3 style="margin-top: 20px">搜索结果</h3>
+
         <el-card class="custom-elcard">
           <el-table :data="pageMedCases" stripe style="margin-top: 20px">
             <el-table-column prop="medcase_id" label="病例ID" width="100"></el-table-column>
@@ -78,6 +80,9 @@ export default {
     }
   },
   methods: {
+    backto(){
+      this.$router.push({path: '/Category'});
+    },
     handleSizeChange(val) {
       this.pageSize = val;
       this.getPageMedCases();

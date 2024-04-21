@@ -1,107 +1,169 @@
 <template>
-  <div class="py-4 container-fluid">
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="btn-group ">
-          <button @click="gotocos" class="btn btn-success">返回</button>
-          <button @click="gotoqiantai" class="btn btn-success">前台模式</button>
-          <button @click="gotoyizhu" class="btn btn-success">医助模式</button>
-        </div>
-        <div class="row">
-          <div class="col-lg-4 mb-lg">
-            <!-- line chart -->
-            <div class="card z-index-2">
-              <div class="animation-slide-left">
-                <h4 class="mt-2 text-center">手术无菌要求</h4>
-                <dl class="mt-1 mx-auto" style="width: 300px;" v-if="showSterile">
-                  <dt>无菌手套</dt>
-                  <dd><small>- 任何一种洗手方法，都不能完全消灭皮肤深处的细菌，这些细菌在手术过程中逐渐移行到皮肤表面并迅速繁殖生长，故洗手之后必须穿上无菌手术衣，戴上无菌手套，方可进行手术。</small></dd>
-                  <dt>无菌器械</dt>
-                  <dd><small>- 一次性无菌医疗器械涵盖卫生材料、一次性医用手套、一次性输液器/输血器、医用纺织品、外科手术用器械、一次性导管（如导尿管、引流管等）、心内科手术用器械、血管手术器械、产科器械、麻醉器械、吸氧面罩等上千个品种。</small></dd>
-                  <dt>无菌技术</dt>
-                  <dd><small>- 无菌技术是通过清洁、消毒和灭菌等综合技术与措施，使手术环境、手术区域或局部操作部位的病原微生物尽量减少，以及所用的器械达到无菌，最大限度防止发生污染及感染。</small></dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-8">
-            <ysLunbo1 />
-          </div>
-        </div>
 
-        <div class="row mt-4">
-          <div class="col-lg-8">
-            <ysLunbo2 />
-          </div>
-          <div class="col-lg-4 mb-lg">
-            <!-- line chart -->
-            <div class="card z-index-2">
-              <div class="animation-slide-right">
-                <h4 class="mt-2 text-center">手术流程</h4>
-                <dl class="mt-1 mx-auto" style="width: 300px;" v-if="showProcedure">
-                  <dt>切开组织和止血</dt>
-                  <dd><small>- 切开组织后，动物体内组织暴漏出来，进行手术的部位也自然形成。虽然不同的组织采用不同的切割方法，将要进行的手术部位显露出来。而切割时要注意要在同意切口垂直进行模拟一次切割，也就是不能在一个切口上出现多个切伤。有助于术后的缝合，还可以避免切伤血管造成大出血。</small></dd>
-                  <dt>手术中的关键步骤</dt>
-                  <dd><small>- 止血的完善程度不仅关系着整个手术的操作过程和效率还关系.术后的恢复。手术过程中止血一般三个要点、牢。压迫止血法，最基本的止血方法;钳压止血法.前面提到使用止血钳的止血法;接扎止血法.使用止血
-钳钳住血管断裂口用丝线进行缝合。</small></dd>
-                  <dt>手术情况控制</dt>
-                  <dd><small>- 手术出现大意外事故时，手术人员第一选择应该是尽全力保全动物的生命安全。意外事故发生时，手术人员还应及时与动物主人进行交流，不可甩自决定继续成是停止。</small></dd>
-                </dl>
-              </div>
+  <div class="py-4 container-fluid">
+
+    <div class="row">
+
+      <div class="col-lg-12">
+        <el-card style="border-radius: 20px">
+
+          <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
+          <h3 style="margin-left:20px">医师</h3>
+          <div class="row" style='margin-top:20px'>
+            <div class="col-lg-6 mb-lg">
+              <el-card style="border-radius: 20px;height:350px" >
+                <el-carousel indicator-position="outside" style="height: 250px;width:370px;margin-top: 30px;margin-left:60px">
+                  <el-carousel-item v-for="(index, item) in imagesForQT" :key="item">
+                    <el-image :src=index />
+                  </el-carousel-item>
+                </el-carousel>
+              </el-card>
+            </div>
+            <div class="col-lg-6">
+              <el-card style="border-radius: 20px; height: 350px">
+                <h4>诊断与治疗</h4>
+                医师需要对宠物进行全面的体检，诊断其健康问题，并根据诊断结果制定治疗计划。这包括开处方药、进行外科手术、提供紧急治疗等。
+                医师负责正确开具处方，并指导宠物主人如何安全地给予宠物服药。他们还需要管理药物库存和确保药物使用的合规性。
+                在宠物出现紧急情况时，医师需要提供迅速的医疗响应，这可能包括在非常规工作时间内工作。
+              </el-card>
             </div>
           </div>
-        </div>
+
+          <div class="row mt-4" style="margin-top:20px">
+            <div class="col-lg-6">
+              <el-card style="border-radius: 20px">
+                <h4>实施手术与疾病预防</h4>
+                医师需进行各种手术，包括绝育手术、紧急手术等，以治疗特定的健康问题或伤害。<br>
+                医师负责为宠物提供定期的疫苗接种和健康检查，以预防各种疾病。此外，他们还会提供关于宠物饲养、营养和行为管理的建议，帮助预防可能的健康问题。<br>
+                医师需与医院内的其他职员（如护士、前台、手术室工作人员）协作，确保医疗服务的高效与顺畅。同时，他们也可能需要与外部的专家或其他医疗机构合作，以获取特殊疾病的咨询或转诊。<br>
+              </el-card>
+            </div>
+            <div class="col-lg-6 mb-lg">
+              <el-card style="border-radius: 20px;height:350px">
+                <el-carousel indicator-position="outside" style="height: 230px;margin-top: 30px;margin-left:80px;width:370px">
+                  <el-carousel-item v-for="(index, item) in imagesForQT2" :key="item">
+                    <el-image :src=index />
+                  </el-carousel-item>
+                </el-carousel>
+              </el-card>
+            </div>
+
+          </div>
+          <div class="row mt-4">
+            <div class="col-lg-6 mb-lg">
+              <el-card style="border-radius: 20px;height:350px">
+                <el-carousel indicator-position="outside" style="height: 230px;margin-top: 40px;width:400px;margin-left:50px">
+                  <el-carousel-item v-for="(index, item) in imagesForQT3" :key="item">
+                    <el-image :src=index />
+                  </el-carousel-item>
+                </el-carousel>
+              </el-card>
+            </div>
+            <div class="col-lg-6">
+              <el-card style="border-radius: 20px; height: 350px">
+                <h4>持续教育和专业发展</h4>
+                医师需要持续学习最新的医疗知识和技术，参加专业培训和研讨会，以保持其专业能力的前沿性。
+                宠物医院医师的职责不仅仅局限于医疗技术，还包括与宠物主人的沟通与教育，这有助于提升宠物的整体健康和生活质量。他们的专业技能、同情心和责任心是确保宠物及其主人满意度的关键。
+                参加研讨会和会议：全国或国际性的兽医会议和研讨会是医师获取最新医疗信息和技术的重要渠道。
+                在线课程和网络研讨会：随着技术的发展，许多教育平台和专业组织提供在线课程和网络研讨会，使医师能够在不离开工作岗位的情况下学习新知识。这些课程通常包括视频讲座、实时互动讨论和考试。
+                学术研究和发表：参与科学研究并将研究成果发表在同行评审的期刊上，不仅可以提高医师的专业知识，也有助于兽医学科的发展。
+              </el-card>
+            </div>
+          </div>
+        </el-card>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import ysLunbo1 from "../../../views/components/ysLunbo1.vue";
-import ysLunbo2 from "../../../views/components/ysLunbo2.vue";
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router";
+import {ElCard,ElCarousel, ElCarouselItem,ElImage} from "element-plus";
 
 export default {
-  name: "yishi",
-  data() {
-    return {
-      showSterile: true,
-      showProcedure: true,
-    };
+  name: "qiantai",
+  data(){
+    return{
+      imagesForQT:[
+        require('@/assets/img/yishi/yishi1.jpg'),
+        require('@/assets/img/yishi/yishi2.jpg'),
+        require('@/assets/img/yishi/yishi3.jpg'),
+      ],
+      imagesForQT2:[
+        require('@/assets/img/yishi/yishi4.jpg'),
+        require('@/assets/img/yishi/yishi5.jpg'),
+        require('@/assets/img/yishi/yishi6.jpg'),
+      ],
+      imagesForQT3:[
+        require('@/assets/img//yishi/yishi7.jpg'),
+        require('@/assets/img/yishi/yishi8.jpg'),
+        require('@/assets/img/yishi/yishi9.jpg'),
+      ],
+
+
+    }
   },
-  methods: {
-    setup() {
-      const store = useStore();
+  setup() {
+    const store = useStore();
 
-      // 在组件被挂载后，设置 showSidenavStudent 为 true
-      store.commit('setShowSidenavStudent', true);
-      onBeforeRouteLeave((to, from, next) => {
-        // 在离开此页前关闭sidenavadmin
-        store.commit('setShowSidenavStudent', false);
-        next();
-      });
+    // 在组件被挂载后，设置 showSidenavStudent 为 true
+    store.commit('setShowSidenavStudent', true);
+    onBeforeRouteLeave((to, from, next) => {
+      // 在离开此页前关闭sidenavadmin
+      store.commit('setShowSidenavStudent', false);
+      next();
+    });
 
-      return {};
+    return {};
+  },
+  methods:{
+    backto(){
+      this.$router.back();
     },
-    gotocos() {
-      this.$router.replace('/Cosplay');
+    gotocos(){
+      this.$router.replace('/Cosplay')
     },
-    gotoyizhu() {
-      this.$router.replace('/yizhu');
+    gotoyizhu(){
+      this.$router.replace('/yizhu')
     },
-    gotoqiantai() {
-      this.$router.replace('/qiantai');
+    gotoyishi(){
+      this.$router.replace('/yishi')
     }
   },
   components: {
-    ysLunbo1,
-    ysLunbo2,
+    ElCard,
+    ElCarousel,
+    ElCarouselItem,
+    ElImage
   },
 };
 </script>
 
 <style scoped>
+.el-carousel__item h3 {
+  display: flex;
+  color: #475669;
+  opacity: 0.75;
+  line-height: 300px;
+  margin: 0;
+}
+
+.el-carousel__item:nth-child(2n) {
+  background-color: #99a9bf;
+}
+
+.el-carousel__item:nth-child(2n + 1) {
+  background-color: #d3dce6;
+}
+.text-box-left {
+  animation: moveRight 1s forwards;
+}
+
+.text-box-right {
+  animation: moveLeft 1s forwards;
+}
+
 .animation-slide-left {
   animation: slideLeft 1s forwards;
 }
@@ -130,5 +192,28 @@ export default {
     opacity: 1;
     transform: translateX(0%);
   }
+}
+
+@keyframes moveRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes moveLeft {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+.py-4 container-fluid {
+  background-image: url('@/assets/img/background.jpg'); /* 替换 'your-background-image-url.jpg' 为你的背景图路径 */
+  background-size: cover; /* 让背景图铺满整个容器 */
+  background-position: center; /* 居中显示背景图 */
 }
 </style>

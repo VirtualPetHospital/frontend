@@ -3,7 +3,7 @@
   <div>
     <div class="buttons-container">
       <div  class="input-group" style="margin-bottom: 10px;">
-      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入关键词搜索" style="margin-left: 2%;">
+      <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入试卷名关键词搜索" style="margin-left: 2%;">
       <button @click="searchPapers" class="btn btn-primary">搜索</button>
       </div>
     </div>
@@ -11,11 +11,11 @@
     <div class="biaoge ps-3">
       <table class="table" bgcolor="#ffffff">
         <colgroup>
-          <col style="width: 5%">
           <col style="width: 7%">
-          <col style="width: 70%">
-          <col style="width: 7%">
-          <col style="width: 11%">
+          <col style="width: 10%">
+          <col style="width: 73%">
+          <col style="width: 10%">
+          <!-- <col style="width: 11%"> -->
         </colgroup>
         <thead>
           <tr>
@@ -27,7 +27,7 @@
               </div>
             </span>
             </div>
-            <div class="button-container" style="height: 100%;">
+            <div class="button-container2" style="height: 100%;">
             <button @click="upPaper()" class="btn btn-lg btn-block btn-warning" style="height: 100%;">确定试卷</button>
             </div>
               </th>
@@ -37,7 +37,7 @@
             <th scope="col" class="text-center">试卷ID</th>
             <th scope="col" class="text-center" style="word-break: break-word;">试卷名</th>
             <th scope="col" class="text-center" >题目数量</th>
-            <th scope="col" class="text-center rounded-top-right">试卷详情</th>
+            <!-- <th scope="col" class="text-center rounded-top-right">试卷详情</th> -->
           </tr>
         </thead>
         <tbody>
@@ -49,12 +49,12 @@
             <td class="text-center ">{{ paper.id }}</td>
         <td class="text-center " style="word-break: break-word;">{{ paper.name }}</td>
         <td class="text-center " >{{ paper.problemcount }}</td>
-        <td class="text-center ">
+        <!-- <td class="text-center "> -->
           <!-- 查看按钮 -->
           <!-- <button @click="openPaperDetails(paper)"  class="btn btn-primary">查看详情</button> -->
-          <button @click="myWatch(paper.id)" class="btn btn-primary">查看详情</button>
+          <!-- <button @click="myWatch(paper.id)" class="btn btn-primary">查看详情</button> -->
           <!-- <button @click="myWatch(paper.id)" class="btn btn-primary" style="margin-left: 5px;">修改试卷</button> -->
-        </td>
+        <!-- </td> -->
       </tr>
         </tbody>
       </table>
@@ -94,6 +94,34 @@
     </div>
   </div>
 </div>
+<transition name="modal">
+    <div class="modal-mask" v-if="showSearchWarning" @click="closeSearchWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>未搜索到满足条件的试卷</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSearchWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showPageWarning" @click="closePageWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p v-if="totalPages">跳转页码范围应在1-{{ totalPages }}之间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closePageWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -127,7 +155,7 @@ export default {
       selectedPaper: { id: '', name: '', problemcount: '',problems:[]},
       temppaper:0,
       temppapername:'',
-      pageSize:7,
+      pageSize:8,
       currentPage:1,
       totalPapers:0,
       selectedPapersMap: new Map(),
@@ -142,7 +170,10 @@ export default {
       tempselepaperid:0,
       tempselepapername:'',
       searchKeyword: '', // 搜索关键词
-      gotoPageNumber: '' // 用于存储跳转的页码
+      gotoPageNumber: '', // 用于存储跳转的页码
+      searchflag:'',//管理搜索关键词
+      showSearchWarning:false,
+      showPageWarning:false,
     };
   },
   created() {
@@ -275,7 +306,7 @@ export default {
         params: {
           page_size: this.pageSize,
           page_num: this.currentPage,
-          name: '', // 添加名称参数
+          name: this.searchflag, // 添加名称参数
         },
         withCredentials: true,
         headers: {
@@ -356,12 +387,13 @@ export default {
     }
   },
   async searchPapers() {
-    try {
+        this.searchflag = this.searchKeyword;
+        try {
       const response = await axios.get('/api/papers', {
         params: {
           page_size: this.pageSize,
-          page_num: this.currentPage,
-          name: this.searchKeyword, // 添加名称参数
+          page_num: 1,
+          name: this.searchflag, // 添加名称参数
         },
         withCredentials: true,
         headers: {
@@ -374,18 +406,37 @@ export default {
           id: record.paper_id, // 修改属性名为 paper_id
           name: record.name, // 添加试卷名
           problemcount: record.question_num, // 需要前端提供的题目数
+          // checked: false,
           checked: this.selectedPapersMap.get(record.paper_id) || false,
           problems:[],
         }));
           this.totalPapers = response.data.data.total;
+          this.gotoPage(1);
           this.paginatedPapers = this.papers;
           console.log(this.papers);
+          if(this.papers == '')
+          {
+            this.showSearchWarning = true;
+          }
+          else if(this.searchflag == '')
+          {
+            alert(`显示全部列表，共有 ${this.totalPapers} 条结果`);
+          }
+          else
+          {
+            alert(`搜索成功，共有 ${this.totalPapers} 条结果`);
+          }
         }
       } catch (error) {
         console.error('Error fetching papers:', error);
       }
     },
     gotoSpecifiedPage() {
+      if(!/^\d+$/.test(this.gotoPageNumber) || this.gotoPageNumber < 1 || this.gotoPageNumber > this.totalPages)
+      {
+        this.showPageWarning = true;
+        return ;
+      }
     const pageNumber = parseInt(this.gotoPageNumber); // 将输入的字符串转换为整数
     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= this.totalPages) {
       // 如果输入的是一个有效的页码，则跳转到该页
@@ -396,6 +447,14 @@ export default {
     }
     // 清空输入框内容
     this.gotoPageNumber = '';
+  },
+  closeSearchWarning()
+  {
+    this.showSearchWarning = false;
+  },
+  closePageWarning()
+  {
+    this.showPageWarning = false;
   },
   },
   components: {
@@ -488,25 +547,29 @@ margin-bottom: 10px;
   width: 100%; /* 让容器宽度和弹窗一样 */
   box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
 }
-
+.button-container2{
+  display: flex;
+  /* justify-content: center; 让按钮居中 */
+  width: 100%; /* 让容器宽度和弹窗一样 */
+  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
+}
 .modal-container .button-container button {
   margin: 0 10%; /* 调整按钮之间的间距 */
 }
 /* 纵向分隔线样式 */
-.table td,
+/* .table td,
 .table th {
-  border-right: 1px solid #dee2e6; /* 添加纵向分隔线 */
-}
+  border-right: 1px solid #dee2e6; 
+} */
 
 .table th:last-child,
 .table td:last-child {
   border-right: none; /* 最后一列去除右侧分隔线 */
 }
-
-.table tbody tr:last-child td:not(:last-child) {
-  border-right: 1px solid #dee2e6; /* 右侧边框线 */
-  /* border-left: 1px solid #dee2e6; */
-}
+/* 右侧边框线 */
+/* .table tbody tr:last-child td:not(:last-child) {
+  border-right: 1px solid #dee2e6; 
+} */
 .table td {
   white-space: pre-wrap;
 }

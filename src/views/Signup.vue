@@ -11,7 +11,7 @@
         />
 
         <el-card class="box-card">
-          <div slot="header" class="card-header">登录</div>
+          <h3 style="margin-left: 150px;margin-bottom: 20px">注册</h3>
         <el-form :model="ruleForm" label-position="left" status-icon :rules="rules" ref="ruleForm"  class="demo-ruleForm">
           <el-form-item prop="nickname">
             <el-input type="nickname" v-model="ruleForm.nickname" placeholder="用户名" autocomplete="off"></el-input>
@@ -23,10 +23,10 @@
           <el-form-item prop="email">
             <div class="row">
               <div class="col-sm-7">
-                <el-input v-model="ruleForm.email" placeholder="邮箱" autocomplete="off"></el-input>
+                <el-input type="email" v-model="ruleForm.email" placeholder="邮箱" autocomplete="off"></el-input>
               </div>
               <div class="col-sm-2">
-                <el-button style="background-color: rgba(255,127,0,0.4) " @click="sendCaptcha(ruleForm.email)">发送验证码</el-button>
+                <el-button type="captcha" style="background-color: rgba(255,127,0,0.4) " @click="sendCaptcha(ruleForm.email)">发送验证码</el-button>
               </div>
             </div>
           </el-form-item>
@@ -157,7 +157,7 @@ export default {
               method: 'post',
               url: '/api/users',
               headers: {
-                'Session': '{{session}}',
+                'Session': sessionStorage,
                 'Content-Type': 'application/json',
               },
               data: data
@@ -182,7 +182,7 @@ export default {
           method:'post',
           url:'/api/users/captcha',
           headers: {
-            'Session': sessionStorage,
+            'Session': sessionStorage.getItem('sessionId'),
             'Content-Type': 'application/json',
           },
           data : data
@@ -210,7 +210,7 @@ export default {
         method:'get',
         url:'/api/users/email',
         headers: {
-          'Session': '{{session}}',
+          'Session':  sessionStorage.getItem('sessionId'),
           'Content-Type': 'application/json',
         },
         data : data

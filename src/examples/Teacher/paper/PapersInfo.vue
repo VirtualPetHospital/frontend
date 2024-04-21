@@ -28,6 +28,7 @@
                 <div class="box-list">
                   <div
                       class="box normal-box question_cbox"
+                      style="padding-left: 0px"
                       v-for="(question,index) in this.paper.questions"
                       :key="index"
                   >
@@ -69,6 +70,19 @@
       </div>
     </div>
   </div>
+  <transition name="modal">
+    <div class="modal-mask" v-if="showWarning" @click="closeWarning">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>题目数量应为1-40之间的整数</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeWarning">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
 </template>
 <script>
 import { defineComponent, ref, reactive} from 'vue'
@@ -95,6 +109,7 @@ export default{
       paper:[],
       showInputBox: false,
       newQuestionNum: '',
+      showWarning: false,
     }
   },
   methods:{
@@ -230,12 +245,21 @@ export default{
       });
     },
     confirmNewQuestionNum() {
+      if(!/^\d+$/.test(this.newQuestionNum) || this.newQuestionNum < 1 || this.newQuestionNum > 40)
+      {
+        this.showWarning = true;
+        return ;
+      } 
       if (this.newQuestionNum !== '') {
         const tempname = this.paper.name;
         this.$router.push({ name: '重选试题', params: { tempid:this.exam_id,tempname:tempname, tempproblemcount: this.newQuestionNum } });
       } else {
         console.error(`请输入试题总数`);
       }
+    },
+    closeWarning()
+    {
+      this.showWarning = false;
     },
   },
   components:{
@@ -417,5 +441,54 @@ export default{
   width: 50%; /* 设置输入框宽度为父元素宽度的 70% */
   height: 40px; /* 设置输入框高度为 30px */
 }
+/* 弹出窗口样式 */
+.modal-mask {
+position: fixed;
+z-index: 9998;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.5);
+display: flex;
+justify-content: center;
+align-items: center;
+}
 
+.modal-wrapper {
+width: 100%;
+}
+
+.modal-container {
+padding: 20px;
+background-color: #ffffff;
+border-radius: 5px;
+box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+width: 40%; /* 设置弹窗宽度 */
+left: 20%; /* 设置弹窗左侧距离为页面宽度的40% */
+}
+
+.modal-container h3 {
+margin-bottom: 15px;
+}
+
+.modal-container label {
+display: block;
+margin-bottom: 10px;
+}
+
+.modal-container input {
+width: calc(100% - 10px);
+margin-bottom: 10px;
+}
+.modal-container .button-container {
+  display: flex;
+  justify-content: center; /* 让按钮居中 */
+  width: 100%; /* 让容器宽度和弹窗一样 */
+  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
+}
+
+.modal-container .button-container button {
+  margin: 0 10%; /* 调整按钮之间的间距 */
+}
 </style>

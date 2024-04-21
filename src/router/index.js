@@ -1,16 +1,16 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory  } from 'vue-router'
+
 import Dashboard from "../views/Dashboard.vue";
-import Tables from "../views/Tables.vue";
-import VirtualReality from "../views/VirtualReality.vue";
-import RTL from "../views/Rtl.vue";
 import Profile from "../views/Profile.vue";
+import Profile2 from "../views/Profile2.vue";
+import Profile3 from "../views/Profile3.vue";
 import Signup from "../views/Signup.vue";
 import Signin from "../views/Signin.vue";
 import Cosplay from "../examples/Student/cosplay/Cosplay.vue";
 import qiantai from "../examples/Student/cosplay/qiantai.vue";
 import yizhu from "../examples/Student/cosplay/yizhu.vue";
 import yishi from "../examples/Student/cosplay/yishi.vue";
-import HospitalGuide from "../examples/Student/HospitalGuide.vue";
+import overview from "../examples/Student/HospitalGuide/overview.vue";
 import Myexam from "../examples/Student/exams/Myexam.vue"
 import DashboardTeacher from "@/examples/Teacher/DashboardTeacher.vue";
 import DashboardAdmin from "@/examples/Admin/DashboardAdmin.vue";
@@ -31,20 +31,25 @@ import PapersInfo from "../examples/Teacher/paper/PapersInfo.vue";
 import SelectQuestions from "../examples/Teacher/paper/SelectQuestions.vue";
 import SelectPaper from "../examples/Teacher/exam/SelectPaper.vue";
 import ExamsTeacher from "../examples/Teacher/exam/ExamsTeacher.vue";
-import UserManagement from "@/examples/Admin/userManagement/UserManagement.vue";
-import MedcaseManagement from "@/examples/Admin/medcaseManagement/MedcaseManagement.vue";
-import InspectionManagement from "../examples/Admin/inspectionManagement/InspectionManagement.vue";
-import MedicineManagement from "../examples/Admin/medicineManagement/MedicineManagement.vue";
-import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue";
-import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue";
-import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue";
-import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue";
-import TTT from "../examples/Admin/testMe/testtest.vue";
-import Medicines_detail from "@/examples/Admin/medicineManagement/Medicines.vue";
+
+import UserManagement from "@/examples/Admin/userManagement/UserManagement.vue"
+import MedcaseManagement from "@/examples/Admin/medcaseManagement/MedcaseManagement.vue"
+import InspectionManagement from "../examples/Admin/inspectionManagement/InspectionManagement.vue"
+import MedicineManagement from "../examples/Admin/medicineManagement/MedicineManagement.vue"
+import RoomManagement from "../examples/Admin/roomManagement/RoomManagement.vue"
+import DiseaseManagement from "../examples/Admin/medcaseManagement/DiseaseManagement.vue"
+import Scene from "@/examples/Student/HospitalGuide/Scene.vue";
+import HospitalGuide from "@/examples/Student/HospitalGuide.vue";
+import Chat from "@/examples/Student/chat/Chat.vue";
+import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue"
+import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue"
+import TTT from "../examples/Admin/testMe/testtest.vue"
+
 import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
 import ExamsInfo from  "../examples/Teacher/exam/ExamsInfo.vue"
 import ReselectQuestions from "../examples/Teacher/paper/ReselectQuestions.vue";
+import HistoryMedcase from "@/examples/Student/Medicase/HistoryMedcase.vue";
 const routes = [
   {
     path: "/",
@@ -72,6 +77,11 @@ const routes = [
     component: Dashboard,
   },
   {
+    path: "/photoSphere",
+    name: "PhotoSphere",
+    component: Scene,
+  },
+  {
     path: "/Cosplay",
     name: "Cosplay",
     component: Cosplay,
@@ -79,12 +89,7 @@ const routes = [
   {
     path: "/HospitalGuide",
     name: "医院导览",
-    component: HospitalGuide,
-  },
-  {
-    path: "/tables",
-    name: "Tables",
-    component: Tables,
+    component:HospitalGuide,
   },
   {
     path: "/Category",
@@ -92,19 +97,19 @@ const routes = [
     component: Category,
   },
   {
-    path: "/virtual-reality",
-    name: "Virtual Reality",
-    component: VirtualReality,
-  },
-  {
-    path: "/rtl-page",
-    name: "RTL",
-    component: RTL,
-  },
-  {
     path: "/profile",
     name: "Profile",
     component: Profile,
+  },
+  {
+    path: "/profile2",
+    name: "Profile2",
+    component: Profile2,
+  },
+  {
+    path: "/profile3",
+    name: "Profile3",
+    component: Profile3,
   },
   {
     path: '/:diseaseName/medcases',
@@ -120,6 +125,11 @@ const routes = [
     path: "/signup",
     name: "Signup",
     component: Signup,
+  },
+  {
+    path: "/Chat",
+    name: "Chat",
+    component: Chat,
   },
   {
     path: "/qiantai",
@@ -160,6 +170,11 @@ const routes = [
     path:"/medcase/:medcaseId",
     name:"Medcase",
     component:Medcase,
+  },
+  {
+    path:"/medcase/:medcaseId",
+    name:"HistoryMedcase",
+    component:HistoryMedcase,
   },
   {
     path:"/:medcaseId/medicines",
@@ -285,6 +300,7 @@ const routes = [
     name:"答题情况",
     component:ExamsInfo,
   },
+
   {
     path:"/ReselectQuestions/:tempid/:tempname/:tempproblemcount",
     name:"重选试题",
@@ -302,10 +318,13 @@ const routes = [
   },
 ];
 
+
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
   linkActiveClass: "active",
 });
+
+
 
 export default router;

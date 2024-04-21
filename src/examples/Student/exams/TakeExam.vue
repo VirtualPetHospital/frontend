@@ -2,7 +2,11 @@
   <div class="card p-4" >
     <div class=" row">
       <div class="col-12">
-        <h3>考试名：{{name}}</h3>
+        <div class="row">
+          <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
+          <h3>考试名：{{name}}</h3>
+        </div>
+
         <el-container>
           <el-aside class="asideLeft">
             <div class="aside_div">
@@ -20,9 +24,14 @@
                   <div class="fs16">
                     单选题
                 </div>
+                  <div>
+                    <div class="time">离考试结束时间还有：{{countDown}}</div>
+                  </div>
+
                   <div class="box-list">
                     <div
                         class="box normal-box question_cbox"
+                        style="padding-left: 0px"
                         v-for="(question,index) in paper.questions"
                         :key="index"
                     >
@@ -79,6 +88,25 @@ import {ElHeader, ElRadio, ElRadioGroup, ElAside, ElContainer
 import axios from "axios";
 export default{
   name:"TakeExam",
+  created() {
+    if(sessionStorage.getItem('exam_time')===null){
+    this.startCountDown();
+  } else {
+    this.countDownTime = Number(window.sessionStorage.getItem("exam_time"));
+    this.startCountDown();
+  }},
+
+  computed: {
+    // 计算属性自动计算countDownTime,并转换为倒计时
+    countDown() {
+      const minutes = Math.floor(this.countDownTime / 60);
+      const seconds = this.countDownTime % 60;
+      const m = minutes < 10 ? "0" + minutes : minutes;
+      const s = seconds < 10 ? "0" + seconds : seconds;
+      return `${m}:${s}`;
+    },
+  },
+
   data(){
     return{
       exam_id:null,
@@ -87,6 +115,9 @@ export default{
       end_time:null,
       duration:null,
       level:null,
+      countDownTime: 1800,  //设置默认时间,(单位秒)
+      timer: null,  //计数器名称,便于后面清除
+
       participated:null,
       paper:{
         paper_id:null,
@@ -108,6 +139,28 @@ export default{
     }
   },
   methods:{
+    convertMinToHms(min){
+      var seconds=min*60;
+      return seconds;
+    },
+    startCountDown() {
+      this.timer = setInterval(() => {
+        if (this.countDownTime <= 0) {
+          //当监测到countDownTime为0时,清除计数器并且移除sessionStorage,然后执行提交试卷逻辑
+          clearInterval(this.timer);
+          sessionStorage.removeItem("exam_time");
+          alert("自动为您提交试卷");
+          this.submitExam();
+        } else if (this.countDownTime > 0) {
+          //每秒让countDownTime -1秒,并设置到sessionStorage中
+          this.countDownTime--;
+          window.sessionStorage.setItem("exam_time", this.countDownTime);
+        }
+      }, 1000);
+    },
+    backto(){
+      this.$router.go(-1);
+    },
     selectQuestion(questionId) {
       const index = this.paper.questions.findIndex(question => question.question_id === questionId);
       if (index !== -1) {
@@ -188,12 +241,13 @@ export default{
     },
     submitExam() {
       this.answerSheet.shift();
+      this.answerSheet.sort((a, b) => a.question_id - b.question_id);
       console.log(this.answerSheet);
       axios.post(
           '/api/answer-sheets',
           {
             exam_id:this.exam_id,
-            answers:this.answerSheet
+            answers:this.answerSheet,
           },
           {
             withCredentials : true,
@@ -204,10 +258,8 @@ export default{
             }}
       ).then(response=>{
         const data=response.data.data;
-        const code=data.code;
-        if(code===200){
+        this.$router.go(-1);
           console.log("提交成功");
-        }
       })
 
     },
@@ -240,6 +292,7 @@ export default{
         this.start_time = examData.start_time;
         this.end_time = examData.end_time;
         this.duration = examData.duration;
+        this.countDownTime=this.convertMinToHms(this.duration);
         this.level = examData.level;
         this.participated = examData.participated;
         this.paper.paper_id = examData.paper.paper_id;
@@ -482,4 +535,10 @@ export default{
       cursor: pointer;
     }
     }}
+/deep/ .el-radio{
+  display: block;
+  line-height: 23px;
+  white-space: normal;
+  margin-right: 0;
+}
 </style>

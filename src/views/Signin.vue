@@ -40,13 +40,13 @@ export default {
       console.log(userType);
       switch (userType) {
         case 'student':
-        {this.$router.push('/dashboard-student');
+        {this.$router.push('/Cosplay');
           break;}
         case 'teacher':
-        {this.$router.push('/dashboard-teacher');
+        {this.$router.push('/PapersTeacher');
           break;}
         case 'administrator':
-        {this.$router.push('/dashboard-admin');
+        {this.$router.push('/UserManagement');
           break;}
         default:
           console.error('未知的用户类型:', userType);
@@ -211,7 +211,7 @@ onBeforeUnmount(() => {
                     >记住密码</el-checkbox>
                       </el-form-item>
                       <el-form-item>
-                        <el-button style="background-color: rgba(255,127,0,0.6)" @click="login">登录</el-button>
+                        <el-button style="background-color: #b3d4fc;padding-left: 30px;padding-right:30px;margin-left: 120px" @click="login">登录</el-button>
                       </el-form-item>
                   </el-form>
 
@@ -240,5 +240,25 @@ onBeforeUnmount(() => {
   background-image: url('@/assets/img/background.jpg'); /* 替换 'your-background-image-url.jpg' 为你的背景图路径 */
   background-size: cover; /* 让背景图铺满整个容器 */
   background-position: center; /* 居中显示背景图 */
+}
+.custom-button {
+  margin-left: 25px;
+  /* 设置背景颜色 */
+  background-color: #7F97FC;
+  /* 设置边框颜色和样式 */
+  border: 2px solid #01A7F0;
+  /* 设置字体颜色 */
+  color: #00449C;
+  padding-left: 10px;
+  padding-right: 10px;
+  /* 设置字体大小 */
+  font-size: 14px;
+  /* 设置圆角 */
+  border-radius: 3px;
+  /* 设置按钮悬停时的背景颜色 */
+  &:hover {
+    background-color: #FFFFFF;
+    border-color: #66B1FF;
+  }
 }
 </style>

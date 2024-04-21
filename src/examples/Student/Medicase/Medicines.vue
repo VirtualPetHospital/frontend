@@ -1,6 +1,7 @@
 <template>
   <div class="card p-4" >
     <div class=" row">
+      <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
       <div class="col-12">
         <h3>所需药品列表</h3>
         <el-table  :data="pageMedicinesInfo" stripe style="margin-top: 20px">
@@ -94,6 +95,9 @@ export default{
 
   },
   methods:{
+    backto(){
+      this.$router.go(-1);
+    },
     getpageMedicinesInfo(){
       this.pageMedicinesInfo=[];
       for(let i=(this.pageNum-1)*this.pageSize;i<this.total;i++) {
@@ -103,12 +107,14 @@ export default{
         if (this.pageMedicinesInfo.length === this.pageSize) break;
       }
     },
-    async fetchMedicinesInfo(){
-      const medicines=toRaw(this.$route.params.medicines);
-      this.total=this.$route.params.total;
-      for(const medicine of medicines){
+    async fetchMedicinesInfo(medicines){
+
+      console.log("medi"+medicines);
+      for(let i=0;i<medicines.length;i++){
         try{
-          const response = await axios.get(`/api/medicines/${medicine.id}`,
+
+          console.log(medicines[i].id);
+          const response = await axios.get(`/api/medicines/${medicines[i].id}`,
               {
                 withCredentials : true,
                 headers:{
@@ -116,11 +122,13 @@ export default{
                   'Content-Type': 'application/json',},
 
               });
-          const {name,price}=response.data();
+          console.log(response.data.data);
+          const name=response.data.data.name;
+          const price=response.data.data.price;
           this.medicinesInfo.push({
-            id:medicine.id,
+            id:medicines[i].id,
             name:name,
-            num:medicine.num,
+            num:medicines[i].num,
             price:price
           });
         }catch(error){

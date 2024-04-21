@@ -115,9 +115,20 @@ const getRoute = () => {
 
       <li class="nav-item">
         <sidenav-item
-            to="/TTT"
-            :class="getRoute() === 'TTT' ? 'active' : ''"
-            :navText="isRTL ? 'TTT' : '测试'"
+            to="/profile3"
+            :class="getRoute() === 'profile3' ? 'active' : ''"
+            :navText="isRTL ? 'profile3' : '个人主页'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
+      <li class="nav-item">
+        <sidenav-item
+            to="/signin"
+            :class="getRoute() === 'signin' ? 'active' : ''"
+            :navText="isRTL ? 'signin' : '退出登录'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
@@ -131,26 +142,4 @@ const getRoute = () => {
     </ul>
   </div>
 
-  <div class="pt-3 mx-3 mt-3 sidenav-footer">
-    <sidenav-card
-        :card="{
-        title: 'Need Help?',
-        description: 'Please check our docs',
-        links: [
-          {
-            label: 'Documentation',
-            route:
-              'https://www.creative-tim.com/learning-lab/vue/overview/argon-dashboard/',
-            color: 'dark',
-          },
-          {
-            label: 'Buy now',
-            route:
-              'https://www.creative-tim.com/product/vue-argon-dashboard-pro?ref=vadp',
-            color: 'success',
-          },
-        ],
-      }"
-    />
-  </div>
 </template>

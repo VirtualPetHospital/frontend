@@ -1,4 +1,4 @@
-<script setup>
+script setup>
 import MasterCard from "@/examples/Cards/MasterCard.vue";
 import DefaultInfoCard from "@/examples/Cards/DefaultInfoCard.vue";
 import PaymentCard from "./components/PaymentCard.vue";

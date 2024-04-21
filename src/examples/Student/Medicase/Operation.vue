@@ -1,7 +1,9 @@
 <template>
   <div class="card p-4" >
     <div class=" row">
+      <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
       <div class="col-12">
+
         <h3>{{name}}的手术详情</h3>
         <div class="row">
           <div class="col-6">
@@ -69,6 +71,9 @@ import axios from "axios";
 export default{
   name:"Operation",
   methods:{
+    backto(){
+      this.$router.go(-1);
+    },
     async fetchOperationDetails(operationId) {
       try {
         const response = await axios.get(`/api/operations/${operationId}`,

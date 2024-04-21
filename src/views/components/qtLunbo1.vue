@@ -4,7 +4,7 @@
       <div class="carousel-inner border-radius-lg h-100">
         <div
           class="carousel-item h-100 active"
-          :style="{backgroundImage: 'url(' + require('@/assets/img/daolan1.jpg') + ')',
+          :style="{backgroundImage: 'url(' + require('@/assets/img/passageway.jpg') + ')',
   backgroundSize: 'cover'}"
         >
           <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
@@ -12,7 +12,7 @@
               <i class="ni ni-camera-compact text-dark opacity-10"></i>
             </div>
             <h5 class="text-white mb-1">3D智慧导览</h5>
-            <p>精通宠物医院3D导览的使用和常见问题的处理，帮助病人快速上手3D导览</p>
+            <p>帮助病人快速上手3D导览</p>
           </div>
         </div>
         <div
@@ -24,14 +24,14 @@
             <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
               <i class="ni ni-bulb-61 text-dark opacity-10"></i>
             </div>
-            <h5 class="text-white mb-1">咨询服务台</h5>
-            <p>对病人的各项检查，能够讲解有关要求及注意事项。
-              <br>为病人就诊提供服务，做好宣传教育。尽量满足病人的合理要求。</p>
+            <h5 class="text-white mb-1">服务台</h5>
+            <p>对病人的各项检查
+              <br>为病人就诊提供基础服务</p>
           </div>
         </div>
         <div
           class="carousel-item h-100"
-          :style="{backgroundImage: 'url(' + require('@/assets/img/daolan3.jpg') + ')',
+          :style="{backgroundImage: 'url(' + require('@/assets/img/passageway.jpg') + ')',
   backgroundSize: 'cover'}"
         >
           <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
