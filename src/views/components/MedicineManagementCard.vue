@@ -203,7 +203,7 @@ export default {
             console.log('走哪里了',response.data.msg);
             console.log('走哪里了',response.data.code);
             // 处理成功响应，例如重新加载病种列表
-            if (response.data && response.data.code === -1 ) {
+            if (response.data && response.data.code !== 0 ) {
               // 如果返回了错误消息，显示消息提示
               //this.$message.error(response.data.msg);
               console.log('走');
@@ -256,16 +256,25 @@ export default {
               }
             }
           ).then(response => {
-            // 处理成功响应，例如重新加载药品列表
-            ElMessage({
+            if(response.data.code !== 0){
+              ElMessage({
                 message: response.data.msg,
-                type: 'success',
+                type: 'warning',
                 duration: 3000
               });
-            // 清空选中行
-            this.selectedRow = null;
-            this.fetchMedicines();
-            //location.reload();
+            }else{
+               // 处理成功响应，例如重新加载药品列表
+              ElMessage({
+                  message: response.data.msg,
+                  type: 'success',
+                  duration: 3000
+                });
+              // 清空选中行
+              this.selectedRow = null;
+              this.fetchMedicines();
+              //location.reload();
+            }
+           
           }).catch(error => {
             // 处理错误
             console.error('Error deleting medicine:', error);
@@ -355,7 +364,7 @@ export default {
             console.log('走哪里了',response.data.msg);
             console.log('走哪里了',response.data.code);
             // 处理成功响应，例如重新加载病种列表
-            if (response.data && response.data.code === -1 ) {
+            if (response.data && response.data.code !== 0 ) {
               // 如果返回了错误消息，显示消息提示
               //this.$message.error(response.data.msg);
               console.log('走');

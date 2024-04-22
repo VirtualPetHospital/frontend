@@ -362,16 +362,25 @@
                 }
               }
             ).then(response => {
-              ElMessage({
-                message: response.data.msg,
-                type: 'success',
-                duration: 3000
-              });
-              // 处理成功响应，例如重新加载病种列表
-              this.fetchOperations();
-              // 清空选中行
-              this.selectedRow = null;
-              //location.reload();
+              if(response.data.code !== 0){
+                ElMessage({
+                  message: response.data.msg,
+                  type: 'warning',
+                  duration: 3000
+                });
+              }else{
+                ElMessage({
+                  message: response.data.msg,
+                  type: 'success',
+                  duration: 3000
+                });
+                // 处理成功响应，例如重新加载病种列表
+                this.fetchOperations();
+                // 清空选中行
+                this.selectedRow = null;
+                //location.reload();
+              }
+              
             }).catch(error => {
               // 处理错误
               console.error('Error deleting operation:', error);
@@ -442,7 +451,7 @@
               }
             });
 
-            if (response.data && response.data.code === -1 ) {
+            if (response.data && response.data.code !== 0 ) {
               // 如果返回了错误消息，显示消息提示
               //this.$message.error(response.data.msg);
               console.log('走');
@@ -515,7 +524,7 @@
             'Content-Type': 'application/json', // 使用 application/json 类型
           }
         });
-        if (response.data && response.data.code === -1 ) {
+        if (response.data && response.data.code !== 0 ) {
               // 如果返回了错误消息，显示消息提示
               //this.$message.error(response.data.msg);
               console.log('走');

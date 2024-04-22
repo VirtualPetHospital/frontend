@@ -45,6 +45,7 @@ import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryMana
 import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue"
 import TTT from "../examples/Admin/testMe/testtest.vue"
 import Operation_D from "@/examples/Admin/medcaseManagement/Operation_D.vue";
+import Medicines_D from "@/examples/Admin/medcaseManagement/Medicines_D.vue";
 
 import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
@@ -182,6 +183,12 @@ const routes = [
     name:"Medicines",
     component:Medicines,
   },
+  {
+    path:"/:medcaseId/medicine",
+    name:"药品详情-管理员",
+    component:Medicines_D,
+  },
+
   {
     path:"/operation/:operation_id",
     name:"Operation",

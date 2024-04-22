@@ -209,7 +209,7 @@
                 console.log('走哪里了',response.data.msg);
                 console.log('走哪里了',response.data.code);
                 // 处理成功响应，例如重新加载病种列表
-                if (response.data && response.data.code === -1 ) {
+                if (response.data && response.data.code !== 0 ) {
                   // 如果返回了错误消息，显示消息提示
                   //this.$message.error(response.data.msg);
                   console.log('走');
@@ -273,15 +273,24 @@
                 }
               }
             ).then(response => {
-              ElMessage({
-                message: response.data.msg,
-                type: 'success',
-                duration: 3000
-              });
-              // 处理成功响应，例如重新加载病种列表
-              this.fetchCategories();
-              // 清空选中行
-              this.selectedRow = null;
+              console.log('返回什么',response);
+              if(response.data.code == 13001){
+                ElMessage({
+                  message: response.data.msg,
+                  type: 'warning',
+                  duration: 3000
+                });
+              }else{
+                ElMessage({
+                  message: response.data.msg,
+                  type: 'success',
+                  duration: 3000
+                });
+                // 处理成功响应，例如重新加载病种列表
+                this.fetchCategories();
+                // 清空选中行
+                this.selectedRow = null;
+              }
             }).catch(error => {
               // 处理错误
               console.error('Error deleting category:', error);
@@ -371,7 +380,7 @@
                 console.log('走哪里了',response.data.msg);
                 console.log('走哪里了',response.data.code);
                 // 处理成功响应，例如重新加载病种列表
-                if (response.data && response.data.code === -1 ) {
+                if (response.data && response.data.code !== 0 ) {
                   // 如果返回了错误消息，显示消息提示
                   //this.$message.error(response.data.msg);
                   console.log('走');

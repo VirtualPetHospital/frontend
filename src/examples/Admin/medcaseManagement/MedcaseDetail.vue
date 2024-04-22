@@ -281,11 +281,11 @@ export default{
     goToMedicines(){
       const medcaseId=this.medCase.medcaseId;
       console.log(this.medCase.medicines);
-      const medicinesQuery = this.medCase.medicines.map(medicine => `${medicine.id}:${medicine.num}`).join(',');
+      const medicinesQuery = JSON.stringify(this.medCase.medicines);
 
       // 使用 $router.push 将数据作为查询参数传递给目标路由组件
       this.$router.push({
-        name: 'Medicines',
+        name: '药品详情-管理员',
         query: {
           medcaseId: medcaseId,
           medicines: medicinesQuery,
@@ -311,23 +311,26 @@ export default{
       this.medCase.disease_id = data.disease_id;
       this.medCase.info_description = data.info_description;
       const tmp=data.info_photo;
+      if(tmp!=null){
       if(tmp.startsWith('http')){
         this.medCase.info_photo=data.info_photo;
       }else{
         this.medCase.info_photo = "http://47.103.131.161:10010/files/"+data.info_photo;
-      }
+      }}
       const tmp2=data.info_video;
-      if(tmp2.startsWith('http')){
+      if(tmp2!=null){
+      if(tmp2&&tmp2.startsWith('http')){
         this.medCase.info_video = data.info_video;
       }else{
         this.medCase.info_video = "http://47.103.131.161:10010/files/"+data.info_video;
-      }
+      }}
       console.log(this.medCase.info_photo);
       this.medCase.operation_id = data.operation_id;
       this.medCase.inspections = data.inspections;
       this.handleChart(this.medCase.inspections);
       this.playerOptions.sources[0].src=this.medCase.info_video;
       this.medCase.medicines = data.medicines;
+      console.log("medcaseMedicines"+this.medCase.medicines);
     },
     async fetchMedCaseMock(medcaseId) {
       try {

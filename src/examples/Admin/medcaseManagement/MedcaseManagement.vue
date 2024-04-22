@@ -406,7 +406,7 @@
       <div class="row">
         <div class="col-12">
           <div class="user-management-container">
-            <div class="role-play-title">病历管理</div>
+            <div class="role-play-title">病例管理</div>
             <div class="container sectionHeight">
               <!-- 搜索栏 -->
               <el-input
@@ -1058,7 +1058,7 @@
           console.log('走哪里了',response.data.msg);
           console.log('走哪里了',response.data.code);
           // 处理成功响应，例如重新加载病种列表
-          if (response.data && response.data.code === -1 ) {
+          if (response.data && response.data.code !== 0 ) {
             // 如果返回了错误消息，显示消息提示
             //this.$message.error(response.data.msg);
             console.log('走');
@@ -1258,7 +1258,7 @@
           console.log('走哪里了',response.data.msg);
           console.log('走哪里了',response.data.code);
           // 处理成功响应，例如重新加载病种列表
-          if (response.data && response.data.code === -1 ) {
+          if (response.data && response.data.code !== 0 ) {
             // 如果返回了错误消息，显示消息提示
             //this.$message.error(response.data.msg);
             console.log('走');
