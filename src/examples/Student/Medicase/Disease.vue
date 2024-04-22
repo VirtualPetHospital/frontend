@@ -193,9 +193,19 @@ export default{
       console.log(response.data.data);
       const data = response.data.data;
       this.description = data.description;
-
-      this.video = data.video;
-        this.playerOptions.sources[0].src="http://47.103.131.161:10010/files/"+this.video;
+      const tmp=data.photo;
+      if(tmp.startsWith('http')){
+        this.photo=data.photo;
+      }else{
+        this.photo="http://47.103.131.161:10010/files/"+data.photo;
+      }
+        const tmp2=data.video;
+        if(tmp2.startsWith('http')){
+          this.video = data.video;
+        }else{
+          this.video = "http://47.103.131.161:10010/files/"+data.video;
+        }
+        this.playerOptions.sources[0].src=this.video;
         console.log("xhsdsddsd"+this.playerOptions.sources[0].src);
 
       }

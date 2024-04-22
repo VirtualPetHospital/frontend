@@ -61,6 +61,10 @@ export default{
     ElImage
   },
   mounted() {
+    this.messageList.push({
+      content:'你好，我是智能宠物医疗助手，请输入您的问题',
+      user:'robot'
+    });
     watch(this.messageList.value, () => {
       document.getElementById('content').scrollTop = document.getElementById('content').scrollHeight;
     });

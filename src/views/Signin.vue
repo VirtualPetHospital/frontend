@@ -73,6 +73,9 @@ export default {
       try {
         axios(config)
             .then(response => {
+              if(response.data.code===1005){
+                alert('用户名或密码错误,请重新输入');
+              }
               console.log(response.headers['session']);
               const user_id=response.data.data.user_id;
               sessionStorage.setItem('nickname', this.loginRuleForm.nickname);

@@ -90,8 +90,23 @@ export default{
         this.name = operationDetails.name;
         this.price = operationDetails.price;
         this.description = operationDetails.description;
-        this.photo = operationDetails.photo;
-        this.video = operationDetails.video;
+        const tmp=operationDetails.photo;
+        if(tmp!=null){
+        if(tmp.startsWith('http')){
+          this.photo=operationDetails.photo;
+        }else{
+          this.photo="http://47.103.131.161:10010/files/"+operationDetails.photo;
+        }}
+        const tmp2=operationDetails.video;
+        if (tmp2!=null){
+
+        if(tmp2.startsWith('http')){
+          this.video = operationDetails.video;
+        }else{
+          this.video = "http://47.103.131.161:10010/files/"+operationDetails.video;
+        }}
+        // this.photo = operationDetails.photo;
+        // this.video = operationDetails.video;
         this.playerOptions.sources[0].src =this.video;
 
       } catch (error) {

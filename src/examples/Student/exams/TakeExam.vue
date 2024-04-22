@@ -260,7 +260,7 @@ export default{
         const data=response.data.data;
         this.$router.go(-1);
           console.log("提交成功");
-      })
+      });
 
     },
     initCheckResult() {

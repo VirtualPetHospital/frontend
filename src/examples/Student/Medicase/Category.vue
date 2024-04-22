@@ -14,7 +14,7 @@
             <el-tab-pane v-for="category in categories" :key="category.category_id" :label="category.name">
               <el-row>
                 <el-col v-for="(disease, index) in category.diseases" :key="index" :span="8" >
-                  <el-button class="custom-button" style="margin-bottom: 10px;margin-left: 20px" @click="fetchMedCases(disease.name,disease.disease_id)">{{ disease.name }}</el-button>
+                  <el-button class="custom-button" style="margin-bottom: 10px;margin-left: 20px" @click="fetchMedCases(disease)">{{ disease.name }}</el-button>
                 </el-col>
               </el-row>
             </el-tab-pane>
@@ -62,9 +62,9 @@ export default{
     this.fetchCategories();
   },
   methods:{
-    fetchMedCases(diseaseName,diseaseId){
-      console.log('fetchmed'+diseaseId+diseaseName);
-      this.$router.push({ name: 'Disease', query: { diseaseName: diseaseName,diseaseId:diseaseId }});
+    fetchMedCases(disease){
+      console.log('fetchmed'+disease.disease_id+" "+disease.name);
+      this.$router.push({ path: '/medcases', query: { diseaseName: disease.name,diseaseId:disease.disease_id }});
     },
     fetchCategories(){
       console.log('session '+sessionStorage);
