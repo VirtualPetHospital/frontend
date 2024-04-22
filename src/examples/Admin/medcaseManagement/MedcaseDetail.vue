@@ -1,5 +1,5 @@
 <template>
-  <div class="card p-4" style="height:850px" >
+  <div class="card p-4"  style="height: auto" >
     <div class="row">
       <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
       <div class="col-12">
@@ -69,7 +69,7 @@
       </div>
     </div>
   </div>
-  <div class="py-4 container sectionHeight" style="margin-top: 20px" >
+  <div class="py-4 container sectionHeight" style="margin-top: 20px;height: auto" >
     <div class=" row">
       <div class="col-12">
         <h4>检查结果</h4>
@@ -145,7 +145,7 @@ export default{
           //坐标轴文字显示样式
           lineHeight: 18, //字体行高
           fontNum: 18, //每行显示字数
-          rotate: 45, //文字旋转角度，0不旋转
+          rotate: 0, //文字旋转角度，0不旋转
         },
       },
       medData:[],
@@ -168,6 +168,7 @@ export default{
     this.diseaseName=this.$route.params.diseaseName;
     // 调用fetchMedCase方法获取病例数据
     this.fetchMedCase(medcaseId);
+    document.getElementById("main").removeAttribute('_echarts_instance_');
 
   },
   methods:{

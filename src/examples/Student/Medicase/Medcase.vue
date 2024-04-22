@@ -73,7 +73,7 @@
       </div>
     </div>
   </div>
-  <div class="py-4 container sectionHeight" style="margin-top: 20px" >
+  <div class="py-4 container sectionHeight" style="margin-top: 20px;height: auto" >
     <div class=" row">
       <div class="col-12">
         <h4>检查结果</h4>
@@ -172,6 +172,8 @@ export default{
     this.diseaseName=this.$route.params.diseaseName;
     // 调用fetchMedCase方法获取病例数据
     this.fetchMedCase(medcaseId);
+    document.getElementById("main").removeAttribute('_echarts_instance_');
+
 
   },
   methods:{

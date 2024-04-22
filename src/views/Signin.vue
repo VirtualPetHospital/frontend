@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
             >
               <div class="card card-plain">
                 <div class="pb-0 card-header text-start">
-                  <h4 class="font-weight-bolder">登录</h4>
+                  <h4 class="font-weight-bolder" >登录</h4>
                   <p class="mb-0">输入用户名与密码</p>
                 </div>
                 <div class="card-body">
@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
                     >记住密码</el-checkbox>
                       </el-form-item>
                       <el-form-item>
-                        <el-button style="background-color: #b3d4fc;padding-left: 30px;padding-right:30px;margin-left: 120px" @click="login">登录</el-button>
+                        <el-button style="background-color: #b3d4fc;padding-left: 30px;padding-right:30px;margin-left: 110px;font-size: 18px" @click="login">登录</el-button>
                       </el-form-item>
                   </el-form>
 
@@ -223,7 +223,8 @@ onBeforeUnmount(() => {
                       还没有账号?
                       <a
                           href="/signup"
-                          class="text-success text-gradient font-weight-bold"
+                          class=" font-weight-bold"
+                          style="color: #7ea6f6"
                       >
                         注册
                       </a>
@@ -242,6 +243,7 @@ onBeforeUnmount(() => {
 .page-header {
   background-image: url('@/assets/img/background.jpg'); /* 替换 'your-background-image-url.jpg' 为你的背景图路径 */
   background-size: cover; /* 让背景图铺满整个容器 */
+  margin-top: -5px;
   background-position: center; /* 居中显示背景图 */
 }
 .custom-button {
