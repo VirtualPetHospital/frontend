@@ -1,5 +1,5 @@
 <template>
-  <div class="card p-4" style="height:850px" >
+  <div class="card p-4" style="height: auto" >
     <div class="row">
       <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
       <div class="col-12">
@@ -53,11 +53,15 @@
         <div class="col-6">
           <el-card class="custom-elcard">
             <h5>病例图示</h5>
-            <el-image :src="medCase.info_photo">
+            <div class="=image-ontainer">
+
+
+            <el-image :src="medCase.info_photo"  >
               <div slot="error" class="image-slot">
                 <i class="el-icon-picture-outline"></i>
               </div>
             </el-image>
+            </div>
           </el-card>
           <el-card class="custom-elcard">
             <el-button type="primary" size="small" class="custom-button " style="margin-left: 120px" @click="goToOperationPage">查看手术</el-button>
@@ -145,7 +149,7 @@ export default{
           //坐标轴文字显示样式
           lineHeight: 18, //字体行高
           fontNum: 18, //每行显示字数
-          rotate: 45, //文字旋转角度，0不旋转
+          rotate: 0, //文字旋转角度，0不旋转
         },
       },
       medData:[],
@@ -282,7 +286,7 @@ export default{
     goToMedicines(){
       const medcaseId=this.medCase.medcaseId;
       console.log(this.medCase.medicines);
-      const medicinesQuery = this.medCase.medicines.map(medicine => `${medicine.id}:${medicine.num}`).join(',');
+      const medicinesQuery = JSON.stringify(this.medCase.medicines);
 
       // 使用 $router.push 将数据作为查询参数传递给目标路由组件
       this.$router.push({
@@ -311,14 +315,27 @@ export default{
       this.medCase.price = data.price;
       this.medCase.disease_id = data.disease_id;
       this.medCase.info_description = data.info_description;
-      this.medCase.info_photo = "http://47.103.131.161:10010/files/"+data.info_photo;
+      const tmp=data.info_photo;
+      if(tmp!=null){
+      if(tmp.startsWith('http')){
+        this.medCase.info_photo=data.info_photo;
+      }else{
+        this.medCase.info_photo = "http://47.103.131.161:10010/files/"+data.info_photo;
+      }}
+      const tmp2=data.info_video;
+      if(tmp2!=null){
+      if(tmp2&&tmp2.startsWith('http')){
+        this.medCase.info_video = data.info_video;
+      }else{
+        this.medCase.info_video = "http://47.103.131.161:10010/files/"+data.info_video;
+      }}
       console.log(this.medCase.info_photo);
-      this.medCase.info_video = "http://47.103.131.161:10010/files/"+data.info_video;
       this.medCase.operation_id = data.operation_id;
       this.medCase.inspections = data.inspections;
       this.handleChart(this.medCase.inspections);
       this.playerOptions.sources[0].src=this.medCase.info_video;
       this.medCase.medicines = data.medicines;
+      console.log("medcaseMedicines"+this.medCase.medicines);
     },
     async fetchMedCaseMock(medcaseId) {
       try {
@@ -455,5 +472,14 @@ export default{
 v-deep.el-descriptions-item__content{
   max-width: 26px;
 }
+::v-deep .el-image-viewer__img{
 
+  width: 50% !important;
+
+  height: auto !important;
+
+}
+.image-container{
+  max-height: 200px;
+}
 </style>

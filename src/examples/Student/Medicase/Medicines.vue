@@ -84,21 +84,17 @@ export default{
   created() {
     const medicinesQuery = this.$route.query.medicines;
     const total = parseInt(this.$route.query.total);
-    const medicinesArray = medicinesQuery.split(',').map(item => {
-      const [id, num] = item.split(':');
-      return { id: parseInt(id), num: parseInt(num) };
-    });
+    console.log('medsetup'+medicinesQuery[0]);
     this.total = total;
-    console.log(medicinesArray);
     // 调用方法获取药品信息
-    this.fetchMedicinesInfo(medicinesArray);
+    this.fetchMedicinesInfo(medicinesQuery);
 
   },
   methods:{
     backto(){
       this.$router.go(-1);
     },
-    getpageMedicinesInfo(){
+    getPageMedicinesInfo(){
       this.pageMedicinesInfo=[];
       for(let i=(this.pageNum-1)*this.pageSize;i<this.total;i++) {
         //把遍历的数据添加到pageTicket里面
@@ -107,14 +103,14 @@ export default{
         if (this.pageMedicinesInfo.length === this.pageSize) break;
       }
     },
-    async fetchMedicinesInfo(medicines){
-
+    async fetchMedicinesInfo(tmedicines){
+      const medicines=JSON.parse(tmedicines);
       console.log("medi"+medicines);
       for(let i=0;i<medicines.length;i++){
         try{
 
-          console.log(medicines[i].id);
-          const response = await axios.get(`/api/medicines/${medicines[i].id}`,
+          console.log(medicines[i].medicine_id);
+          const response = await axios.get(`/api/medicines/${medicines[i].medicine_id}`,
               {
                 withCredentials : true,
                 headers:{
@@ -122,19 +118,25 @@ export default{
                   'Content-Type': 'application/json',},
 
               });
-          console.log(response.data.data);
-          const name=response.data.data.name;
-          const price=response.data.data.price;
-          this.medicinesInfo.push({
-            id:medicines[i].id,
-            name:name,
-            num:medicines[i].num,
-            price:price
-          });
+          if(response.data.code===2002){
+            alert("你没资格啊你没资格");
+          }else{
+            console.log(response.data.data);
+            const name=response.data.data.name;
+            const price=response.data.data.price;
+            this.medicinesInfo.push({
+              id:medicines[i].medicine_id,
+              name:name,
+              num:medicines[i].num,
+              price:price
+            });
+          }
         }catch(error){
           console.error('Error fetching medicine info:', error);
         }
       }
+      console.log(this.medicinesInfo);
+      this.getPageMedicinesInfo();
     },
     async fetchMedicinesInfoMock(medicines){
       console.log(this.total);
@@ -152,16 +154,16 @@ export default{
           console.error('Error fetching medicine info:', error);
         }
       }
-      this.getpageMedicinesInfo();
+      this.getPageMedicinesInfo();
     },
     handleSizeChange(val) {
-      this.pageSize;
-      this.getpageMedicinesInfo();
+      this.pageSize=val;
+      this.getPageMedicinesInfo();
     },
     // 分页 current 变化
     handleCurrentChange(pageNum) { // 处理页码改变事件
       this.pageNum = pageNum; // 更新当前页码
-      this.getpageMedicinesInfo(); // 重新获取数据
+      this.getPageMedicinesInfo(); // 重新获取数据
     }
   },
   components:{

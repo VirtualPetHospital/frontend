@@ -110,7 +110,7 @@ const routes = [
     component: Profile3,
   },
   {
-    path: '/:diseaseName/medcases',
+    path: '/medcases',
     name: 'Disease',
     component: Disease,
   },

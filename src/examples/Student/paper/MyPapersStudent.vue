@@ -76,6 +76,7 @@ export default{
         params:{
           page_size:9999,
           page_num:0,
+          participated:true
         },
         withCredentials : true,
         headers:{
