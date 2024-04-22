@@ -2,6 +2,7 @@
 <template>
   <div>
     <div class="buttons-container">
+      <button @click="goBack" class="btn btn-success" style="margin-left: 2%;">返回</button>
       <div  class="input-group" style="margin-bottom: 10px;">
       <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入试卷名关键词搜索" style="margin-left: 2%;">
       <button @click="searchPapers" class="btn btn-primary">搜索</button>
@@ -224,6 +225,9 @@ export default {
     this.fetchAllPapers();
   },
   methods: {
+    goBack() {
+      this.$router.push({ name: '考试管理' });
+    },
     openPaperDetails(paper) {
       this.selectedPaper = { ...paper };
       this.showPaperDetails = true;
