@@ -31,7 +31,7 @@
             <el-upload
               class="upload-demo"
               ref="upload"
-              action="api/files/upload"
+              action="/api/files/upload"
               :on-preview="handlePreview"
               :on-remove="handleRemove" 
               :on-success="handleSuccess"
@@ -55,14 +55,14 @@
             <el-upload
               class="upload-demo"
               ref="upload"
-              action="api/files/upload"
+              action="/api/files/upload"
               :on-preview="handlePreview"
               :on-remove="handleRemove"
               :on-success="handleSuccess_V"
               :on-error="handleUploadError" 
-              :on-progress="handleUploadProgress_video"
+             
               :file-list="form.video"
-              :data="{ file: this.form.video, location: 'disease' }"
+              
               :before-upload="beforeUpload_V"
               :headers="headerObj"
               :with-credentials="true"
@@ -70,11 +70,24 @@
                 <el-button size="small" type="primary">点击上传</el-button>
                 <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
             </el-upload>
-            <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video"></el-progress>
+
             <el-button size="small" type="danger" v-if="isUploading_v" @click="cancelUpload">取消上传</el-button>
+            <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video"></el-progress>
+            <div v-if="file_cname" class="file-name-container">
+              <span>{{ file_cname }}</span>
+              <i class="el-icon-close" @click="clearFileName"></i>
+            </div>
+            <div class="progress-container">
+              <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video" :stroke-width="5"></el-progress>
+            </div>
+            
           </el-form-item>
+
+          
+  
         </el-form>
         <!-- 按钮 -->
+        <div style="margin-bottom: 20px;"></div>
         <div slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
           <el-button type="primary" @click="handleConfirm">确定</el-button>
@@ -115,7 +128,7 @@
             <el-upload
               class="upload-demo"
               ref="upload"
-              action="api/files/upload"
+              action="/api/files/upload"
               :on-preview="handlePreview"
               :on-remove="handleRemove"
               :on-success="handleSuccess"
@@ -137,14 +150,14 @@
             <el-upload
               class="upload-demo"
               ref="upload"
-              action="api/files/upload"
+              action="/api/files/upload"
               :on-preview="handlePreview"
               :on-remove="handleRemove"
               :on-success="handleSuccess_V"
               :on-error="handleUploadError" 
-              :on-progress="handleUploadProgress_video_m"
+              
               :file-list="form.video"
-              :data="{ file: this.form.video, location: 'disease' }"
+              
               :before-upload="beforeUpload_V"
               :headers="headerObj"
               :with-credentials="true"
@@ -152,8 +165,15 @@
                 <el-button size="small" type="primary">点击上传</el-button>
                 <div slot="tip" class="el-upload__tip">只能上传视频文件</div>
             </el-upload>
-            <el-progress :percentage="uploadPercentage_video_m" v-show="showProgress_video_m"></el-progress>
-            <el-button size="small" type="danger" v-if="isUploading_v" @click="cancelUpload">取消上传</el-button>
+              <el-button size="small" type="danger" v-if="isUploading_v" @click="cancelUpload">取消上传</el-button>
+              <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video"></el-progress>
+              <div v-if="file_cname" class="file-name-container">
+                <span>{{ file_cname }}</span>
+                <i class="el-icon-close" @click="clearFileName"></i>
+              </div>
+              <div class="progress-container">
+                <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video" :stroke-width="5"></el-progress>
+              </div>
           </el-form-item>
         </el-form>
         <!-- 按钮 -->
@@ -215,7 +235,7 @@
                       <el-table-column prop="disease_id" label="疾病ID"></el-table-column>
                       <el-table-column prop="name" label="名称"></el-table-column>
                       <el-table-column prop="description" label="描述"></el-table-column>
-                      <el-table-column prop="category_id" label="病种ID" :filters="diseaseTypeFilters" :filter-method="handleDiseaseTypeFilter">
+                      <el-table-column prop="category_id" label="病种ID" >
                         
                       </el-table-column>
                       <el-table-column prop="photo" label="图片"></el-table-column>
@@ -251,6 +271,7 @@
   import { onBeforeRouteLeave } from "vue-router";
   import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload ,  ElProgress, ElAlert, ElMessage, ElMessageBox} from "element-plus";
   import axios from 'axios';
+  import SparkMD5 from 'spark-md5';
 
   export default {
     name: "DiseaseManagement",
@@ -348,7 +369,17 @@
       isUploading_p: false,
       isUploading_v: false,
 
+      chunkNumber: 0, // 当前分片的编号
+      chunkSize: 10485760, // 预设的每个分片的大小10mb
+      currentChunkSize: 0, // 当前分片的大小
+      totalChunks: 0, // 一共多少个分片
+      totalSize: 0, // 文件总大小
+      identifier: '', // 文件的 MD5 值
+      file_cname: null,
+      fileChunk: null, // 文件分片对象
 
+      showUploadList: false, // 控制上传文件列表显示
+      uploadFileList: [] // 上传文件列表数据
     };
   },
   created() {
@@ -385,6 +416,9 @@
 
   },
   methods: {
+    clearFileName() {
+      this.file_cname = ''; // 将文件名置为空
+    },
     handleSearch() {
       // 处理搜索功能
       // 触发计算属性重新计算过滤后的疾病
@@ -463,6 +497,14 @@
     },
     // 处理删除按钮点击事件
     handleDelete() {
+      if (!this.selectedRow) {
+          ElMessage({
+            message: '请先选中一行数据再执行删除操作。',
+            type: 'warning',
+            duration: 3000
+          });
+          return; // 不继续执行删除操作
+        }
       // 使用对话框询问用户是否确定删除操作
       ElMessageBox.confirm('是否确定删除选中行的疾病?', '提示', {
         confirmButtonText: '确定',
@@ -558,12 +600,13 @@
       // 设置修改弹窗可见
       this.modifyDialogVisible = true;
     } else {
-      console.log('没有选择')
-      // 如果没有选中行，提示用户选择行
-      // this.$message({
-      //   type: 'warning',
-      //   message: '请先选择要修改的行',
-      // });
+        ElMessage({
+          message: '请先选中一行数据再执行修改操作。',
+          type: 'warning',
+          duration: 3000
+        });
+        return; // 不继续执行删除操作
+        
     }
   },
 
@@ -720,12 +763,160 @@
       return true; // 确保继续上传过程
     },
     beforeUpload_V(file) {
+      this.cancelUpload();
       this.isUploading_v = true; // 上传开始时设置为 true
+      this.showProgress_video = true; // 显示进度条
+      this.showUploadList = true; // 显示上传文件列表
+      console.log('看不看的见',this.isUploading_v);
       console.log('上传的视频文件对象:', file);
-      this.form.video = [file];
-      console.log('上传的视频文件对象真的是吗:', this.form.video);
-      return true; // 确保继续上传过程
+
+      // 计算文件的 MD5 值
+      const spark = new SparkMD5.ArrayBuffer();
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        spark.append(event.target.result);
+        const md5 = spark.end();
+        this.identifier = md5; // 将文件的 MD5 值作为 identifier
+        console.log('文件的MD5值:', md5);
+
+        // 分片上传
+        const chunkSize = 10 * 1024 * 1024; // 每片大小为10MB
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const chunks = [];
+
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * chunkSize;
+          const end = Math.min(start + chunkSize, file.size);
+          const chunk = file.slice(start, end);
+          chunks.push(chunk);
+        }
+
+        let uploadedChunks = 0;// 已上传分片计数
+        const cancelUploads = []; // 用于保存取消上传请求的函数
+
+        // 逐个上传分片
+        const promises = chunks.map((chunk, index) => {
+          console.log('一个多大',chunkSize);
+          console.log('多大',chunk.size);
+          const formData = new FormData();
+          formData.append('file', chunk);
+          formData.append('chunkNumber', index + 1); // 当前分片的编号
+          formData.append('chunkSize', chunkSize); // 预设的每个分片的大小
+          formData.append('currentChunkSize', chunk.size); // 当前分片的大小
+          formData.append('totalChunks', totalChunks); // 一共多少个分片
+          formData.append('totalSize', file.size); // 文件总大小
+          formData.append('identifier', this.identifier); // 文件的MD5值
+          formData.append('type', 'video'); // 文件类型
+          formData.append('fileName', file.name); // 原文件名
+
+          const cancelToken = axios.CancelToken.source(); // 创建取消令牌
+          cancelUploads.push(cancelToken.cancel); // 将取消上传请求的函数保存到数组中
+
+          return axios.post('api/files/uploadChunk', formData, {
+            withCredentials: true,
+            headers: {
+              'Session': sessionStorage.getItem('sessionId'),
+            }
+          })
+          .then(response => {
+            uploadedChunks++; // 更新已上传分片计数
+            const progress = uploadedChunks / totalChunks * 100; // 计算上传进度
+            this.uploadPercentage_video = Math.round(progress); // 更新进度条值
+            // 记录每个分片上传成功后返回的数据
+            console.log(`分片${index + 1}上传成功，返回的数据:`, response.data);
+
+            this.file_cname = response.data.data;
+            console.log(`分片${index + 1}上传成功，返回的数据是什么:`, this.file_cname);
+            // this.uploadPercentage_video = num/totalChunks || 0;
+            if (progress == 100) {
+              this.showProgress_video = false; // 显示进度条
+              this.uploadPercentage_video = 0;
+            }
+          });
+        });
+
+        // 绑定 clearFileName 方法到前端的清除按钮
+        // this.clearFileName = () => {
+        //   this.showProgress_video = false; // 隐藏进度条
+        //   // 取消已有的上传操作
+        //   cancelUploads.forEach(cancel => cancel()); // 调用取消上传请求的函数
+        
+        //     ElMessage({
+        //         message: '没传呢',
+        //         type: 'error',
+        //         duration: 3000
+        //       });
+        //   // 清空文件名
+        //   this.file_cname = '';
+        // };
+
+        console.log('什么呢');
+        // 等待所有分片上传完成
+        Promise.all(promises)
+          .then(() => {
+            console.log('什么玩意呢',this.file_cname);
+            // 所有分片上传完成后触发转换文件格式的操作
+            this.convertVideoFormat(this.file_cname);
+          })
+          .catch(error => {
+            console.error('分片上传失败:', error);
+            this.isUploading_v = false; // 上传失败后设置为 false
+            ElMessage({
+              message: '上传失败，请重试',
+              type: 'error',
+              duration: 3000
+            });
+          });
+      };
+
+      reader.readAsArrayBuffer(file);
+
+      return false; // 禁止上传过程，因为我们会自己处理分片上传
     },
+
+
+    convertVideoFormat(fileName) {
+      //const identifier = 'your_MD5_value_here'; // 替换为文件的 MD5 值
+
+      console.log('传的参数1: ',fileName);
+      console.log('传的参数2: ',this.identifier);
+
+      axios.post('api/files/convert', {
+        file_name: fileName, // 分片上传接口返回的文件名
+        identifier: this.identifier, // 文件的 MD5 值
+        type: 'video' // 文件类型始终为 video
+      }, {
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          //'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        console.log('转换视频格式成功:', response);
+        // 将转换后的文件名记录到 uploadedFileName_V 中
+        this.uploadedFileName_V = response.data.data;
+        console.log('上传视频文件名:', this.uploadedFileName_V);
+        ElMessage({
+          message: '成功上传视频',
+          type: 'success',
+          duration: 3000
+        });
+      })
+      .catch(error => {
+        console.error('转换视频格式失败:', error);
+        this.isUploading_v = false; // 上传失败后设置为 false
+        ElMessage({
+          message: '上传失败，请重试',
+          type: 'error',
+          duration: 3000
+        });
+      });
+    },
+
+
+
     handleSuccess(response) {
       // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
       console.log('上传是不是真的成功:', response);
@@ -747,7 +938,7 @@
       // 假设上传成功后后端返回的文件名字段为fileName
       //this.form.photo = response.data.file_name;
       this.isUploading_v = false; // 上传成功后设置为 false
-      this.uploadedFileName_V = response.data.file_name;
+      //this.uploadedFileName_V = response.data.file_name;
       console.log('上传视频文件名:', this.uploadedFileName_V);
       ElMessage({
         message: '成功上传视频',
@@ -755,13 +946,15 @@
         duration: 3000
       });
     },
+
+
     handleUploadError(err, file, fileList) {
       // 处理上传失败的逻辑
       console.error('上传失败:', err);
       this.isUploading_p = false; // 上传失败后设置为 false
       this.isUploading_v = false; // 上传失败后设置为 false
       // 显示上传失败的消息，并在 3 秒后自动关闭
-      this.$message({
+      ElMessage({
         message: '上传失败，请重试',
         type: 'error',
         duration: 3000
@@ -777,6 +970,7 @@
       this.uploadPercentage_video = event.percent || 0;
       //this.showProgress_video = true;
     },
+
     // 上传图片进度回调
     handleUploadProgress_photo_m(event, file) {
       this.uploadPercentage_photo_m = event.percent || 0;
@@ -866,4 +1060,10 @@
     display: flex;
     justify-content: center; /* 居中显示 */
   }
+
+  .progress-container {
+  width: 80%; /* 设置容器的宽度为页面宽度的一半，你可以根据需要调整 */
+  float: right; /* 将容器浮动到左侧 */
+}
+
   </style>

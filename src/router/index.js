@@ -291,7 +291,7 @@ const routes = [
     component:OperationManagement,
   },
   {
-    path:"/:id/:name",
+    path:"/room/:id/:name",
     name:"科室设施详情-管理员",
     component:FacilityDetails,
   },
@@ -311,11 +311,11 @@ const routes = [
     name:"病例情况-管理员",
     component:MedcaseDetail,
   },
-  {
-    path:"/medicines_detail/:medcaseId",
-    name:" Medicines_detail",
-    component:Medicines_detail,
-  },
+  // {
+  //   path:"/medicines_detail/:medcaseId",
+  //   name:" Medicines_detail",
+  //   component:Medicines_detail,
+  // },
 ];
 
 

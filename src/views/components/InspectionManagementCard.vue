@@ -325,7 +325,13 @@ export default {
           // 用户取消删除操作
         });
       } else {
-        console.log('没有选择要删除的行');
+          ElMessage({
+            message: '请先选中一行数据再执行删除操作。',
+            type: 'warning',
+            duration: 3000
+          });
+          return; // 不继续执行删除操作
+      
       }
     },
 
@@ -375,12 +381,13 @@ export default {
         // 设置修改弹窗可见
         this.modifyDialogVisible = true;
       } else {
-        console.log('没有选择');
-        // 如果没有选中行，提示用户选择行
-        // this.$message({
-        //   type: 'warning',
-        //   message: '请先选择要修改的行',
-        // });
+          ElMessage({
+            message: '请先选中一行数据再执行修改操作。',
+            type: 'warning',
+            duration: 3000
+          });
+          return; // 不继续执行删除操作
+        
       }
     },
 

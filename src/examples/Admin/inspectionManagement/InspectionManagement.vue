@@ -3,7 +3,7 @@
       <div class="row">
         <div class="col-12">
           <div class="user-management-container">
-            <div class="role-play-title">检测项目管理</div>
+            <div class="role-play-title">检查项目管理</div>
             <InspectionManagementCard />
           </div>
           

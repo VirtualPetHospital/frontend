@@ -247,6 +247,14 @@
       },
       // 处理删除按钮点击事件
       handleDelete() {
+        if (!this.selectedRow) {
+          ElMessage({
+            message: '请先选中一行数据再执行删除操作。',
+            type: 'warning',
+            duration: 3000
+          });
+          return; // 不继续执行删除操作
+        }
         // 使用对话框询问用户是否确定删除操作
         ElMessageBox.confirm('是否确定删除该条病种?', '提示', {
           confirmButtonText: '确定',
@@ -327,12 +335,14 @@
           // 设置修改弹窗可见
           this.modifyDialogVisible = true;
         } else {
-          console.log('没有选择');
-          // 如果没有选中行，提示用户选择行
-          // this.$message({
-          //   type: 'warning',
-          //   message: '请先选择要修改的行',
-          // });
+          
+          ElMessage({
+            message: '请先选中一行数据再执行修改操作。',
+            type: 'warning',
+            duration: 3000
+          });
+          return; // 不继续执行删除操作
+        
         }
       },
       handleModifyConfirm() {

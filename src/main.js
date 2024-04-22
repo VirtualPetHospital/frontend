@@ -14,11 +14,12 @@ import axios from "axios";
 import app from "@/App.vue";
 import echarts from 'echarts'
 import 'element-plus/theme-chalk/index.css';
-
+import VueUploader from 'vue-simple-uploader'
 
 const appInstance = createApp(App);
 appInstance.use(store);
 appInstance.use(router);
+appInstance.use(VueUploader);
 appInstance.use(ArgonDashboard);
 appInstance.config.globalProperties.$axios = axios;
 appInstance.config.globalProperties.$echarts = echarts;
