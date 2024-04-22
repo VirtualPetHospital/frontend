@@ -113,6 +113,10 @@
             const response = await axios.get(`/api/medicines/${medicines[i].medicine_id}`,
                 {
                   withCredentials : true,
+                  params:{
+                    page_size:9999,
+                    page_num:0
+                  },
                   headers:{
                     'Session':sessionStorage.getItem('sessionId'),
                     'Content-Type': 'application/json',},
