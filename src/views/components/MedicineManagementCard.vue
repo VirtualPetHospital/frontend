@@ -2,7 +2,7 @@
   <div class="container sectionHeight">
     <!-- 搜索栏 -->
     <el-input
-      v-model="searchText"
+      v-model.trim="searchText"
       placeholder="输入药品名进行搜索"
       clearable
       @clear="handleClearSearch"
@@ -58,6 +58,7 @@
     </el-dialog>
 
     <!-- 按钮区域 -->
+    <div style="margin-bottom: 20px;"></div>
     <div class="row mb-4">
       <div class="col-6">
         <el-button type="primary" @click="handleAdd">新增</el-button>
@@ -105,7 +106,7 @@
 </template>
 
 <script>
-import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElMessageBox,ElMessage } from "element-plus";
 import axios from 'axios';
 
 export default {
@@ -118,6 +119,8 @@ export default {
     ElPagination,
     ElTable,
     ElTableColumn,
+    ElMessageBox,
+    ElMessage
   },
   data() {
     return {
@@ -150,9 +153,21 @@ export default {
       const endIndex = startIndex + this.pageSize;
       return this.medicines.slice(startIndex, endIndex);
     },
+    filteredmedicines() {
+      // 如果搜索文本为空，则返回原始数据
+      if (this.searchText.trim() === '') {
+        return this.medicines;
+      }
+      // 根据搜索文本过滤检测项目
+      const filtered = this.medicines.filter(inspection =>
+        inspection.name.toLowerCase().includes(this.searchText.toLowerCase())
+      );
+      return filtered;
+    },
   },
   methods: {
     handleSearch() {
+      this.fetchMedicines();
       // 处理搜索功能
       // 触发计算属性重新计算过滤后的药品
     },
@@ -185,12 +200,32 @@ export default {
               }
           }
           ).then(response => {
-            // 处理成功响应，例如重新加载药品列表
-            this.fetchMedicines();
-            // 关闭弹窗
-            this.dialogVisible = false;
-            // 清空表单
-            this.$refs.form.resetFields();
+            console.log('走哪里了',response.data.msg);
+            console.log('走哪里了',response.data.code);
+            // 处理成功响应，例如重新加载病种列表
+            if (response.data && response.data.code !== 0 ) {
+              // 如果返回了错误消息，显示消息提示
+              //this.$message.error(response.data.msg);
+              console.log('走');
+              ElMessage({
+                message: response.data.msg,
+                type: 'error',
+                duration: 3000
+              });
+            } else {
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
+              // 处理成功响应，例如重新加载药品列表
+              this.fetchMedicines();
+              // 关闭弹窗
+              this.dialogVisible = false;
+              // 清空表单
+              this.$refs.form.resetFields();
+
+            }
           })
           .catch(error => {
             // 处理错误
@@ -204,26 +239,59 @@ export default {
     // 处理删除按钮点击事件
     handleDelete() {
       if (this.selectedRow) {
-        axios.delete(
-          `/api/medicines/${this.selectedRow.medicine_id}`, // 将 medicine_id 包含在 URL 中
-          {
-            withCredentials: true,
-            headers: {
-              'Session': sessionStorage.getItem('sessionId'),
-              'Content-Type': 'application/json',
+        // 使用对话框询问用户是否确认删除操作
+        ElMessageBox.confirm('确认删除该药品吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          // 用户点击了确定按钮，执行删除操作
+          axios.delete(
+            `/api/medicines/${this.selectedRow.medicine_id}`, // 将 medicine_id 包含在 URL 中
+            {
+              withCredentials: true,
+              headers: {
+                'Session': sessionStorage.getItem('sessionId'),
+                'Content-Type': 'application/json',
+              }
             }
-          }
-        ).then(response => {
-          // 处理成功响应，例如重新加载药品列表
-          this.fetchMedicines();
-          // 清空选中行
-          this.selectedRow = null;
-        }).catch(error => {
-          // 处理错误
-          console.error('Error deleting medicine:', error);
+          ).then(response => {
+            if(response.data.code !== 0){
+              ElMessage({
+                message: response.data.msg,
+                type: 'warning',
+                duration: 3000
+              });
+            }else{
+               // 处理成功响应，例如重新加载药品列表
+              ElMessage({
+                  message: response.data.msg,
+                  type: 'success',
+                  duration: 3000
+                });
+              // 清空选中行
+              this.selectedRow = null;
+              this.fetchMedicines();
+              //location.reload();
+            }
+           
+          }).catch(error => {
+            // 处理错误
+            console.error('Error deleting medicine:', error);
+          });
+        }).catch(() => {
+          // 用户点击了取消按钮，不执行任何操作
         });
+      }else{
+        ElMessage({
+          message: '请先选中一行数据再执行删除操作。',
+          type: 'warning',
+          duration: 3000
+        });
+        return; // 不继续执行删除操作
       }
     },
+
 
     // 处理每页显示条数改变事件
     handleSizeChange(val) {
@@ -264,12 +332,13 @@ export default {
         // 设置修改弹窗可见
         this.modifyDialogVisible = true;
       } else {
-        console.log('没有选择');
-        // 如果没有选中行，提示用户选择行
-        // this.$message({
-        //   type: 'warning',
-        //   message: '请先选择要修改的行',
-        // });
+          ElMessage({
+            message: '请先选中一行数据再执行修改操作。',
+            type: 'warning',
+            duration: 3000
+          });
+          return; // 不继续执行删除操作
+        
       }
     },
     handleModifyConfirm() {
@@ -292,12 +361,35 @@ export default {
               }
             }
           ).then(response => {
-            // 处理成功响应，例如重新加载药品列表
-            this.fetchMedicines();
-            // 关闭弹窗
-            this.modifyDialogVisible = false;
-            // 清空表单
-            this.$refs.modifyForm.resetFields();
+            console.log('走哪里了',response.data.msg);
+            console.log('走哪里了',response.data.code);
+            // 处理成功响应，例如重新加载病种列表
+            if (response.data && response.data.code !== 0 ) {
+              // 如果返回了错误消息，显示消息提示
+              //this.$message.error(response.data.msg);
+              console.log('走');
+              ElMessage({
+                message: response.data.msg,
+                type: 'error',
+                duration: 3000
+              });
+            } else {
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
+              // 处理成功响应，例如重新加载药品列表
+             
+              // 关闭弹窗
+              this.modifyDialogVisible = false;
+              // 清空表单
+              //location.reload();
+              // 处理成功响应，例如重新加载药品列表
+              
+              this.fetchMedicines();
+              console.log('已经更新');
+            }
           }).catch(error => {
             // 处理错误
             console.error('Error modifying medicine:', error);
@@ -308,29 +400,55 @@ export default {
       });
     },
 
-    async fetchMedicines() {
-      try {
-        const response = await axios.get('/api/medicines', {
-          params: {
-            page_size: 20,
-            page_num: this.currentPage,
-            name_keyword: this.searchText.trim()
-          },
-          withCredentials: true,
-          headers: {
-            'Session': sessionStorage.getItem('sessionId'),
-            'Content-Type': 'application/json',
-          }
-        });
+    // async fetchMedicines() {
+    //   try {
+    //     const response = await axios.get('/api/medicines', {
+    //       params: {
+    //         page_size: 100,
+    //         page_num: this.currentPage,
+    //         name_keyword: this.searchText,
+    //       },
+    //       withCredentials: true,
+    //       headers: {
+    //         'Session': sessionStorage.getItem('sessionId'),
+    //         'Content-Type': 'application/json',
+    //       }
+    //     });
+    //     if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
+    //       this.medicines = response.data.data.records;
+    //     } else {
+    //       console.error('Error fetching medicines: Invalid response format');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching medicines:', error);
+    //   }
+    // },
+    fetchMedicines() {
+      axios.get('/api/medicines', {
+        params: {
+          page_size: 100,
+          page_num: 1,//this.currentPage,
+          //name_keyword: this.searchText,
+        },
+        withCredentials: true,
+        headers: {
+          'Session': sessionStorage.getItem('sessionId'),
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => {
+        console.log('药品有什么',response);
         if (response.data && response.data.data && Array.isArray(response.data.data.records)) {
           this.medicines = response.data.data.records;
         } else {
           console.error('Error fetching medicines: Invalid response format');
         }
-      } catch (error) {
+      })
+      .catch(error => {
         console.error('Error fetching medicines:', error);
-      }
+      });
     },
+
   },
   mounted() {
     // 组件加载完成后立即获取药品列表数据

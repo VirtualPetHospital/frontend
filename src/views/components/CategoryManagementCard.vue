@@ -1,14 +1,5 @@
 <template>
     <div class="container sectionHeight">
-      <!-- 搜索栏 -->
-      <el-input
-        v-model="searchText"
-        placeholder="输入病种名进行搜索"
-        clearable
-        @clear="handleClearSearch"
-        @input="handleSearch"
-      ></el-input>
-  
       <!-- 新增弹窗 -->
       <el-dialog
         title="新增病种"
@@ -58,7 +49,17 @@
           <el-button type="primary" @click="handleModifyConfirm">确定</el-button>
         </div>
       </el-dialog>
-  
+      <!-- 搜索栏 -->
+      <el-input
+        v-model.trim="searchText"
+        placeholder="输入病种名进行搜索"
+        clearable
+        @clear="handleClearSearch"
+        @input="handleSearch"
+      ></el-input>
+
+      
+      <div style="margin-bottom: 20px;"></div>
       <!-- 按钮区域 -->
       <div class="row mb-4">
         <div class="col-6">
@@ -107,7 +108,7 @@
   </template>
   
   <script>
-  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn } from "element-plus";
+  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElMessageBox ,ElMessage} from "element-plus";
   import axios from 'axios';
   
   export default {
@@ -120,6 +121,8 @@
       ElPagination,
       ElTable,
       ElTableColumn,
+      ElMessageBox,
+      ElMessage
     },
     data() {
       return {
@@ -203,15 +206,37 @@
                   }
                 }
               ).then(response => {
+                console.log('走哪里了',response.data.msg);
+                console.log('走哪里了',response.data.code);
                 // 处理成功响应，例如重新加载病种列表
-                this.fetchCategories();
-                // 关闭弹窗
-                this.dialogVisible = false;
-                // 清空表单
-                this.$refs.form.resetFields();
+                if (response.data && response.data.code !== 0 ) {
+                  // 如果返回了错误消息，显示消息提示
+                  //this.$message.error(response.data.msg);
+                  console.log('走');
+                  ElMessage({
+                    message: response.data.msg,
+                    type: 'error',
+                    duration: 3000
+                  });
+                } else {
+                  ElMessage({
+                    message: response.data.msg,
+                    type: 'success',
+                    duration: 3000
+                  });
+                  // 处理成功响应，例如重新加载病种列表
+                  this.fetchCategories();
+                  // 关闭弹窗
+                  this.dialogVisible = false;
+                  // 清空表单
+                  this.$refs.form.resetFields();
+                  console.log('没什么问题',response);
+                }
+                
               })
               .catch(error => {
                 // 处理错误
+                console.log('错了');
                 console.error('Error adding category:', error);
               });
             }
@@ -222,27 +247,61 @@
       },
       // 处理删除按钮点击事件
       handleDelete() {
-        if (this.selectedRow) {
-          axios.delete(
-            `/api/categories/${this.selectedRow.category_id}`, // 将 category_id 包含在 URL 中
-            {
-              withCredentials: true,
-              headers: {
-                'Session': sessionStorage.getItem('sessionId'),
-                'Content-Type': 'application/json',
-              }
-            }
-          ).then(response => {
-            // 处理成功响应，例如重新加载病种列表
-            this.fetchCategories();
-            // 清空选中行
-            this.selectedRow = null;
-          }).catch(error => {
-            // 处理错误
-            console.error('Error deleting category:', error);
+        if (!this.selectedRow) {
+          ElMessage({
+            message: '请先选中一行数据再执行删除操作。',
+            type: 'warning',
+            duration: 3000
           });
+          return; // 不继续执行删除操作
         }
+        // 使用对话框询问用户是否确定删除操作
+        ElMessageBox.confirm('是否确定删除该条病种?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          // 用户点击了确定按钮，执行删除操作
+          if (this.selectedRow) {
+            axios.delete(
+              `/api/categories/${this.selectedRow.category_id}`, // 将 category_id 包含在 URL 中
+              {
+                withCredentials: true,
+                headers: {
+                  'Session': sessionStorage.getItem('sessionId'),
+                  'Content-Type': 'application/json',
+                }
+              }
+            ).then(response => {
+              console.log('返回什么',response);
+              if(response.data.code == 13001){
+                ElMessage({
+                  message: response.data.msg,
+                  type: 'warning',
+                  duration: 3000
+                });
+              }else{
+                ElMessage({
+                  message: response.data.msg,
+                  type: 'success',
+                  duration: 3000
+                });
+                // 处理成功响应，例如重新加载病种列表
+                this.fetchCategories();
+                // 清空选中行
+                this.selectedRow = null;
+              }
+            }).catch(error => {
+              // 处理错误
+              console.error('Error deleting category:', error);
+            });
+          }
+        }).catch(error => {
+          // 处理错误
+          console.error('Error deleting category:', error);
+        });
       },
+
   
       // 处理每页显示条数改变事件
       handleSizeChange(val) {
@@ -285,12 +344,14 @@
           // 设置修改弹窗可见
           this.modifyDialogVisible = true;
         } else {
-          console.log('没有选择');
-          // 如果没有选中行，提示用户选择行
-          // this.$message({
-          //   type: 'warning',
-          //   message: '请先选择要修改的行',
-          // });
+          
+          ElMessage({
+            message: '请先选中一行数据再执行修改操作。',
+            type: 'warning',
+            duration: 3000
+          });
+          return; // 不继续执行删除操作
+        
         }
       },
       handleModifyConfirm() {
@@ -316,12 +377,31 @@
                   }
                 }
               ).then(response => {
+                console.log('走哪里了',response.data.msg);
+                console.log('走哪里了',response.data.code);
                 // 处理成功响应，例如重新加载病种列表
-                this.fetchCategories();
-                // 关闭弹窗
-                this.modifyDialogVisible = false;
-                // 清空表单
-                this.$refs.modifyForm.resetFields();
+                if (response.data && response.data.code !== 0 ) {
+                  // 如果返回了错误消息，显示消息提示
+                  //this.$message.error(response.data.msg);
+                  console.log('走');
+                  ElMessage({
+                    message: response.data.msg,
+                    type: 'error',
+                    duration: 3000
+                  });
+                } else {
+                  ElMessage({
+                    message: response.data.msg,
+                    type: 'success',
+                    duration: 3000
+                  });
+                  // 处理成功响应，例如重新加载病种列表
+                  this.fetchCategories();
+                  // 关闭弹窗
+                  this.modifyDialogVisible = false;
+                  // 清空表单
+                  this.$refs.modifyForm.resetFields();
+                }
               }).catch(error => {
                 // 处理错误
                 console.error('Error modifying category:', error);
@@ -387,5 +467,6 @@
     color: red;
     font-size: 12px;
   }
+
   </style>
   

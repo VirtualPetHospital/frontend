@@ -136,6 +136,17 @@ const getRoute = () => {
         </sidenav-item>
       </li>
 
+      <!-- <li class="nav-item">
+        <sidenav-item
+            to="/TTT"
+            :class="getRoute() === 'RoomManagement' ? 'active' : ''"
+            :navText="isRTL ? '测试' : 'test'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li> -->
       
 
 

@@ -560,7 +560,6 @@ export default {
           if(response.data.msg == "操作成功")
             {
               alert("成功删除该试卷!");
-            }
             this.totalPapers = this.totalPapers-1;
             const totalPages = Math.ceil(this.totalPapers / this.pageSize);
       // const lastPage = totalPages === 0 ? 1 : totalPages;
@@ -572,6 +571,7 @@ export default {
       else{
         this.fetchPapers();
       }
+    }
           }).catch(error => {
             console.error('Error deleting paper:', error);
           });

@@ -31,6 +31,7 @@ import PapersInfo from "../examples/Teacher/paper/PapersInfo.vue";
 import SelectQuestions from "../examples/Teacher/paper/SelectQuestions.vue";
 import SelectPaper from "../examples/Teacher/exam/SelectPaper.vue";
 import ExamsTeacher from "../examples/Teacher/exam/ExamsTeacher.vue";
+
 import UserManagement from "@/examples/Admin/userManagement/UserManagement.vue"
 import MedcaseManagement from "@/examples/Admin/medcaseManagement/MedcaseManagement.vue"
 import InspectionManagement from "../examples/Admin/inspectionManagement/InspectionManagement.vue"
@@ -43,6 +44,9 @@ import Chat from "@/examples/Student/chat/Chat.vue";
 import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue"
 import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue"
 import TTT from "../examples/Admin/testMe/testtest.vue"
+import Operation_D from "@/examples/Admin/medcaseManagement/Operation_D.vue";
+import Medicines_D from "@/examples/Admin/medcaseManagement/Medicines_D.vue";
+
 import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
 import ExamsInfo from  "../examples/Teacher/exam/ExamsInfo.vue"
@@ -180,9 +184,20 @@ const routes = [
     component:Medicines,
   },
   {
+    path:"/:medcaseId/medicine",
+    name:"药品详情-管理员",
+    component:Medicines_D,
+  },
+
+  {
     path:"/operation/:operation_id",
     name:"Operation",
     component:Operation,
+  },
+  {
+    path:"/operations/:operation_id",
+    name:"手术详情-管理员",
+    component:Operation_D,
   },
   {
     path: "/Myexam",
@@ -289,7 +304,7 @@ const routes = [
     component:OperationManagement,
   },
   {
-    path:"/:id/:name",
+    path:"/room/:id/:name",
     name:"科室设施详情-管理员",
     component:FacilityDetails,
   },
@@ -305,10 +320,15 @@ const routes = [
     component:ReselectQuestions,
   },
   {
-    path:"/MedcaseDetail/:id",
+    path:"/MedcaseDetail/:medcaseId",
     name:"病例情况-管理员",
     component:MedcaseDetail,
   },
+  // {
+  //   path:"/medicines_detail/:medcaseId",
+  //   name:" Medicines_detail",
+  //   component:Medicines_detail,
+  // },
 ];
 
 

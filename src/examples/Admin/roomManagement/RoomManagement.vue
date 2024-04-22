@@ -284,7 +284,6 @@ export default {
     },
 
     // 处理操作列中的设施详情按钮点击事件
-    // 处理操作列中的设施详情按钮点击事件
     showFacilityDetails(row) {
       // 在这里处理点击设施详情按钮后的逻辑
       console.log("显示设施详情:", row);

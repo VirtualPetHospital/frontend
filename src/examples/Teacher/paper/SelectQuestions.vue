@@ -2,6 +2,7 @@
 <template>
   <div>
     <div class="buttons-container">
+      <button @click="goBack" class="btn btn-success" style="margin-left: 2%;">返回</button>
       <div  class="input-group" style="margin-bottom: 10px;">
       <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入题目描述关键词搜索" style="margin-left: 2%;">
       <button @click="searchProblems" class="btn btn-primary">搜索</button>
@@ -261,11 +262,24 @@ export default {
    },
    mounted() {
     // 组件加载完成后立即获取题目列表数据
-    this.fetchCategories();
-    this.fetchProblems();
-    this.fetchAllProblems();
+    // this.fetchCategories();
+    // this.fetchProblems();
+    // this.fetchAllProblems();
+    this.fetchData();
   },
   methods: {
+    goBack() {
+      this.$router.push({ name: '试卷管理' });
+    },
+    async fetchData() {
+    try {
+        await this.fetchCategories();
+        await this.fetchAllProblems();
+        this.fetchProblems();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+    },
     openProblemDetails(problem) {
       this.selectedProblem = { ...problem };
       this.showProblemDetails = true;
@@ -500,6 +514,7 @@ export default {
           if(this.problems == '')
           {
             this.showSearchWarning = true;
+            this.searchProblems3();
           }
         }
       } catch (error) {

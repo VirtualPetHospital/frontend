@@ -1,4 +1,3 @@
-
 <template>
   <div class="card p-4" >
     <div class=" row">
@@ -16,34 +15,37 @@
               <div class="oneItem">
                 <div class="fl">
                   <div class="fs14">试题总数</div>
-                  <div ><i class="fs28">{{this.allanswers.length}}</i>
+                  <div ><i class="fs28">{{this.paper.question_num}}</i>
                     <i class="fs12 co333">题</i>
                   </div>
                 </div>
               </div>
               <div class="itemInner">
                 <div class="fs16">
-                  单选题
+                  题目选择
                 </div>
                 <div :key="selectedStudent"> <!-- 使用selectedStudent作为key -->
-                <div class="box-list">
-                  <div
+                  <div class="box-list" v-if="selectedStudent">
+                    <div
                       class="box normal-box question_cbox"
                       style="padding-left: 0px"
                       v-for="(answer,index) in this.allanswers"
                       :key="index"
-                  >
-                    <div
+                    >
+                      <div
                         :class="{ 'ansRight':answer.isCorrect, 'ansFalse': !answer.isCorrect  }"
                         @click="selectQuestion(answer)"
-                    >
-                      {{index+1}}
+                      >
+                        {{index+1}}
+                      </div>
                     </div>
                   </div>
-                </div>
+                  <div v-else>
+                    请先选择学生
+                  </div>
                 </div>
               </div>
-              <div class="oneItem">
+              <div class="oneItem"  style="margin-top: 20px;">
                 <div class="fl">
                   <div class="fs14">学生成绩</div>
                   <div ><i class="fs28">{{this.tempscore}}</i>
@@ -56,20 +58,23 @@
           <el-main style="padding:5px">
             <el-card style="border-radius: 10px">
               <span style="font-size: larger;">题目描述</span>
-              <div v-if="selectedQuestion">
+              <div v-if="!selectedQuestion.description">
+                请选择题目
+              </div>
+              <div v-else>
                 {{selectedQuestion.description}}
               </div>
             </el-card>
-            <el-card style="border-radius: 10px;margin-top:10px">
-              <div v-if="selectedQuestion">
+            <el-card style="border-radius: 10px;margin-top:10px" v-if="selectedQuestion.description">
+              <div>
                 <span>学生选择</span>
                 <div>
                   <el-radio-group v-model="selectedAns" style="display: flex; flex-direction: column;">
-      <el-radio disabled :label="1" style="align-self: flex-start;">{{selectedQuestion.a}}</el-radio>
-      <el-radio disabled :label="2" style="align-self: flex-start;">{{selectedQuestion.b}}</el-radio>
-      <el-radio disabled :label="3" style="align-self: flex-start;">{{selectedQuestion.c}}</el-radio>
-      <el-radio disabled :label="4" style="align-self: flex-start;">{{selectedQuestion.d}}</el-radio>
-    </el-radio-group>
+                    <el-radio disabled :label="1" style="align-self: flex-start;">{{selectedQuestion.a}}</el-radio>
+                    <el-radio disabled :label="2" style="align-self: flex-start;">{{selectedQuestion.b}}</el-radio>
+                    <el-radio disabled :label="3" style="align-self: flex-start;">{{selectedQuestion.c}}</el-radio>
+                    <el-radio disabled :label="4" style="align-self: flex-start;">{{selectedQuestion.d}}</el-radio>
+                  </el-radio-group>
                 </div>
                 <span>正确答案：{{selectedQuestion.answer}}
                 </span>
@@ -110,11 +115,14 @@ export default{
       name:null,
       answerInfo:null,
       selectedQuestion: {
-        description:"请选择题目",
+        // description:"请选择题目",
+        description: "",
         a:null,
         b:null,
         c:null,
-        d:null
+        d:null,
+
+        answer:null,
       },
       selectedAns:null,
       exam_id:0,
@@ -174,6 +182,15 @@ export default{
       this.showInput = this.showStudentSelect; // 设置输入框显示状态
     },
     fetchAnswerSheetId() {
+      this.selectedQuestion = {
+        description: "",
+        a: null,
+        b: null,
+        c: null,
+        d: null,
+        answer: null
+      };
+      this.selectedAns = null;
       // 根据选中的学生nickname查找对应的答题卡数据
       this.allanswers=[];
       const selectedStudentData = this.allanswersheets.find(student => student.nickname === this.selectedStudent);

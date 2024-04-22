@@ -84,20 +84,20 @@
     </el-dialog>
 
     <!-- 按钮区域 -->
-    <div class="row mb-4">
+    <!-- <div class="row mb-4">
       <div class="col-6">
         <el-button type="primary" @click="handleAdd">新增</el-button>
         <el-button type="danger" @click="handleDelete">删除</el-button>
         <el-button type="success" @click="openModifyDialog">修改</el-button>
       </div>
-    </div>
+    </div> -->
 
     <!-- 表格 -->
     <div class="row">
       <div class="col-12">
         <div class="user-management-container">
           <el-table
-            :data="filteredUsers"
+            :data="currentPageData"
             stripe
             style="width: 100%;"
             highlight-current-row
@@ -181,7 +181,7 @@ export default {
     currentPageData() {
       const startIndex = (this.currentPage - 1) * this.pageSize;
       const endIndex = startIndex + this.pageSize;
-      return this.users.slice(startIndex, endIndex);
+      return this.filteredUsers.slice(startIndex, endIndex);
     },
     filteredUsers() {
       // 如果搜索文本为空，则返回原始数据
@@ -284,12 +284,12 @@ export default {
     // 处理每页显示条数改变事件
     handleSizeChange(val) {
       this.pageSize = val;
-      this.fetchUsers(); // 更新每页显示条数后重新获取用户列表数据
+      //this.fetchUsers(); // 更新每页显示条数后重新获取用户列表数据
     },
     // 处理页码改变事件
     handleCurrentChange(val) {
       this.currentPage = val;
-      this.fetchUsers(); // 更新页码后重新获取用户列表数据
+      //this.fetchUsers(); // 更新页码后重新获取用户列表数据
     },
     // 弹窗关闭前的回调
     handleCloseDialog(done) {
@@ -381,8 +381,8 @@ export default {
       try {
         const response = await axios.get('/api/users/list', {
           params: {
-            page_size: this.pageSize,
-            page_num: this.currentPage,
+            page_size: 20,//this.pageSize,
+            page_num: this.currentPage, // 更新为当前页码
             name_keyword: this.searchText.trim()
           },
           withCredentials: true,
