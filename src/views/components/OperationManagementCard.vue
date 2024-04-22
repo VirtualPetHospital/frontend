@@ -324,6 +324,7 @@
         this.file_cname = ''; // 将文件名置为空
       },
       handleSearch() {
+        this.fetchOperations();
         // Handle search functionality
       },
       handleClearSearch() {

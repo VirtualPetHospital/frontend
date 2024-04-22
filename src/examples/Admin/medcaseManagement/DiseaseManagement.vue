@@ -522,21 +522,30 @@
             }
           })
           .then(response => {
-            // 处理成功响应
-            ElMessage({
-              message: response.data.msg,
-              type: 'success',
-              duration: 3000
-            });
-            console.log('删除疾病成功:', response.data);
-            // 从列表中移除被删除的疾病
-            const index = this.cases.findIndex(item => item === this.selectedRow);
-            if (index !== -1) {
-              this.cases.splice(index, 1);
-              this.selectedRow = null;
+            if(response.data.code !== 0){
+              ElMessage({
+                message: response.data.msg,
+                type: 'warning',
+                duration: 3000
+              });
+            }else{
+                // 处理成功响应
+              ElMessage({
+                message: response.data.msg,
+                type: 'success',
+                duration: 3000
+              });
+              console.log('删除疾病成功:', response.data);
+              // 从列表中移除被删除的疾病
+              const index = this.cases.findIndex(item => item === this.selectedRow);
+              if (index !== -1) {
+                this.cases.splice(index, 1);
+                this.selectedRow = null;
+              }
+              // 删除成功后重新获取疾病列表并更新表格
+              this.handleFilterChange();
             }
-            // 删除成功后重新获取疾病列表并更新表格
-            this.handleFilterChange();
+           
           })
           .catch(error => {
             // 处理失败响应
