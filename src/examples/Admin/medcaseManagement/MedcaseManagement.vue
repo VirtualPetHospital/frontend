@@ -183,9 +183,7 @@
             <el-progress :percentage="uploadPercentage_video" v-show="showProgress_video" :stroke-width="5"></el-progress>
           </div>
           <div v-if="file_cname" class="file-name-container"  style="display: block;">
-            
             <span>{{ file_cname }}</span>
-          
           <i class="el-icon-close" @click="clearFileName"></i>
         </div>
         </el-form-item>

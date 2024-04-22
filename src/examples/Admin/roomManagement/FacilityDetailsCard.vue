@@ -14,7 +14,7 @@
     <div style="margin-bottom: 20px;"></div>
     <div class="row mb-4">
       <div class="col-6">
-        <el-button type="primary" @click="handleAddFacility">新增</el-button>
+        <!-- <el-button type="primary" @click="handleAddFacility">新增</el-button> -->
         <el-button type="success" @click="handleModifyFacility">修改</el-button>
         <el-button type="danger" @click="handleDeleteFacility">删除</el-button>
       </div>
@@ -34,8 +34,8 @@
         <el-form-item label="ID">
           <el-input v-model="form.room_asset_id" :disabled="true"></el-input>
         </el-form-item>
-        <el-form-item label="设施名" prop="name">
-          <el-input v-model="form.name"></el-input>
+        <el-form-item label="设施名" prop="name" >
+          <el-input v-model="form.name" ></el-input>
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input v-model="form.description"></el-input>
@@ -118,7 +118,7 @@
       <el-input v-model="updateForm.room_asset_id" :disabled="true"></el-input>
     </el-form-item>
     <el-form-item label="设施名" prop="name">
-      <el-input v-model="updateForm.name"></el-input>
+      <el-input v-model="updateForm.name" :disabled="true"></el-input>
     </el-form-item>
     <el-form-item label="描述" prop="description">
       <el-input v-model="updateForm.description"></el-input>

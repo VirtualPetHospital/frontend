@@ -44,6 +44,7 @@ import Chat from "@/examples/Student/chat/Chat.vue";
 import CategoryManagement from "../examples/Admin/medcaseManagement/CategoryManagement.vue"
 import MedcaseDetail from "../examples/Admin/medcaseManagement/MedcaseDetail.vue"
 import TTT from "../examples/Admin/testMe/testtest.vue"
+import Operation_D from "@/examples/Admin/medcaseManagement/Operation_D.vue";
 
 import OperationManagement from "../examples/Admin/operationManagement/OperationManagement.vue"
 import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vue"
@@ -185,6 +186,11 @@ const routes = [
     path:"/operation/:operation_id",
     name:"Operation",
     component:Operation,
+  },
+  {
+    path:"/operations/:operation_id",
+    name:"手术详情-管理员",
+    component:Operation_D,
   },
   {
     path: "/Myexam",

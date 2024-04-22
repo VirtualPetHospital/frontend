@@ -172,7 +172,6 @@ export default{
   },
   methods:{
     backto(){
-      console.log("router"+this.$router.options.routes);
       this.$router.go(-1); // 返回上一层页面
 ;    },
     myEcharts(){
@@ -277,7 +276,7 @@ export default{
       const operationId = this.medCase.operation_id;
 
       // 使用编程式导航跳转到对应的手术页面
-      this.$router.push({ name: 'Operation', params: { operation_id: operationId } });
+      this.$router.push({ name: '手术详情-管理员', params: { operation_id: operationId } });
     },
     goToMedicines(){
       const medcaseId=this.medCase.medcaseId;
@@ -311,9 +310,19 @@ export default{
       this.medCase.price = data.price;
       this.medCase.disease_id = data.disease_id;
       this.medCase.info_description = data.info_description;
-      this.medCase.info_photo = "http://47.103.131.161:10010/files/"+data.info_photo;
+      const tmp=data.info_photo;
+      if(tmp.startsWith('http')){
+        this.medCase.info_photo=data.info_photo;
+      }else{
+        this.medCase.info_photo = "http://47.103.131.161:10010/files/"+data.info_photo;
+      }
+      const tmp2=data.info_video;
+      if(tmp2.startsWith('http')){
+        this.medCase.info_video = data.info_video;
+      }else{
+        this.medCase.info_video = "http://47.103.131.161:10010/files/"+data.info_video;
+      }
       console.log(this.medCase.info_photo);
-      this.medCase.info_video = "http://47.103.131.161:10010/files/"+data.info_video;
       this.medCase.operation_id = data.operation_id;
       this.medCase.inspections = data.inspections;
       this.handleChart(this.medCase.inspections);
