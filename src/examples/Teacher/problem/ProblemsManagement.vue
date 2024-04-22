@@ -366,11 +366,21 @@ export default {
    },
    mounted() {
     // 组件加载完成后立即获取题目列表数据
-    this.fetchCategories();
-    this.fetchProblems();
-    this.fetchAllProblems();
+    // this.fetchCategories();
+    // this.fetchProblems();
+    // this.fetchAllProblems();
+    this.fetchData();
   },
   methods: {
+    async fetchData() {
+    try {
+        await this.fetchCategories();
+        await this.fetchAllProblems();
+        this.fetchProblems();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+    },
     openEditModal(problem) {
       this.editMode = true; // 进入编辑模式
       this.editingProblem
@@ -789,6 +799,7 @@ deleteProblem() {
           if(this.problems == '')
           {
             this.showSearchWarning = true;
+            this.searchProblems3();
           }
         }
       } catch (error) {

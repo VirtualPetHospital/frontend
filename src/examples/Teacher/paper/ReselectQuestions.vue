@@ -2,6 +2,7 @@
 <template>
   <div>
     <div class="buttons-container">
+      <button @click="goBack" class="btn btn-success" style="margin-left: 2%;">返回</button>
       <div  class="input-group" style="margin-bottom: 10px;">
       <input type="text"  class="form-control small-input" v-model="searchKeyword" placeholder="输入题目描述关键词搜索" style="margin-left: 2%;">
       <button @click="searchProblems" class="btn btn-primary">搜索</button>
@@ -40,7 +41,7 @@
               </div>
             </span>
             </div>
-            <div class="button-container" style="height: 100%;">
+            <div class="button-container2" style="height: 100%;">
             <button @click="upProblems()" class="btn btn-lg btn-block btn-warning" style="height: 100%;">确定选题</button>
             </div>
               </th>
@@ -169,6 +170,20 @@
     </div>
   </transition>
 
+  <transition name="modal">
+    <div class="modal-mask" v-if="showDeleteWarning4" @click="closeDeleteWarning4">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>警告</h3>
+          <p>该试卷已被选入考试中，无法修改试题</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeDeleteWarning4">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   </div>
 </template>
 
@@ -217,6 +232,7 @@ export default {
       searchKeyword: '', // 搜索关键词
       showSearchWarning:false,
       showPageWarning:false,
+      showDeleteWarning4:false,
     };
   },
   created() {
@@ -263,11 +279,24 @@ export default {
    },
    mounted() {
     // 组件加载完成后立即获取题目列表数据
-    this.fetchCategories();
-    this.fetchProblems();
-    this.fetchAllProblems();
+    // this.fetchCategories();
+    // this.fetchProblems();
+    // this.fetchAllProblems();
+    this.fetchData();
   },
   methods: {
+    goBack() {
+      this.$router.push({ name: '试卷管理' });
+    },
+    async fetchData() {
+    try {
+        await this.fetchCategories();
+        await this.fetchAllProblems();
+        this.fetchProblems();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+    },
     openProblemDetails(problem) {
       this.selectedProblem = { ...problem };
       this.showProblemDetails = true;
@@ -316,7 +345,6 @@ export default {
       alert('选题数量未达到要求，请继续选题！');
     } else if (this.selectedCount == this.problemmax) {
       // 选题成功，弹出提示
-      alert('选题成功！');
       // 其他处理逻辑
       const tempproblems = [];
       this.allproblems.forEach(problem => {
@@ -353,7 +381,14 @@ export default {
             'Content-Type': 'application/json',
           }
       });
+      if(response.data.msg === "试卷已被选入考试中，无法修改")
+      {
+          this.showDeleteWarning4 = true;
+      }
+      else{
+      alert('选题成功！');
       this.$router.back();
+      }
       } catch (error) {
         console.error('更新试卷失败：', error);
       }
@@ -558,6 +593,7 @@ export default {
           if(this.problems == '')
           {
             this.showSearchWarning = true;
+            this.searchProblems3();
           }
         }
       } catch (error) {
@@ -649,6 +685,11 @@ export default {
   closePageWarning()
   {
     this.showPageWarning = false;
+  },
+  closeDeleteWarning4()
+  {
+    this.showDeleteWarning4 = false;
+    this.$router.back();
   },
   },
   components: {
@@ -820,5 +861,11 @@ margin-bottom: 10px;
 .btn:hover {
   background-color: #5e72e4;
   color: #ffffff;
+}
+.button-container2{
+  display: flex;
+  /* justify-content: center; 让按钮居中 */
+  width: 100%; /* 让容器宽度和弹窗一样 */
+  box-sizing: border-box; /* 包含内边距和边框在内的容器大小 */
 }
 </style>

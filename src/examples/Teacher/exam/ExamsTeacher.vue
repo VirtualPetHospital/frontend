@@ -200,10 +200,11 @@
           <select class="form-control" v-model="selectedExam.paper.name" :disabled="!editMode">
             <option v-for="paper in allpapers" :key="paper.id" :value="paper.name">{{ paper.name }}</option>
           </select><br>
-            <div class="button-container">
-              <button type="button" class="btn btn-lg btn-block btn-info" @click="editMode ? saveExamDetails(selectedExam.paper.name) : toggleEditMode()">{{ editMode ? '保存' : '修改' }}</button>
-              <button type="button" class="btn btn-lg btn-block btn-warning" @click="editMode ? cancelEdit() : closeExamDetails()">{{ editMode ? '取消修改' : '关闭' }}</button>
-            </div>
+          <div class="button-container">
+  <button type="button" class="btn btn-lg btn-block btn-info" v-if="getExamStatus(selectedExam) === '未开始'" @click="editMode ? saveExamDetails(selectedExam.paper.name) : toggleEditMode()">{{ editMode ? '保存' : '修改' }}</button>
+  <button type="button" class="btn btn-lg btn-block btn-warning" v-if="getExamStatus(selectedExam) === '未开始'" @click="editMode ? cancelEdit() : closeExamDetails()">{{ editMode ? '取消修改' : '关闭' }}</button>
+  <button type="button" class="btn btn-lg btn-block btn-warning" v-else @click="closeExamDetails()">关闭</button>
+</div>
           </form>
         </div>
       </div>
@@ -228,7 +229,7 @@
       <div class="modal-wrapper" @click.stop>
         <div class="modal-container">
           <h3>提示</h3>
-          <p>请先将试卷基本信息填写完整再选择试题</p>
+          <p>请先将考试基本信息填写完整</p>
           <div class="button-container">
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSelectExam">关闭</button>
           </div>
@@ -317,7 +318,7 @@
       </div>
     </div>
   </transition>
-
+  
   <transition name="modal">
     <div class="modal-mask" v-if="showSelectExam4" @click="closeSelectExam4">
       <div class="modal-wrapper" @click.stop>
@@ -326,6 +327,20 @@
           <p>考试终止时间与起始时间之差与考试时长不符，请检查</p>
           <div class="button-container">
             <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSelectExam4">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <transition name="modal">
+    <div class="modal-mask" v-if="showSelectExam5" @click="closeSelectExam5">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>考试开始时间和结束时间不能早于当前时间</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeSelectExam5">关闭</button>
           </div>
         </div>
       </div>
@@ -498,6 +513,7 @@ export default {
       showSearchWarning:false,
       showPageWarning:false,
       showDeleteWarning6:false,
+      showSelectExam5:false,
     };
   },
   created() {
@@ -667,17 +683,19 @@ export default {
           if(response.data.msg == "操作成功")
             {
               alert("成功删除该场考试!");
-            this.totalExams = this.totalExams-1;
-            const totalPages = Math.ceil(this.totalExams / this.pageSize);
+            // this.totalExams = this.totalExams-1;
+            // const totalPages = Math.ceil(this.totalExams / this.pageSize);
       // const lastPage = totalPages === 0 ? 1 : totalPages;
       // 如果新增题目所在页码不是当前页码，则跳转到最后一页
-      if (totalPages != this.currentPage) {
-        this.currentPage = totalPages;
-        this.fetchExams();
-      } 
-      else{
-        this.fetchExams();
-      }
+      // if (totalPages != this.currentPage) {
+      //   this.currentPage = totalPages;
+      //   this.fetchExams();
+      // } 
+      // else{
+      //   this.fetchExams();
+      // }
+      this.currentPage = 1;
+      this.fetchExams();
     }
           }).catch(error => {
             console.error('Error deleting exam:', error);
@@ -822,6 +840,14 @@ export default {
     this.showSelectExam4 = true;
     return ;
     }
+      // 检查开始时间和结束时间是否大于等于当前时间
+    const now = new Date();
+    if (startTime < now || endTime < now) {
+        console.error('考试开始时间和结束时间必须大于当前时间');
+        // 在此处处理提醒用户开始时间和结束时间必须大于等于当前时间的逻辑
+        this.showSelectExam5 = true;
+        return ;
+    }
     this.showEditModal = false; // 关闭编辑窗口
     this.editMode = false; // 重置编辑模式
     this.$router.push({ name: '选择试卷', params: { tempname: newExam.name, templevel:newExam.level, tempduration:newExam.duration,tempstarttime:newExam.starttime, tempendtime:newExam.endtime} });
@@ -885,6 +911,10 @@ export default {
   closeSelectExam4()
   {
     this.showSelectExam4 = false;
+  },
+  closeSelectExam5()
+  {
+    this.showSelectExam5 = false;
   },
   closeDeleteConfirmModal()
   {
