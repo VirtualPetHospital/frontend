@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="新增表格元素"
+    title="新增病例"
     v-model="dialogVisible"
     width="60%"
     :before-close="handleCloseDialog"
@@ -98,7 +98,7 @@
       </el-form-item>
 
       <el-form-item label="治疗手段描述" prop="treatment_description">
-        <el-input v-model="form.treatment_description" placeholder="请输入治疗手段描述"></el-input>
+        <el-input v-model="form.treatment_description" placeholder="请输入治疗手段描述" :required="true" ></el-input>
       </el-form-item>
       <el-form-item label="诊断结果" prop="diagnose_result">
         <el-input v-model="form.diagnose_result" placeholder="请输入诊断结果"></el-input>
@@ -205,7 +205,7 @@
   </el-dialog>
 
   <el-dialog
-    title="修改表格元素"
+    title="修改病例"
     v-model="modifyDialogVisible"
     width="60%"
     :before-close="handleCloseModifyDialog"
@@ -544,7 +544,9 @@
           name: [{ required: true, message: '请输入病例名', trigger: 'blur' }],
           price: [{ type: 'number', message: '请输入正确的总价', trigger: 'blur' }],
           disease_id: [{ type: 'number', message: '请输入正确的疾病id', trigger: 'blur' }],
-          operation_id: [{ type: 'number', message: '请输入正确的手术id', trigger: 'blur' }]
+          operation_id: [{ type: 'number', message: '请输入正确的手术id', trigger: 'blur' }],
+          treatment_description: [{ required: true, message: '请输入治疗手段描述', trigger: 'blur' }],
+          diagnose_result: [{ required: true, message: '请输入诊断结果', trigger: 'blur' }],
         },
         categories: [], // 存储后端返回的病种列表
         diseases: [], // 存储后端返回的疾病列表

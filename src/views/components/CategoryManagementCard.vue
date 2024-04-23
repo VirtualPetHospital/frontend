@@ -70,7 +70,7 @@
       </div>
   
       <!-- 表格 -->
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-12">
           <div class="user-management-container">
             <el-table
@@ -88,7 +88,27 @@
             </el-table>
           </div>
         </div>
+      </div> -->
+      <div class="row">
+        <div class="col-12">
+          <div class="user-management-container">
+            <el-table
+              :data="currentPageData"
+              stripe
+              style="width: 100%;"
+              highlight-current-row
+              @row-click="handleRowClick"
+              :filters="filters"
+              :filter-method="handleFilter"
+              @sort-change="handleSortChange"
+            >
+              <el-table-column prop="category_id" label="ID" sortable="custom"></el-table-column>
+              <el-table-column prop="name" label="病种名"></el-table-column>
+            </el-table>
+          </div>
+        </div>
       </div>
+
   
         <!-- 分页组件 -->
         <div class="row">
@@ -440,6 +460,15 @@
             console.error('Error fetching categories:', error);
         }
     },
+    handleSortChange({ column, prop, order }) {
+      if (order === 'ascending') {
+        // 升序排序
+        this.currentPageData.sort((a, b) => a[prop] - b[prop]);
+      } else if (order === 'descending') {
+        // 降序排序
+        this.currentPageData.sort((a, b) => b[prop] - a[prop]);
+      }
+    }
 
 
     },
