@@ -58,7 +58,7 @@
 
             <el-image :src="medCase.info_photo"  >
               <div slot="error" class="image-slot">
-                <i class="el-icon-picture-outline"></i>
+                <img src="https://img2.imgtp.com/2024/04/22/YHFFLtQf.png">
               </div>
             </el-image>
             </div>
