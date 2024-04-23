@@ -57,7 +57,7 @@
             <label>邮箱：</label>
             <input type="text" class="form-control" v-model="selectedemail" :disabled="!editMode"><br>
             <el-upload
-                class="avatar-uploader"
+                class="upload-demo"
                 ref="upload"
                 action="/api/files/upload"
                 :on-remove="handleRemove"

@@ -192,7 +192,11 @@ export default{
           const answer = this.answerInfo[index];
           answer.isCorrect = trueAns === answer.answer;
           this.showBoxlist = true;
-        });
+        }
+        );
+        if(this.answerInfo){
+          this.selectQuestion(this.answerInfo[0]);
+        }
       }).catch(error=>{
         console.log('获取试卷失败2',error);
       })
