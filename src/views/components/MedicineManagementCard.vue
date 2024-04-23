@@ -428,7 +428,7 @@ export default {
         params: {
           page_size: 100,
           page_num: 1,//this.currentPage,
-          //name_keyword: this.searchText,
+          name_keyword: this.searchText,
         },
         withCredentials: true,
         headers: {

@@ -85,7 +85,7 @@
                 }
               });
           const operationDetails = response.data.data;
-  
+          console.log('信息是什么',response);
           // 将获取到的数据赋值给对应的变量
           this.name = operationDetails.name;
           this.price = operationDetails.price;
@@ -97,8 +97,10 @@
           }else{
             this.photo="http://47.103.131.161:10010/files/"+operationDetails.photo;
           }}
-          if (tmp2!=null){
           const tmp2=operationDetails.video;
+          console.log('啊啊');
+          if (tmp2!=null){
+          // const tmp2=operationDetails.video;
           if(tmp2.startsWith('http')){
             this.video = operationDetails.video;
           }else{
