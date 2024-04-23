@@ -29,7 +29,7 @@
             <div class="col-4">
               <div
                   class="card  card-body border card-plain border-radius-lg d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleOperator()">
-                <h5 class="mb-0 text-white">操作流程</h5>
+                <h5 class="mb-0 text-white">介绍图片</h5>
               </div>
             </div>
 
@@ -68,7 +68,7 @@
     <div id = "show-photo" class="card  bg-gradient-dark move-on-hover align-items-start mt-4 col-lg-4 col-md-4 mt-sm-0" style="z-index:55; position:absolute;left:5%; top:25%;
   max-height:50%; overflow-y: scroll;" >
       <div class="card-body">
-        <h5 class="mb-0 text-black">操作流程</h5>
+        <h5 class="mb-0 text-black">介绍图片</h5>
         <el-image :src="this.operator">
           <div slot="error" class="image-slot">
             <i class="el-icon-picture-outline"></i>
@@ -152,7 +152,7 @@ export default {
       showCard2:'',
       func:"bbb",
       operator:"aaa",
-      video:"https://www.w3school.com.cn/example/html5/mov_bbb.mp4",
+      video:"",
       imageArr: [
         {//免疫室
           img: require('@/assets/img/research.jpg'),
@@ -751,6 +751,8 @@ export default {
               this.showVideo.style.display = "none";
               this.showCard.style.display = "none";
               this.showCard2.style.display = "none";
+              this.playerOptions.sources[0].src=null;
+              this.operator=null;
               // this.showFunc.style.display = "none";
               // this.showOperator.style.display= "none";
               console.log(`unClicked on marker ${marker.config.id}`);
@@ -785,8 +787,10 @@ export default {
 
                     if(tmp2.startsWith('http')){
                       this.video = data.video;
+                      this.playerOptions.sources[0].src=this.video;
                     }else{
                       this.video = "http://47.103.131.161:10010/files/"+data.video;
+                      this.playerOptions.sources[0].src=this.video;
                     }}
                   this.func=data.description;
                 }else{
@@ -794,7 +798,7 @@ export default {
                   this.$router.go(-1);
                 }
               })
-              this.playerOptions.sources[0].src=this.video;
+              console.log(this.playerOptions.sources[0].src);
               this.show.style.display = "block";
                this.showVideo.style.display = "none";
               // this.showFunc.style.display = "none";
@@ -808,6 +812,8 @@ export default {
         this.showVideo.style.display = "none";
         this.showCard.style.display = "none";
         this.showCard2.style.display = "none";
+        this.playerOptions.sources[0].src=null;
+        this.operator=null;
         // this.showFunc.style.display = "none";
         // this.showOperator.style.display= "none";
         console.log(`unClicked on marker ${marker.config.id}`);
@@ -835,7 +841,7 @@ export default {
     },
 
     toggleOperator(){
-      this.cardTitle="操作流程";
+      this.cardTitle="介绍图片";
 
       this.cardContent = this.operator;
       this.showCard.style.display='none';
