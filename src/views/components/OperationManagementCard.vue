@@ -29,7 +29,7 @@
           <el-form-item label="价格" prop="price">
             <el-input v-model.number="form.price" type="number"></el-input>
           </el-form-item>
-          <el-form-item label="手术详情描述" prop="description">
+          <el-form-item label="手术详情" prop="description">
             <el-input v-model="form.description"></el-input>
           </el-form-item>
           <el-form-item label="手术图片">
@@ -112,7 +112,7 @@
           <el-form-item label="价格" prop="price">
             <el-input v-model.number="form.price" type="number"></el-input>
           </el-form-item>
-          <el-form-item label="手术详情描述" prop="description">
+          <el-form-item label="手术详情" prop="description">
             <el-input v-model="form.description"></el-input>
           </el-form-item>
           <el-form-item label="手术图片">

@@ -52,8 +52,8 @@
             />
           </div>
         </div>
-        <div class="row" v-if="chartDataLoaded">
-          <div class="col-lg-7 mb-lg">
+        <div class="row" >
+          <div class="col-12 mb-lg" v-if="chartDataLoaded">
             <!-- line chart -->
             <div class="card z-index-2">
               <gradient-line-chart
@@ -63,15 +63,15 @@
                 :chart="chartData()"
               />
             </div>
+
           </div>
-          <div class="col-lg-5">
-            <carousel />
+          <div v-else>
+            <!-- Loading indicator -->
+            <p>Loading...</p>
           </div>
+          
         </div>
-        <div v-else>
-          <!-- Loading indicator -->
-          <p>Loading...</p>
-        </div>
+        
       </div>
     </div>
   </div>
@@ -80,7 +80,6 @@
 <script setup>
 import MiniStatisticsCard from "@/examples/Cards/MiniStatisticsCard.vue";
 import GradientLineChart from "@/examples/Charts/GradientLineChart.vue";
-import Carousel from "../../views/components/Carousel.vue";
 
 import {useStore} from "vuex";
 import {onMounted,ref,computed} from "vue";
@@ -311,10 +310,13 @@ onMounted(async() => {
         }));
         totalCategory.value = allcategory.value.length;
         chartDataLoaded.value = true; // 设置为true，表示数据加载完成
+        
       }
     } catch (error) {
       console.error('Error fetching questions:', error);
     }
 
+
 })
+
 </script>

@@ -3,7 +3,7 @@
     <div class="dialog-content" @click.stop>
       <!-- 新增弹窗 -->
       <el-dialog
-        title="新增表格元素"
+        title="新增疾病"
         v-model="dialogVisible"
         width="30%"
         :before-close="handleCloseDialog" 
@@ -100,7 +100,7 @@
     <div class="dialog-content" @click.stop>
       <!-- 修改弹窗 -->
       <el-dialog
-        title="修改表格元素"
+        title="修改疾病"
         v-model="modifyDialogVisible"
         width="30%"
         :before-close="handleCloseModifyDialog"
