@@ -21,6 +21,17 @@ const getRoute = () => {
       id="sidenav-collapse-main"
   >
     <ul class="navbar-nav">
+       <li class="nav-item">
+      <sidenav-item
+      to="/dashboard-admin"
+      :class="getRoute() === 'dashboard-admin' ? 'active' : ''"
+      :navText="isRTL ? 'dashboard-admin' : '首页'"
+      >
+      <template v-slot:icon>
+      <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+      </template>
+      </sidenav-item>
+      </li>
       <li class="nav-item">
         <sidenav-item
             to="/UserManagement"
@@ -113,17 +124,7 @@ const getRoute = () => {
         </sidenav-item>
       </li>
 
-      <li class="nav-item">
-        <sidenav-item
-            to="/profile3"
-            :class="getRoute() === 'profile3' ? 'active' : ''"
-            :navText="isRTL ? 'profile3' : '个人主页'"
-        >
-          <template v-slot:icon>
-            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
-          </template>
-        </sidenav-item>
-      </li>
+    
       <li class="nav-item">
         <sidenav-item
             to="/signin"

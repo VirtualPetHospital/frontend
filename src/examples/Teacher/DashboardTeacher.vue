@@ -149,6 +149,7 @@ onMounted(async() => {
     store.commit('setShowSidenavTeacher', false);
     next();
   });
+  document.getElementById("main").removeAttribute('_echarts_instance_');
   try {
       const response = await axios.get('/api/questions', {
         params: {

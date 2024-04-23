@@ -22,6 +22,17 @@ const getRoute = () => {
     <ul class="navbar-nav">
       <li class="nav-item">
         <sidenav-item
+            to="/dashboard-teacher"
+            :class="getRoute() === 'dashboard-teacher' ? 'active' : ''"
+            :navText="isRTL ? 'dashboard-teacher' : '首页'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
+      <li class="nav-item">
+        <sidenav-item
             to="/ProblemsManagement"
             :class="getRoute() === 'ProblemsManagement' ? 'active' : ''"
             :navText="isRTL ? 'ProblemsManagement' : '题库管理'"
@@ -79,6 +90,17 @@ const getRoute = () => {
             to="/profile"
             :class="getRoute() === 'profile' ? 'active' : ''"
             :navText="isRTL ? 'profile' : '个人主页'"
+        >
+          <template v-slot:icon>
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </template>
+        </sidenav-item>
+      </li>
+      <li class="nav-item">
+        <sidenav-item
+            to="/signin"
+            :class="getRoute() === 'signin' ? 'active' : ''"
+            :navText="isRTL ? 'signin' : '退出登录'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
