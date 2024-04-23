@@ -515,6 +515,7 @@ export default {
           {
             this.showSearchWarning = true;
             this.searchProblems3();
+            this.isHoveredAll = false;
           }
         }
       } catch (error) {

@@ -1210,6 +1210,8 @@ async fetchAllPapers() {
           if(this.exams == '')
           {
             this.showSearchWarning = true;
+            this.searchExams3();
+            this.isHoveredAll = false;
           }
         }
       } catch (error) {

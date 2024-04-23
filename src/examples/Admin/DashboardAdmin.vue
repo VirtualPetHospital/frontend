@@ -7,9 +7,7 @@
             <mini-statistics-card
               title="收录的病种数量"
               :value="bingzhong"
-              description="<span
-                class='text-sm font-weight-bolder text-success'
-                >+55%</span> since yesterday"
+              description=""
               :icon="{
                 component: 'ni ni-money-coins',
                 background: 'bg-gradient-primary',
@@ -21,9 +19,7 @@
             <mini-statistics-card
               title="收录的病例数量"
               :value="totalPapers"
-              description="<span
-                class='text-sm font-weight-bolder text-success'
-                >+3%</span> since last week"
+              description=""
               :icon="{
                 component: 'ni ni-world',
                 background: 'bg-gradient-danger',
@@ -35,9 +31,7 @@
             <mini-statistics-card
               title="收录的检查项目数量"
               :value="totalExams"
-              description="<span
-                class='text-sm font-weight-bolder text-danger'
-                >-2%</span> since last quarter"
+              description=""
               :icon="{
                 component: 'ni ni-paper-diploma',
                 background: 'bg-gradient-success',
@@ -49,9 +43,7 @@
             <mini-statistics-card
               title="用户总数"
               :value="totalStudents"
-              description="<span
-                class='text-sm font-weight-bolder text-success'
-                >+5%</span> than last month"
+              description=""
               :icon="{
                 component: 'ni ni-cart',
                 background: 'bg-gradient-warning',
@@ -89,11 +81,7 @@
 import MiniStatisticsCard from "@/examples/Cards/MiniStatisticsCard.vue";
 import GradientLineChart from "@/examples/Charts/GradientLineChart.vue";
 import Carousel from "../../views/components/Carousel.vue";
-import CategoriesList from "../../views/components/CategoriesList.vue";
-import US from "@/assets/img/icons/flags/US.png";
-import DE from "@/assets/img/icons/flags/DE.png";
-import GB from "@/assets/img/icons/flags/GB.png";
-import BR from "@/assets/img/icons/flags/BR.png";
+
 import {useStore} from "vuex";
 import {onMounted,ref,computed} from "vue";
 import {onBeforeRouteLeave} from "vue-router";

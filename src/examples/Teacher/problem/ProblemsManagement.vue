@@ -642,6 +642,7 @@ deleteProblem() {
         // 你可能还需要更新本地的题目列表数据或其他相关操作
       } else {
         // 更新失败，处理错误信息
+        console.log("题目信息修改失败:",responseData.msg);
         console.error('题目信息更新失败:', responseData.msg);
       }
     } catch (error) {
@@ -800,6 +801,7 @@ deleteProblem() {
           {
             this.showSearchWarning = true;
             this.searchProblems3();
+            this.isHoveredAll = false;
           }
         }
       } catch (error) {
