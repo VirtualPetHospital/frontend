@@ -43,10 +43,10 @@ export default {
         {this.$router.push('/Cosplay');
           break;}
         case 'teacher':
-        {this.$router.push('/PapersTeacher');
+        {this.$router.push('/dashboard-teacher');
           break;}
         case 'administrator':
-        {this.$router.push('/UserManagement');
+        {this.$router.push('/dashboard-admin');
           break;}
         default:
           console.error('未知的用户类型:', userType);
