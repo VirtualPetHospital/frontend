@@ -1,5 +1,5 @@
 <template>
-  <div class="card p-4" >
+  <div class="card p-4" style="height: auto">
     <div class=" row">
       <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
       <div class="col-12">

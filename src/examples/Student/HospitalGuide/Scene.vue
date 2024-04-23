@@ -66,7 +66,7 @@
       </div>
     </div>
     <div id = "show-photo" class="card  bg-gradient-dark move-on-hover align-items-start mt-4 col-lg-4 col-md-4 mt-sm-0" style="z-index:55; position:absolute;left:5%; top:25%;
-  max-height:30%; overflow-y: scroll;" >
+  max-height:50%; overflow-y: scroll;" >
       <div class="card-body">
         <h5 class="mb-0 text-black">操作流程</h5>
         <el-image :src="this.operator">
@@ -746,7 +746,14 @@ export default {
               console.log(this.index);
               this.room = this.rooms[this.index];
               this.doctor = this.doctors[this.index];
-              this.setViewer(this.imageArr[this.index].img)
+              this.setViewer(this.imageArr[this.index].img);
+              this.show.style.display = "none";
+              this.showVideo.style.display = "none";
+              this.showCard.style.display = "none";
+              this.showCard2.style.display = "none";
+              // this.showFunc.style.display = "none";
+              // this.showOperator.style.display= "none";
+              console.log(`unClicked on marker ${marker.config.id}`);
             }else{
               this.item = marker.config.id;
               this.func = marker.config.func;
@@ -831,6 +838,7 @@ export default {
       this.cardTitle="操作流程";
 
       this.cardContent = this.operator;
+      this.showCard.style.display='none';
       this.showVideo.style.display = "none";
       this.showCard2.style.display = "block";
       //   this.showFunc.style.display = "none";
