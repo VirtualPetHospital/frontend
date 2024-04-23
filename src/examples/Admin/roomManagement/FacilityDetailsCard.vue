@@ -609,7 +609,7 @@ export default {
           cancelUploads.push(cancelToken.cancel); // 将取消上传请求的函数保存到数组中
 
 
-          return axios.post('http://localhost:8080/api/files/uploadChunk', formData, {
+          return axios.post('/api/files/uploadChunk', formData, {
             withCredentials: true,
             headers: {
               'Session': sessionStorage.getItem('sessionId'),
@@ -678,7 +678,7 @@ export default {
       console.log('传的参数1: ',fileName);
       console.log('传的参数2: ',this.identifier);
 
-      axios.post('http://localhost:8080/api/files/convert', {
+      axios.post('/api/files/convert', {
         file_name: fileName, // 分片上传接口返回的文件名
         identifier: this.identifier, // 文件的 MD5 值
         type: 'video' // 文件类型始终为 video
