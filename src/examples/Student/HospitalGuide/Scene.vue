@@ -155,7 +155,7 @@ export default {
       video:"https://www.w3school.com.cn/example/html5/mov_bbb.mp4",
       imageArr: [
         {//免疫室
-          img: require('@/assets/img/archives.jpg'),
+          img: require('@/assets/img/research.jpg'),
         },
         {//化验
           img: require('@/assets/img/check.jpg'),
@@ -206,7 +206,7 @@ export default {
             {
               id:'toHuayanshi',
               tooltip:'化验室',
-              html: '<div><img src="https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
+              html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
               longitude: 2.4,
               latitude: -0.31179146502439625,
               anchor: 'center right',
@@ -217,8 +217,8 @@ export default {
             {
               id:'清洗槽',
               html: '<div class="bubble">清洗槽</div>',
-              longitude: 4.730593408331794,
-              latitude: 0.0014482872080976428,
+              longitude:0.3368927313172293,
+              latitude: -0.1478313488770011,
               anchor: 'center right',
               jump: false,
               asset_id:1,
@@ -229,8 +229,8 @@ export default {
             {
               id:'展览台',
               html: '<div class="bubble">展览台</div>',
-              longitude: 0.3368927313172293,
-              latitude:  -0.1478313488770011,
+              longitude: 4.730593408331794,
+              latitude:  0.0014482872080976428,
               anchor: 'center right',
               asset_id:2,
               jump: false,

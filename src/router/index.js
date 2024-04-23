@@ -52,6 +52,7 @@ import FacilityDetails from "../examples/Admin/roomManagement/FacilityDetails.vu
 import ExamsInfo from  "../examples/Teacher/exam/ExamsInfo.vue"
 import ReselectQuestions from "../examples/Teacher/paper/ReselectQuestions.vue";
 import HistoryMedcase from "@/examples/Student/Medicase/HistoryMedcase.vue";
+import SearchMedcase from "@/examples/Student/Search/SearchMedcase.vue";
 const routes = [
   {
     path: "/",
@@ -72,6 +73,11 @@ const routes = [
     path: "/dashboard-admin",
     name: "DashboardAdmin",
     component: DashboardAdmin,
+  },
+  {
+    path:'/SearchMedcase',
+    name:'SearchMedcase',
+    component: SearchMedcase
   },
   {
     path: "/dashboard-default",

@@ -1,9 +1,9 @@
 <template>
-  <div class="card p-4" >
+  <div class="card p-4" style="height: auto" >
     <div class=" row">
       <div class="col-12">
         <h3>我的考试</h3>
-        <el-table :data="pageExams" stripe style="margin-top: 20px" >
+        <el-table :data="pageExams" stripe style="margin-top: 20px" @filter-change="handleFilterChange" >
           <el-table-column prop="exam_id" label="考试ID" sortable></el-table-column>
           <el-table-column prop="name" label="考试名称"></el-table-column>
           <el-table-column prop="start_time" label="考试开始时间" sortable></el-table-column>
@@ -13,13 +13,15 @@
           <el-table-column
               fixed="right"
               align="center"
-              label="操作">
+              label="操作"
+              column-key="participant"
+              :filters="[{ text: '可参加', value: '0' }, { text: '可报名', value: '1' }, { text: '可查看', value: '2' }]"
+              :filter-method="filterTag"
+              filter-placement="bottom-end">
             <template v-slot="scope">
               <div class="button-group">
-                <el-button :class="{ 'checki': !getButtonClassAndDisabledForWatch(scope.row), 'checked': getButtonClassAndDisabledForWatch(scope.row) }" @click="watch(scope.row)" type="text" size="small" style="margin-left: 5px"  :disabled="getButtonClassAndDisabledForWatch(scope.row) ">
-                  查看</el-button>
-                <el-button :class="{ 'checki': !getButtonClassAndDisabledForTake(scope.row), 'checked': getButtonClassAndDisabledForTake(scope.row) }" @click="take(scope.row)" type="text" size="small" style="margin-left: 5px" :disabled="getButtonClassAndDisabledForTake(scope.row)">参加</el-button>
-                <el-button :class="{ 'checki': !getButtonClassAndDisabledForEnroll(scope.row), 'checked': getButtonClassAndDisabledForEnroll(scope.row) }" @click="participate(scope.row)" type="text" size="small" style="margin-left: 5px" :disabled="getButtonClassAndDisabledForEnroll(scope.row)">报名</el-button>
+                <el-button :class="{ 'checki': !getButtonClassAndDisabled(scope.row), 'checked': getButtonClassAndDisabled(scope.row) }" @click="jump(scope.row)" type="text" size="small" style="margin-left: 5px"  :disabled="getButtonClassAndDisabled(scope.row) ">
+                  {{translate(scope.row.participated)}}</el-button>
               </div>
             </template>
           </el-table-column>
@@ -59,12 +61,44 @@ export default{
     ElButton
   },
   methods:{
+    handleFilterChange(){
+
+    },
+    translate(participant){
+      if(participant===null){
+        return '报名';
+      }else if(participant===true){
+        return '查看';
+      }else{
+        return "参加";
+      }
+    },
+    filterTag(value,row){
+      if(!this.getButtonClassAndDisabledForWatch(row)&&row.participated===true){
+        return value==='2';
+      }
+      if(!this.getButtonClassAndDisabledForEnroll(row)&&row.participated===null){
+        return value==='1';
+      }
+      if(!this.getButtonClassAndDisabledForTake(row)&&row.participated===false){
+        return value==='0';
+      }
+    },
     /*
     * 跳转逻辑*/
+    jump(row){
+      if(row.participated===null){
+        this.participate(row);
+      }else if(row.participated===true){
+        this.watch(row);
+      }else{
+        this.take(row);
+      }
+    },
     watch(row){
-      const paperId=row.paper.paper_id;
+      const examId=row.exam_id;
       const paperName=row.paper.name;
-      this.$router.push({name:'WatchPaper',params:{id: paperId,name:paperName}});
+      this.$router.push({name:'WatchPaper',params:{id: examId,name:paperName}});
     },
     take(row){
       const examId=row.exam_id;
@@ -84,13 +118,13 @@ export default{
               page_num:0
             }
           }).then(response=>{
-            const data=response.data.data;
-            this.total=data.records.length;
-            this.exams=data.records;
-            console.log(this.exams);
-            this.fetchPageExams();
+        const data=response.data.data;
+        this.total=data.records.length;
+        this.exams=data.records;
+        console.log(this.exams);
+        this.fetchPageExams();
 
-    })
+      })
     },
     participate(row){
       const exam_id = row.exam_id;
@@ -141,22 +175,45 @@ export default{
       this.pageNum = pageNum; // 更新当前页码
       this.fetchPageExams(); // 重新获取数据
     },
+    getButtonClassAndDisabled(row) {
+      console.log(new Date(row.start_time)+" "+new Date());
+      //enroll
+      if(row.participated===null){
+        return this.getButtonClassAndDisabledForEnroll(row);
+      }else if(row.participated===true){
+        return this.getButtonClassAndDisabledForWatch(row);
+      }
+      return this.getButtonClassAndDisabledForTake(row);
+
+    },
     // 根据当前时间设置按钮样式
     getButtonClassAndDisabledForWatch(row) {
-      if(row.participated===true){
-      return false;}
+      if(new Date(row.end_time).getTime()<=new Date().getTime()){
+        return false;
+      }
       return true;
     },
     getButtonClassAndDisabledForEnroll(row) {
-      if(row.participated===null){
-        return false;}
-      return true;
+      console.log(new Date().getTime()+" "+new Date(row.start_time).getTime());
+      if(new Date(row.start_time).getTime()<new Date().getTime()){
+        return true;
+      }
+      return false;
+
     },
     getButtonClassAndDisabledForTake(row) {
-      if(row.participated===false){
-        return false;}
-      return true;
+      const now = new Date().getTime(); // 获取当前时间
+      const startTime = new Date(row.start_time).getTime(); // 获取考试开始时间
+      const endTime = new Date(row.end_time).getTime(); // 获取考试结束时间
+
+      // 如果当前时间早于开始时间或晚于结束时间，则返回 true，禁用按钮
+      if (now < startTime || now > endTime) {
+        return true;
+      }
+      // 否则返回 false，按钮可用
+      return false;
     }
+
   },
   created() {
     this.fetchExams();
