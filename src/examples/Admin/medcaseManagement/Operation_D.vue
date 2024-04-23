@@ -98,6 +98,7 @@
             this.photo="http://47.103.131.161:10010/files/"+operationDetails.photo;
           }}
           const tmp2=operationDetails.video;
+          console.log('啊啊');
           if (tmp2!=null){
           // const tmp2=operationDetails.video;
           if(tmp2.startsWith('http')){

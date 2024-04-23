@@ -576,7 +576,7 @@ export default {
         console.log('文件的MD5值:', md5);
 
         // 分片上传
-        const chunkSize = 10 * 1024 * 1024; // 每片大小为10MB
+        const chunkSize = 2 * 1024 * 1024; // 每片大小为10MB
         const totalChunks = Math.ceil(file.size / chunkSize);
         const chunks = [];
 
