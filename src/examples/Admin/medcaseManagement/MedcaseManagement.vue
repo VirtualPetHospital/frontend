@@ -612,12 +612,22 @@
         return this.cases.slice(startIndex, endIndex);
       },
       // 根据搜索文本过滤病例
+      // filteredCases() {
+      //   const searchText = this.searchText ? this.searchText.toLowerCase() : ''; // 添加空值判断
+      //   return this.cases.filter(item =>
+      //     item && item.name && item.name.toLowerCase().includes(searchText) // 添加空值检查
+      //   );
+      // },
       filteredCases() {
         const searchText = this.searchText ? this.searchText.toLowerCase() : ''; // 添加空值判断
-        return this.cases.filter(item =>
-          item && item.name && item.name.toLowerCase().includes(searchText) // 添加空值检查
-        );
+        return this.cases.filter(item => {
+          // 添加空值检查并将病例名和病例描述转换为小写进行比较
+          const nameMatch = item && item.name && item.name.toLowerCase().includes(searchText);
+          const descriptionMatch = item && item.info_description && item.info_description.toLowerCase().includes(searchText);
+          return nameMatch || descriptionMatch; // 只要病例名或病例描述中有一个匹配成功就返回 true
+        });
       },
+
 
     },
     methods: {
