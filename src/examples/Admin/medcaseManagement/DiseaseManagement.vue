@@ -185,6 +185,58 @@
 
     </div>
   </div>
+
+
+
+  <div class="tanchuang" v-show="dialogVisible_p" @click="closeDialog_p">
+    <div class="dialog-content" @click.stop>
+      <!-- 图片弹窗 -->
+      <el-dialog
+        title="疾病图示"
+        v-model="dialogVisible_p"
+        width="30%"
+        :before-close="closeDialog_p" 
+      >
+        
+            <el-card class="custom-elcard">
+              <h5>疾病图示</h5>
+              <el-image :src="photoUrl">
+                <div slot="error" class="image-slot">
+                  <i class="el-icon-picture-outline">有没有</i>
+                </div>
+              </el-image>
+            </el-card>
+          
+      </el-dialog>
+    </div>
+  </div>
+
+  <div class="tanchuang" v-show="dialogVisible_v" @click="closeDialog_v">
+    <div class="dialog-content" @click.stop>
+      <!-- 视频弹窗 -->
+      <el-dialog
+        title="疾病视频"
+        v-model="dialogVisible_v"
+        width="30%"
+        :before-close="closeDialog_v" 
+      >
+        
+      <el-card class="custom-elcard">
+        <h5>视频</h5>
+        <video-player
+            class="video-player vjs-custom-skin"
+            ref="videoPlayer"
+            :playsinline="true"
+            :options="playerOptions"/>
+      </el-card>
+          
+      </el-dialog>
+    </div>
+  </div>
+
+
+
+  
   
     <div class="py-4 container sectionHeight">
       
@@ -238,8 +290,20 @@
                       <el-table-column prop="category_id" label="病种ID" >
                         
                       </el-table-column>
-                      <el-table-column prop="photo" label="图片"></el-table-column>
-                      <el-table-column prop="video" label="视频"></el-table-column>
+                      <el-table-column label="图片">
+                        <template v-slot="{row}">
+                          <el-button type="text" @click="handlePreview_p(row)">查看</el-button>
+                        </template>
+                      </el-table-column>
+
+
+                      <el-table-column label="视频">
+                        <template v-slot="{row}">
+                          <el-button type="text" @click="handlePreview_v(row)">查看</el-button>
+                        </template>
+                      </el-table-column>
+
+                    
                     </el-table>
                   </div>
                 </div>
@@ -269,8 +333,9 @@
   <script>
   import { useStore } from "vuex";
   import { onBeforeRouteLeave } from "vue-router";
-  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload ,  ElProgress, ElAlert, ElMessage, ElMessageBox} from "element-plus";
+  import { ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElPagination, ElTable, ElTableColumn, ElSelect, ElOption, ElUpload ,  ElProgress, ElAlert, ElMessage, ElMessageBox ,ElImage} from "element-plus";
   import axios from 'axios';
+  import { videoPlayer } from 'vue-video-player'
   import SparkMD5 from 'spark-md5';
 
   export default {
@@ -291,6 +356,8 @@
       ElAlert,
       ElMessage,
       ElMessageBox,
+      ElImage,
+      videoPlayer
   },
     setup() {
       const store = useStore();
@@ -306,6 +373,32 @@
     },
     data() {
     return {
+      dialogVisible_p: false,
+      dialogVisible_v: false,
+      photoUrl: '' ,// 用于存储图片地址
+      videoUrl: '' ,// 用于存储视频地址
+      playerOptions: {
+        playbackRates: [0.5, 1.0, 1.5, 2.0], // 可选的播放速度
+        autoplay: false,  // 如果为true,浏览器准备好时开始回放
+        muted: false,     // 默认情况下将会消除任何音频。
+        loop: false,      // 是否视频一结束就重新开始。
+        preload: 'auto',  // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
+        language: 'zh-CN',
+        aspectRatio: '16:9',  // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
+        fluid: true,  // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
+        sources: [{
+          type: "video/mp4",  // 类型
+          src: ""           // url地址
+        }],
+        poster: '',  // 封面地址
+        notSupportedMessage: '此视频暂无法播放，请稍后再试',  // 允许覆盖Video.js无法播放媒体源时显示的默认信息。
+        controlBar: {
+          timeDivider: true,           // 当前时间和持续时间的分隔符
+          durationDisplay: true,       // 显示持续时间
+          remainingTimeDisplay: false, // 是否显示剩余时间功能
+          fullscreenToggle: true       // 是否显示全屏按钮
+        }
+      },
       searchText: '',
       selectedDiseaseType: '', // 保存选择的病种
       dialogVisible: false, // 控制新增弹窗的显示状态
@@ -431,6 +524,7 @@
     handleAdd() {
       // 打开新增弹窗
       this.dialogVisible = true;
+      console.log('add了');
       // 自动生成新的 ID
       //this.form.id = this.cases.length + 1;
     },
@@ -684,6 +778,7 @@
     handlePreview(file) {
       
     },
+    
 
     handleRemove(file, fileList) {
       this.isUploading_p = false;
@@ -997,6 +1092,58 @@
         // 可以在这里进行其他取消上传后的处理
         console.log("取消上传成功");
     },
+
+    handlePreview_p(row) {
+      console.log('点击查看图片按钮，当前行信息:', row);
+      this.openDialog_p(row.photo);
+    },
+    handleImagePreview(imageUrl) {
+      // 在这里添加处理图片预览的逻辑，比如打开一个模态框显示图片
+      console.log('预览图片:', imageUrl);
+    },
+
+    openDialog_p(photoUrl) {
+      this.dialogVisible_p = true;
+      const tmp=photoUrl;
+      if(tmp!=null){
+      if(tmp.startsWith('http')){
+        this.photoUrl = photoUrl;
+      }else{
+        this.photoUrl = "http://47.103.131.161:10010/files/"+photoUrl;
+      }}
+      console.log('图片具体是什么',this.photoUrl);
+    },
+    closeDialog_p() {
+      this.dialogVisible_p = false;
+      this.photoUrl = '';
+    },
+    handlePreview_v(row) {
+      console.log('点击查看视频按钮，当前行信息:', row);
+      this.openDialog_v(row.video);
+    },
+    openDialog_v(videoUrl) {
+      this.dialogVisible_v = true;
+
+      const tmp2=videoUrl;
+      console.log('视频地址:',tmp2);
+      if(tmp2!=null){
+      if(tmp2&&tmp2.startsWith('http')){
+        this.videoUrl = videoUrl;
+      }else{
+        this.videoUrl = "http://47.103.131.161:10010/files/"+videoUrl;
+      }}
+      this.playerOptions.sources[0].src=this.videoUrl;
+      
+      console.log('视频具体是什么',this.videoUrl);
+    },
+    closeDialog_v() {
+      this.dialogVisible_v = false;
+      this.videoUrl = '';
+    }
+
+    
+      
+
 
   },
 };

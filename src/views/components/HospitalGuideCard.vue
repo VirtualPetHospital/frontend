@@ -11,7 +11,7 @@
                 <!-- 免疫室//档案室 -->
                 <div class="location-container immune-container" @mouseover="showLocationName('档案室')" v-if="showMap">
                     <router-link to="/photoSphere?index=3" data-name="档案室">
-                        <img class="location-img immune" src="../../assets/img/room/1.png" style="position:absolute;top:2.2%; left:11%; width: 23%;">
+                        <img class="location-img immune" src="../../assets/img/room/1.png" style="position:absolute;top:2.8%; left:11%; width: 23%;">
                         <span class="btn btn-lg btn-secondary location-name" v-if="isLocationNameVisible && locationName === '档案室'" style="position:absolute;top:4%; left:24%; z-index: 999;">档案室</span>
                     </router-link>
                 </div>
