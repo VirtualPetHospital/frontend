@@ -8,6 +8,13 @@
             <div class="avatar-container">
               <img class="avatar" :src="avatar_url" alt="Avatar" />
             </div>
+            <!-- <div class="jingyan">
+              <span>升级经验条：{{ 5-upgrade_progress }}/{{5}}
+              <div class="progress" v-if="type === 'student'">
+                  <div class="progress-bar" :style="{ width: progressWidth }"></div>
+              </div>
+            </span>
+            </div> -->
             <div class="margin-top">
               <h4 style="text-align: center;">个人信息</h4>
               <div class="table-responsive">
@@ -29,9 +36,22 @@
                     <td><strong>学生等级:</strong></td>
                     <td >{{ level }}</td>
                   </tr>
+                  <!-- <tr v-if="type === 'student'">
+                    <td><strong>经验条:</strong></td> -->
+                    <!-- <td >{{ level }}</td> -->
+                    <!-- <span>{{ selectedCount }}/{{problemmax}} -->
+                  <!-- </span> -->
+                  <!-- </tr> -->
                   </tbody>
                 </table>
               </div>
+              <div class="jingyan" style="text-align: center;" v-if="type === 'student'">
+              <span style="color: #344767; font-weight: bold;">升级经验条：{{ 5-upgrade_progress }}/{{5}}
+              <div class="progress" v-if="type === 'student'">
+                  <div class="progress-bar" :style="{ width: progressWidth }"></div>
+              </div>
+            </span>
+            </div>
             </div>
             <div class="button-container">
               <button class="btn btn-primary" @click="openUserDetails()">
@@ -56,7 +76,8 @@
             <input type="text" class="form-control" v-model="selectednickname" :disabled="!editMode"><br>
             <label>邮箱：</label>
             <input type="text" class="form-control" v-model="selectedemail" :disabled="!editMode"><br>
-            <el-upload
+            <label v-if="editMode">更换头像：</label>
+            <el-upload v-if="editMode"
                 class="upload-demo"
                 ref="upload"
                 action="/api/files/upload"
@@ -64,7 +85,7 @@
                 :on-success="handleSuccess"
                 :on-error="handleUploadError"
                 :file-list="this.photo"
-                :data="{ file: this.photo, location: 'disease' }"
+                :data="{ file: this.photo, location:'user-avatar'}"
                 :before-upload="beforeUpload"
                 :headers="headerObj"
                 :with-credentials="true"
@@ -81,7 +102,6 @@
       </div>
     </div>
   </transition>
-
   <transition name="modal">
     <div class="modal-mask" v-if="showWarning2" @click="closeWarning2">
       <div class="modal-wrapper" @click.stop>
@@ -96,6 +116,19 @@
     </div>
   </transition>
 
+  <transition name="modal">
+    <div class="modal-mask" v-if="showWarning3" @click="closeWarning3">
+      <div class="modal-wrapper" @click.stop>
+        <div class="modal-container">
+          <h3>提示</h3>
+          <p>请上传大小不超过500KB的jpg/png图片文件</p>
+          <div class="button-container">
+            <button type="button" class="btn btn-lg btn-block btn-warning" @click="closeWarning3">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
   <transition name="modal">
     <div class="modal-mask" v-if="showChangePassword" @click="closeChangePassword">
       <div class="modal-wrapper" @click.stop>
@@ -143,6 +176,7 @@ export default {
       email: sessionStorage.getItem("email"),
       type: sessionStorage.getItem("type"),
       password: sessionStorage.getItem("password"),
+      upgrade_progress:'',
       userid:'',
       level:'',
       photo:[],
@@ -160,6 +194,8 @@ export default {
       originalPassword: '',
       confirmNewPassword: '',
       showChangePassword: false,
+      progressWidth: '0%', // 动态进度条宽度
+      showWarning3: false,
     };
   },
   setup() {
@@ -186,7 +222,6 @@ export default {
     this.fetchUser();
   },
   methods:{
-
     handleRemove(file, fileList) {
       this.isUploading_p = false;
       this.isUploading_v = false;
@@ -196,13 +231,26 @@ export default {
     beforeUpload(file) {
       this.isUploading_p = true; // 上传开始时设置为 true
       console.log('上传的文件对象:', file);
-      console.log('对不对',this.isUploading);
-      this.photo = [file];
-      console.log('上传的文件对象真的是吗:', this.photo);
-      return true; // 确保继续上传过程
+      // console.log('对不对',this.isUploading);
+      // this.photo = [file];
+      // console.log('上传的文件对象真的是吗:', this.photo);
+      // return true; 
+      const isJPGorPNG = file.type === 'image/jpeg' || file.type === 'image/png';
+      const isLt500KB = file.size / 1024 <= 500;
+      if (!isJPGorPNG) {
+        this.showWarning3 = true;
+        return false;
+      }
+      else if (!isLt500KB) {
+        this.showWarning3 = true;
+        return false;
+      }
+      else{
+        this.photo = [file];
+        return true;
+      }
     },
     handleSuccess(response) {
-
       // 处理上传成功后的逻辑，如获取文件名并存储在this.form.photo中
       console.log('上传是不是真的成功:', response.code);
       if(response.code===0){
@@ -224,7 +272,6 @@ export default {
           duration: 3000
         });
       }
-
     },
     handleUploadError(err, file, fileList) {
       // 处理上传失败的逻辑
@@ -238,7 +285,6 @@ export default {
         duration: 3000
       });
     },
-
     openChangePassword() {
       this.showChangePassword = true;
     },
@@ -264,9 +310,10 @@ export default {
           this.type = response.data.data.type;
           this.nickname = response.data.data.nickname;
           this.avatar_url = response.data.data.avatar_url ? response.data.data.avatar_url : this.defaultAvatarURL;
-
           this.email = response.data.data.email;
           this.level= response.data.data.level;
+          this.upgrade_progress = response.data.data.upgrade_progress;
+          this.progressWidth = ( (5-response.data.data.upgrade_progress)/ 5) * 100 + '%';
         }
       } catch (error) {
         console.error('Error fetching questions:', error);
@@ -280,7 +327,6 @@ export default {
       return ;
     }
     console.log('url:'+this.selectedavatar_url);
-
     try {
       const response = await axios.put(`/api/users`,  {
         type: this.type,
@@ -305,6 +351,7 @@ export default {
       } else {
         // 更新失败，处理错误信息
         console.error('用户信息更新失败:', responseData.msg);
+        alert("用户信息修改失败:",responseData.msg);
       }
     } catch (error) {
       console.error('题目信息更新失败:', error);
@@ -346,14 +393,32 @@ export default {
     {
         this.showWarning2 = false;
     },
+    closeWarning3()
+    {
+        this.showWarning3 = false;
+    },
     closeChangePassword() {
       this.showChangePassword = false;
       this.originalPassword = '';
       this.newPassword = '';
       this.confirmNewPassword = '';
     },
-
     async savePassword() {
+      if(this.originalPassword == '')
+      {
+        alert('原密码不可为空');
+        return ;
+      }
+      if(this.newPassword == '')
+      {
+        alert('新密码不可为空');
+        return ;
+      }
+      if(this.confirmNewPassword == '')
+      {
+        alert('确认新密码不可为空');
+        return ;
+      }
       if (this.originalPassword !== this.password) {
         alert('原密码错误');
         return;
@@ -362,7 +427,6 @@ export default {
         alert('新密码与确认密码不一致');
         return;
       }
-
       try {
         const response = await axios.put(`/api/users`, {
         type: this.type,
@@ -393,8 +457,6 @@ export default {
   }
 };
 </script>
-
-
 <style>
 .container {
   margin-top: 20px;
@@ -547,5 +609,24 @@ margin-bottom: 10px;
   font-size: 20px;
   background-color: #000;
   background-color: rgba(0, 0, 0, .3)
+}
+.progress {
+  width: 200px;
+  height: 20px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #007bff;
+  transition: width 0.5s ease; /* 进度条动画效果 */
+}
+.jingyan {
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  align-items: center;
+  text-align: center; /* 文字居中 */
 }
 </style>
