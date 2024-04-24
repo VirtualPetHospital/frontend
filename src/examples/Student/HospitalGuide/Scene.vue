@@ -21,21 +21,21 @@
           <div class="row">
             <div class="col-4 ">
               <div
-                  class="card card-body border card-plain border-radius-lg d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleFunc()">
+                  class="card card-body border card-plain  d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleFunc()">
                 <h5 class="mb-0 text-white">功能说明</h5>
               </div>
             </div>
 
             <div class="col-4">
               <div
-                  class="card  card-body border card-plain border-radius-lg d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleOperator()">
+                  class="card  card-body border card-plain  d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleOperator()">
                 <h5 class="mb-0 text-white">介绍图片</h5>
               </div>
             </div>
 
             <div class="col-4">
               <div
-                  class="card card-body border card-plain border-radius-lg d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleVideo()">
+                  class="card card-body border  card-plain  d-flex align-items-center flex-row" style="background-color: #b3d4fc" v-on:click="toggleVideo()">
                 <h5 class="mb-0 text-white">演示动画</h5>
               </div>
             </div>
@@ -191,7 +191,7 @@ export default {
           img: require('@/assets/img/injection.jpg'),
         },
         {//前台
-          img: require('@/assets/img/reception.png'),
+          img: require('@/assets/img/reception.jpg'),
         },
         {//住院部
           img: require('@/assets/img/hospitalization.jpg'),
@@ -208,7 +208,7 @@ export default {
               tooltip:'化验室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
               longitude: 2.4,
-              latitude: -0.31179146502439625,
+              latitude: -0.3,
               anchor: 'center right',
               jump: true,
               target: 1,
@@ -217,8 +217,8 @@ export default {
             {
               id:'清洗槽',
               html: '<div class="bubble">清洗槽</div>',
-              longitude:0.3368927313172293,
-              latitude: -0.1478313488770011,
+              longitude:0.34,
+              latitude: -0.15,
               anchor: 'center right',
               jump: false,
               asset_id:1,
@@ -229,8 +229,8 @@ export default {
             {
               id:'展览台',
               html: '<div class="bubble">展览台</div>',
-              longitude: 4.730593408331794,
-              latitude:  0.0014482872080976428,
+              longitude: 4.73,
+              latitude:  0.0015,
               anchor: 'center right',
               asset_id:2,
               jump: false,
@@ -249,7 +249,7 @@ export default {
               tooltip:'档案室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
               longitude: 0.5,
-              latitude: -0.5952505913905668,
+              latitude: -0.595,
               anchor: 'center right',
               jump: true,
 
@@ -301,7 +301,7 @@ export default {
               id:'档案存放柜',
               html: '<div class="bubble">档案存放柜</div>',
               longitude: 5.8,
-              latitude: 0.0014482872080976428,
+              latitude: 0.0015,
               anchor: 'center right',
               jump: false,
               asset_id:5,
@@ -342,7 +342,7 @@ export default {
               id:'洗漱台',
               html: '<div class="bubble">洗漱台</div>',
               longitude: 8.3,
-              latitude:  -0.1478313488770011,
+              latitude:  -0.15,
               anchor: 'center right',
               jump: false,
               asset_id:7,
@@ -390,7 +390,7 @@ export default {
               tooltip:'处置室',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
               longitude: 1,
-              latitude: -0.6501577651944035,
+              latitude: -0.65,
               anchor: 'center right',
               jump: true,
               target: 4,
@@ -482,7 +482,7 @@ export default {
               id:'拿药处',
               html: '<div class="bubble">拿药处</div>',
               longitude: 4,
-              latitude: 0.0014482872080976428,
+              latitude: 0.0015,
               anchor: 'center right',
               jump: false,
               asset_id:13,
@@ -494,7 +494,7 @@ export default {
               id:'药柜',
               html: '<div class="bubble">药柜</div>',
               longitude: 5.7,
-              latitude:  -0.1478313488770011,
+              latitude:  -0.15,
               anchor: 'center right',
               jump: false,
               asset_id:14,
@@ -611,7 +611,7 @@ export default {
               id:'toZhuYuanBu',
               tooltip:'住院部',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: 1.903334280522629 ,
+              longitude: 1.9 ,
               latitude: -0.3561951394225287,
               anchor: 'center right',
               jump: true,
@@ -621,8 +621,8 @@ export default {
             {
               id:'注射台',
               html: '<div class="bubble">注射台</div>',
-              longitude: 4.730593408331794,
-              latitude: 0.0014482872080976428,
+              longitude: 4.73,
+              latitude: 0.0015,
               anchor: 'center right',
               jump: false,
               asset_id:19,
@@ -640,7 +640,7 @@ export default {
               id:'toYaoFang',
               tooltip:'药房',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude: -0.5,
+              longitude: -2.7,
               latitude: -0.1,
               anchor: 'center right',
               jump: true,
@@ -651,8 +651,8 @@ export default {
               id:'toZhuYuanBu',
               tooltip:'住院部',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
-              longitude:  8.17,
-              latitude: -0.01,
+              longitude:  -1.7,
+              latitude: -0.1,
               anchor: 'center right',
               jump: true,
               target: 13,
@@ -661,8 +661,8 @@ export default {
             {
               id:'接待台',
               html: '<div class="bubble">接待台</div>',
-              longitude: 6.4,
-              latitude: 0.0014482872080976428,
+              longitude: -1.5,
+              latitude: 0.0015,
               anchor: 'center right',
               jump: false,
               asset_id:20,
@@ -681,7 +681,7 @@ export default {
               tooltip:'前台',
               html: '<div><img src="https://aupup-mall-pub.oss-cn-shenzhen.aliyuncs.com/public/b254e741-96d5-40d9-aabd-853c5a2e332f.png" style="width:50%;height:50%;transform:rotate(-5deg)"></img></div>',
               longitude: 6.5,
-              latitude: -0.4750037687323192,
+              latitude: -0.475,
               anchor: 'center right',
               jump: true,
               target: 12,
@@ -691,7 +691,7 @@ export default {
               id:'指示灯',
               html: '<div class="bubble">指示灯</div>',
               longitude: 6.5,
-              latitude: 0.0014482872080976428,
+              latitude: 0.0015,
               anchor: 'center right',
               jump: false,
               asset_id:21,
