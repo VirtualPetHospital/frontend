@@ -48,11 +48,11 @@
               <div v-if="selectedQuestion">
                 <span>你的选项</span>
                 <div>
-                  <el-radio-group v-model="selectedAns">
-                    <el-radio disabled :label="1">{{selectedQuestion.a}}</el-radio>
-                    <el-radio disabled :label="2">{{selectedQuestion.b}}</el-radio>
-                    <el-radio disabled :label="3">{{selectedQuestion.c}}</el-radio>
-                    <el-radio disabled :label="4">{{selectedQuestion.d}}</el-radio>
+                  <el-radio-group v-model="selectedAns" style="display: flex; flex-direction: column;">
+                    <el-radio disabled :label="1" style="align-self: flex-start;">{{selectedQuestion.a}}</el-radio>
+                    <el-radio disabled :label="2" style="align-self: flex-start;">{{selectedQuestion.b}}</el-radio>
+                    <el-radio disabled :label="3" style="align-self: flex-start;">{{selectedQuestion.c}}</el-radio>
+                    <el-radio disabled :label="4" style="align-self: flex-start;">{{selectedQuestion.d}}</el-radio>
                   </el-radio-group>
                 </div>
                 <span>正确答案：{{selectedQuestion.answer}}

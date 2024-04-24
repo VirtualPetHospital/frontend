@@ -49,11 +49,12 @@
               <span style="color: #344767; font-weight: bold;">升级经验条：{{ 5-upgrade_progress }}/{{5}}
               <div class="progress" v-if="type === 'student'">
                   <div class="progress-bar" :style="{ width: progressWidth }"></div>
+                  <div style="margin-top: 10px;margin-left: 40px;margin-bottom: 10px">继续完成试卷即可升级</div>
               </div>
             </span>
             </div>
             </div>
-            <div class="button-container">
+            <div class="button-container" >
               <button class="btn btn-primary" @click="openUserDetails()">
                 查看详情
               </button>
@@ -347,6 +348,9 @@ export default {
         // 成功更新题目信息
         console.log('用户信息更新成功:', responseData.data);
         alert("用户信息修改成功!");
+        sessionStorage.setItem('avatar_url',response.data.data.avatar_url);
+        sessionStorage.setItem('nickname', response.data.data.nickname);
+        sessionStorage.setItem('password',response.data.data.password);
         // 你可能还需要更新本地的题目列表数据或其他相关操作
       } else {
         // 更新失败，处理错误信息

@@ -10,13 +10,13 @@
                 <span>{{ item.content }}</span>
               </div>
               <div style="margin-top: 5px">
-                <img src="@/assets/img/card-visa.jpg" />
+                <img class="avatar"  :src=this.avatar />
               </div>
             </div>
 
             <div class="robot" v-if="item && item.user=='robot'">
               <div style="margin-top: 10px;">
-                <img src="@/assets/img/bo.jpg"/>
+                <img src="http://47.103.131.161:10010/files/user-avatar_photo_2024-04-25-01-56-29.jpeg" />
               </div>
               <div class="text2" style="width: 400px;margin-left: 20px">
 
@@ -52,6 +52,7 @@ export default{
       sendFlag:'',
       oldSendData:'',
       streamFlag:true,
+      avatar:sessionStorage.getItem('avatar_url')
 
     }
   },
@@ -325,6 +326,11 @@ button {
 }
 .card.p-4{
   height:80vh;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
 }
 </style>
 

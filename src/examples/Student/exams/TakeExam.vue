@@ -3,7 +3,7 @@
     <div class=" row">
       <div class="col-12">
         <div class="row">
-          <i class="ni ni-bold-left text-info text-sm opacity-10" @click="backto()"></i>
+
           <h3>考试名：{{name}}</h3>
         </div>
 
@@ -58,17 +58,20 @@
               <div v-if="selectedQuestion">
               <span>选项</span>
                 <div>
-                <el-radio-group v-model="selectedAns">
-                  <el-radio :label="1" @click="submitAnswer(selectedQuestion.question_id,1)">{{selectedQuestion.a}}</el-radio>
-                  <el-radio :label="2" @click="submitAnswer(selectedQuestion.question_id,2)">{{selectedQuestion.b}}</el-radio>
-                  <el-radio :label="3" @click="submitAnswer(selectedQuestion.question_id,3)">{{selectedQuestion.c}}</el-radio>
-                  <el-radio :label="4" @click="submitAnswer(selectedQuestion.question_id,4)">{{selectedQuestion.d}}</el-radio>
+                <el-radio-group v-model="selectedAns"  style="display: flex; flex-direction: column;">
+                  <el-radio :label="1" @click="submitAnswer(selectedQuestion.question_id,1)" style="align-self: flex-start;">{{selectedQuestion.a}}</el-radio>
+                  <el-radio :label="2" @click="submitAnswer(selectedQuestion.question_id,2)" style="align-self: flex-start;">{{selectedQuestion.b}}</el-radio>
+                  <el-radio :label="3" @click="submitAnswer(selectedQuestion.question_id,3)" style="align-self: flex-start;">{{selectedQuestion.c}}</el-radio>
+                  <el-radio :label="4" @click="submitAnswer(selectedQuestion.question_id,4)" style="align-self: flex-start;">{{selectedQuestion.d}}</el-radio>
                 </el-radio-group>
                 </div>
               </div>
             </el-card>
             <div>
-              <el-button style="position: absolute;margin-top: 10px; right:30px" class="custom-button" @click="submitExam" :disabled="handin">提交</el-button>
+              <el-tooltip class="item" effect="dark" :disabled="!this.checkAnsNum" content="答完所有题即可提交" placement="bottom">
+                <el-button style="position: absolute;margin-top: 10px; right:30px" class="custom-button" @click="submitExam" :disabled="handin">提交</el-button>
+              </el-tooltip>
+
             </div>
           </el-main>
         </el-container>
@@ -82,8 +85,9 @@
 import { defineComponent, ref, reactive} from 'vue'
 import {useStore} from "vuex";
 import {onBeforeRouteLeave} from "vue-router";
-import {ElHeader, ElRadio, ElRadioGroup, ElAside, ElContainer
-  , ElMain, ElProgress,ElCard,ElButton,ElPopover
+import {
+  ElHeader, ElRadio, ElRadioGroup, ElAside, ElContainer
+  , ElMain, ElProgress, ElCard, ElButton, ElPopover, ElDialog, ElMessage, ElTooltip
 } from "element-plus";
 import axios from "axios";
 export default{
@@ -109,8 +113,10 @@ export default{
 
   data(){
     return{
+      gobackVisible:null,
       exam_id:null,
       name:null,
+      title:'确定要离开考试？',
       start_time:null,
       end_time:null,
       duration:null,
@@ -140,17 +146,29 @@ export default{
   },
   methods:{
     convertMinToHms(min){
-      var seconds=min*60;
+      var seconds=(min+1)*60;
       return seconds;
     },
+    formatGap(start, end) {
+      // let staytimeGap = new Date().getTime() - new Date(start).getTime();
+      let staytimeGap = new Date(end).getTime() -start;
+      let stayHour = Math.floor(staytimeGap / (3600 * 1000));  // 小时
+      let leave1 = staytimeGap % (3600 * 1000);
+      let stayMin = Math.floor(leave1 / (60 * 1000));  // 分钟
+      let leave2 = leave1 % (60 * 1000);
+      let staySec = Math.floor(leave2 / 1000);   // 秒
+      // return stayHour * 60 + stayMin
+      return this.convertMinToHms(stayHour*60+stayMin+Math.floor(staySec/60));
+    },
     startCountDown() {
-      this.timer = setInterval(() => {
+      this.timer = window.setInterval(() => {
         if (this.countDownTime <= 0) {
           //当监测到countDownTime为0时,清除计数器并且移除sessionStorage,然后执行提交试卷逻辑
-          clearInterval(this.timer);
           sessionStorage.removeItem("exam_time");
           alert("自动为您提交试卷");
+          window.clearInterval(this.timer);
           this.submitExam();
+
         } else if (this.countDownTime > 0) {
           //每秒让countDownTime -1秒,并设置到sessionStorage中
           this.countDownTime--;
@@ -159,7 +177,17 @@ export default{
       }, 1000);
     },
     backto(){
-      this.$router.go(-1);
+      /*答题完成*/
+      if(this.checkAnsNum()===true){
+        ElMessage({
+          message: "未答完题不能离开考试页面",
+          type: 'error',
+          duration: 3000
+        });
+      }else{
+        this.$router.back();
+      }
+
     },
     selectQuestion(questionId) {
       const index = this.paper.questions.findIndex(question => question.question_id === questionId);
@@ -258,7 +286,8 @@ export default{
             }}
       ).then(response=>{
         const data=response.data.data;
-        this.$router.go(-1);
+        this.$router.back();
+        window.clearInterval(this.timer);
           console.log("提交成功");
       });
 
@@ -292,7 +321,7 @@ export default{
         this.start_time = examData.start_time;
         this.end_time = examData.end_time;
         this.duration = examData.duration;
-        this.countDownTime=this.convertMinToHms(this.duration);
+        this.countDownTime=this.formatGap(new Date().getTime(),this.end_time);
         this.level = examData.level;
         this.participated = examData.participated;
         this.paper.paper_id = examData.paper.paper_id;
@@ -367,7 +396,9 @@ export default{
     defineComponent,
     ElCard,
     ElButton,
-    ElPopover
+    ElTooltip,
+    ElPopover,
+    ElMessage
 
   },
   mounted() {
