@@ -81,6 +81,7 @@ export default {
               sessionStorage.setItem('nickname', this.loginRuleForm.nickname);
               sessionStorage.setItem('password', this.loginRuleForm.password);
               sessionStorage.setItem('user_id', this.loginRuleForm.user_id);
+              sessionStorage.setItem('avatar_url',response.data.data.avatar_url);
               sessionStorage.setItem("type",response.data.data.type);
               sessionStorage.setItem('sessionId',response.headers['session']);
               this.handleLoginSuccess(response.data.data.type);

@@ -343,6 +343,13 @@ const router = createRouter({
   routes,
   linkActiveClass: "active",
 });
+router.beforeEach((to, from, next) => {
+  if (to.matched.length === 0) {  // 如果未匹配到路由
+    from.name ? next({ name: from.name }) : next('/')
+  } else {
+    next()  // 如果匹配到正确跳转
+  }
+});
 
 
 
